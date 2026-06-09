@@ -1,16 +1,19 @@
 "use client";
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+// 1. IMPORTAMOS TU CONEXIÓN SEGURA DE SUPABASE
+import { supabase } from '@/lib/supabase'; 
 
 export default function DashboardNovios() {
   const [activeTab, setActiveTab] = useState('basicos');
+  const [guardando, setGuardando] = useState(false);
   
   // Estado que recolecta toda la información de la boda
   const [formData, setFormData] = useState({
     groomName: '', brideName: '', eventDate: '', welcomePhrase: '',
     ceremoniaHora: '', ceremoniaLugar: '', ceremoniaMapsUrl: '',
     recepcionHora: '', recepcionLugar: '', recepcionMapsUrl: '',
-    codigoVestimenta: 'Formal',
+    codigoVestimenta: 'Formal / Gala',
     banco: '', titular: '', clabe: '', amazonUrl: '', liverpoolUrl: ''
   });
 
@@ -18,10 +21,46 @@ export default function DashboardNovios() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  // 2. FUNCIÓN ASÍNCRONA PARA GUARDAR EN SUPABASE
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert("¡Datos guardados con éxito! Tu invitación se está compilando para tugrandia.icu");
-    console.log("Datos listos para enviar a la base de datos:", formData);
+    setGuardando(true);
+
+    // Creamos un slug limpio para la URL basándonos en sus nombres
+    const slugUrl = `${formData.groomName.toLowerCase()}-y-${formData.brideName.toLowerCase()}`.replace(/\s+/g, '-');
+
+    const { data, error } = await supabase
+      .from('bodas') // Tu nueva tabla de bodas
+      .insert([
+        {
+          groom_name: formData.groomName,
+          bride_name: formData.brideName,
+          event_date: formData.eventDate,
+          welcome_phrase: formData.welcomePhrase,
+          ceremonia_hora: formData.ceremoniaHora,
+          ceremonia_lugar: formData.ceremoniaLugar,
+          ceremonia_maps_url: formData.ceremoniaMapsUrl,
+          recepcion_hora: formData.recepcionHora,
+          recepcion_lugar: formData.recepcionLugar,
+          recepcion_maps_url: formData.recepcionMapsUrl,
+          codigo_vestimenta: formData.codigoVestimenta,
+          banco: formData.banco,
+          titular: formData.titular,
+          clabe: formData.clabe,
+          amazon_url: formData.amazonUrl,
+          liverpool_url: formData.liverpoolUrl,
+          slug: slugUrl
+        }
+      ]);
+
+    setGuardando(false);
+
+    if (error) {
+      console.error("Error al guardar la boda:", error.message);
+      alert("Hubo un error al guardar tu configuración. Intenta de nuevo.");
+    } else {
+      alert(`¡Tu Gran Día ha sido guardado y activado! 🚀 URL generada: tugrandia.icu/${slugUrl}`);
+    }
   };
 
   const tabs = [
@@ -45,6 +84,7 @@ export default function DashboardNovios() {
           {tabs.map((tab) => (
             <button
               key={tab.id}
+              type="button"
               onClick={() => setActiveTab(tab.id)}
               className={`flex-1 py-4 text-xs md:text-sm font-medium transition-all relative ${
                 activeTab === tab.id ? 'text-amber-700' : 'text-stone-400 hover:text-stone-600'
@@ -71,11 +111,11 @@ export default function DashboardNovios() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Nombre del Novio</label>
-                    <input type="text" name="groomName" value={formData.groomName} onChange={handleChange} placeholder="Ej. Abiel" className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm focus:outline-none focus:border-amber-600" />
+                    <input type="text" name="groomName" value={formData.groomName} onChange={handleChange} placeholder="Ej. Abiel" required className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm focus:outline-none focus:border-amber-600" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Nombre de la Novia</label>
-                    <input type="text" name="brideName" value={formData.brideName} onChange={handleChange} placeholder="Ej. Debanhi" className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm focus:outline-none focus:border-amber-600" />
+                    <input type="text" name="brideName" value={formData.brideName} onChange={handleChange} placeholder="Ej. Debanhi" required className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm focus:outline-none focus:border-amber-600" />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -165,9 +205,10 @@ export default function DashboardNovios() {
           <div className="pt-4 border-t border-stone-100 flex justify-end gap-4">
             <button
               type="submit"
-              className="bg-stone-900 hover:bg-stone-800 text-white font-medium text-sm px-8 py-3.5 rounded-xl transition-all shadow-sm transform hover:scale-102"
+              disabled={guardando}
+              className="bg-stone-900 hover:bg-stone-800 text-white font-medium text-sm px-8 py-3.5 rounded-xl transition-all shadow-sm transform hover:scale-102 disabled:bg-stone-400 cursor-pointer"
             >
-              🔒 Guardar y Activar Invitación
+              {guardando ? "Guardando Configuración..." : "🔒 Guardar y Activar Invitación"}
             </button>
           </div>
         </form>
