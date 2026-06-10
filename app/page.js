@@ -39,6 +39,56 @@ export default function ClickyPapelHome() {
     visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
   };
 
+  const planes = [
+    {
+      name: "💍 Digital Esencial",
+      price: "$1,199",
+      desc: "El gancho perfecto. Una invitación impecable, automatizada y lista para compartir al instante.",
+      features: [
+        "URL personalizada (tugrandia.icu/novios)",
+        "Cuenta regresiva animada",
+        "Itinerario de Iglesia y Salón con GPS",
+        "Imagen de Portada (Banner Principal)",
+        "Galería de fotos (Máximo 3 recuerdos)",
+        "RSVP estándar por formulario básico"
+      ],
+      popular: false,
+      button: "Comenzar Esencial"
+    },
+    {
+      name: "🌟 Gran Día Premium",
+      price: "$2,899",
+      desc: "El Rey de las Ventas. El control absoluto del evento y de tus invitados en tiempo real.",
+      features: [
+        "Todo lo incluido en el Plan Esencial",
+        "Galería extendida (Hasta 6 fotografías)",
+        "Mesa de Regalos activa (CLABE, Amazon, etc.)",
+        "Música de fondo premium (5 temas a elegir)",
+        "Filtro inteligente anti-colados",
+        "Control de pases exactos por familia",
+        "📊 Panel de confirmaciones en vivo en tu Dashboard"
+      ],
+      popular: true,
+      button: "Elegir Premium"
+    },
+    {
+      name: "👑 VIP Celestial Boutique",
+      price: "$4,899",
+      desc: "Experiencia de lujo sin preocupaciones. Nosotros nos encargamos de maquetar tu visión.",
+      features: [
+        "Todo lo incluido en el Plan Premium",
+        "Asesoría 1 a 1 para recabado de información",
+        "Maquetación y diseño boutique por nuestro equipo",
+        "Galería extendida premium (6 a 12 fotografías)",
+        "Música 100% personalizada (Tu canción especial)",
+        "Secciones personalizadas a petición de los novios",
+        "Soporte prioritario VIP para cambios de último minuto"
+      ],
+      popular: false,
+      button: "Contratar Servicio VIP"
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-[#faf9f6] font-sans text-stone-800 selection:bg-amber-100 overflow-x-hidden relative">
       
@@ -110,7 +160,7 @@ export default function ClickyPapelHome() {
         </svg>
       </div>
 
-      {/* 1. NAVBAR */}
+      {/* 1. NAVBAR ACTUALIZADO CON LOGIN */}
       <motion.nav 
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -123,10 +173,12 @@ export default function ClickyPapelHome() {
           </Link>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-stone-600">
             <a href="#concept" className="hover:text-stone-900 transition-colors relative group">El Concepto<span className="absolute bottom-0 left-0 w-0 h-[1px] bg-amber-700 transition-all group-hover:w-full"/></a>
-            <a href="#pricing" className="hover:text-stone-900 transition-colors relative group">Precios<span className="absolute bottom-0 left-0 w-0 h-[1px] bg-amber-700 transition-all group-hover:w-full"/></a>
+            <a href="#pricing" className="hover:text-stone-900 transition-colors relative group">Precios y Planes<span className="absolute bottom-0 left-0 w-0 h-[1px] bg-amber-700 transition-all group-hover:w-full"/></a>
           </div>
-          <Link href="/dashboard" className="bg-stone-900 hover:bg-stone-800 text-white text-xs font-medium px-5 py-2.5 rounded-full transition-all tracking-wide shadow-xs hover:scale-105 transform duration-200">
-            Crear Invitación
+          
+          {/* Botón de acceso exclusivo para clientes vinculados */}
+          <Link href="/login" className="bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold px-5 py-2.5 rounded-full transition-all uppercase tracking-wider shadow-xs hover:scale-105 transform duration-200">
+            Portal de Novios →
           </Link>
         </div>
       </motion.nav>
@@ -150,7 +202,7 @@ export default function ClickyPapelHome() {
               />
             ))}
           </div>
-          <button onClick={togglePlay} className="text-white text-xs font-medium tracking-wider uppercase hover:text-amber-300 transition-colors">
+          <button onClick={togglePlay} className="text-white text-xs font-medium tracking-wider uppercase hover:text-amber-300 transition-colors cursor-pointer">
             {isPlaying ? "Pausar música" : "Activar música"}
           </button>
         </motion.div>
@@ -214,36 +266,46 @@ export default function ClickyPapelHome() {
         </div>
       </section>
 
-      {/* 4. SECCIÓN DE PRECIOS */}
+      {/* 4. SECCIÓN DE PRECIOS ACTUALIZADA */}
       <section id="pricing" className="py-24 px-6 bg-stone-50 border-t border-stone-200/40 relative z-10">
-        <div className="max-w-5xl mx-auto text-center">
+        <div className="max-w-6xl mx-auto text-center">
           <span className="font-serif text-amber-700 font-medium italic block text-lg mb-2">Nuestros Planes</span>
           <h2 className="text-3xl md:text-4xl font-serif font-light text-stone-900 mb-4">Diseñado para cada estilo de boda</h2>
           <p className="text-stone-500 font-light text-sm md:text-base max-w-md mx-auto mb-16">Precios transparentes y sin comisiones ocultas para el día más importante de sus vidas.</p>
+          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-            {[
-              { name: "Esencial Digital", price: "$1,499", desc: "Ideal para bodas íntimas o de organización exprés.", features: ["Invitación en tugrandia.icu", "Cuenta regresiva animada", "Ubicación GPS (Mapas)", "RSVP estándar por formulario"], popular: false, button: "Comenzar Esencial" },
-              { name: "Gran Día Premium", price: "$2,899", desc: "El control absoluto del evento en las manos de los novios.", features: ["Todo lo del plan Esencial", "Filtro inteligente anti-colados", "Pase digital con Código QR", "Música de fondo y Galería ilimitada", "Panel de confirmaciones (Excel)"], popular: true, button: "Elegir Premium" },
-              { name: "Click & Papel", price: "$5,499", desc: "La fusión perfecta entre tradición física e innovación digital.", features: ["Todo lo del plan Premium", "50 Tarjetas físicas de lujo", "Código QR estilizado impreso", "Papel texturizado de alto gramaje", "Envío a domicilio gratis"], popular: false, button: "Comprar Paquete Híbrido" }
-            ].map((plan, index) => (
-              <motion.div key={index} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: index * 0.1 }} whileHover={{ y: -8 }} className={`relative bg-white rounded-3xl p-8 border flex flex-col justify-between shadow-xs transition-all ${plan.popular ? 'border-amber-500 ring-2 ring-amber-500/20' : 'border-stone-200/60'}`}>
-                {plan.popular && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-600 text-white text-[10px] uppercase font-semibold tracking-widest px-3 py-1 rounded-full shadow-xs">El Más Vendido</span>}
+            {planes.map((plan, index) => (
+              <motion.div 
+                key={index} 
+                initial={{ opacity: 0, y: 30 }} 
+                whileInView={{ opacity: 1, y: 0 }} 
+                viewport={{ once: true }} 
+                transition={{ duration: 0.5, delay: index * 0.1 }} 
+                whileHover={{ y: -8 }} 
+                className={`relative bg-white rounded-3xl p-8 border flex flex-col justify-between shadow-xs transition-all ${plan.popular ? 'border-amber-500 ring-2 ring-amber-500/20' : 'border-stone-200/60'}`}
+              >
+                {plan.popular && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-600 text-white text-[10px] uppercase font-semibold tracking-widest px-3 py-1 rounded-full shadow-xs">¡El Más Recomendado!</span>}
                 <div className="space-y-4 text-left">
                   <h4 className="font-serif text-xl text-stone-900 font-light">{plan.name}</h4>
                   <div className="flex items-baseline gap-1">
                     <span className="text-3xl md:text-4xl font-serif text-stone-800">{plan.price}</span>
                     <span className="text-xs text-stone-400 font-light">MXN</span>
                   </div>
-                  <p className="text-stone-400 font-light text-xs leading-relaxed">{plan.desc}</p>
+                  <p className="text-stone-400 font-light text-xs leading-relaxed min-h-[36px]">{plan.desc}</p>
                   <hr className="border-stone-100 my-2" />
                   <ul className="space-y-3 pt-2">
                     {plan.features.map((feat, fIndex) => (
-                      <li key={fIndex} className="flex items-start gap-2 text-xs md:text-sm text-stone-600 font-light"><span className="text-amber-600 text-xs">✓</span> {feat}</li>
+                      <li key={fIndex} className="flex items-start gap-2 text-xs md:text-sm text-stone-600 font-light">
+                        <span className="text-amber-600 text-xs">✓</span> 
+                        <span>{feat}</span>
+                      </li>
                     ))}
                   </ul>
                 </div>
                 <div className="pt-8">
-                  <Link href="/dashboard" className={`block w-full text-center font-medium text-xs py-3 rounded-xl transition-colors ${plan.popular ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-sm' : 'bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200'}`}>{plan.button}</Link>
+                  <Link href="/login" className={`block w-full text-center font-medium text-xs py-3 rounded-xl transition-all uppercase tracking-wider ${plan.popular ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-sm' : 'bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200'}`}>
+                    {plan.button}
+                  </Link>
                 </div>
               </motion.div>
             ))}
