@@ -4,6 +4,7 @@ import ImageUploader from '@/components/ImageUploader';
 import { motion, AnimatePresence } from 'framer-motion';
 // 1. IMPORTAMOS TU CONEXIÓN SEGURA DE SUPABASE
 import { supabase } from '@/lib/supabase'; 
+export const dynamic = 'force-dynamic';
 
 export default function DashboardNovios() {
   const [activeTab, setActiveTab] = useState('basicos');
@@ -22,6 +23,15 @@ export default function DashboardNovios() {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // Funciones manuales para avanzar y retroceder los pasos
+  const irASiguiente = (siguientePaso) => {
+    setActiveTab(siguientePaso);
+  };
+
+  const irAAtras = (pasoAnterior) => {
+    setActiveTab(pasoAnterior);
   };
 
   // 2. FUNCIÓN ASÍNCRONA PARA GUARDAR EN SUPABASE
@@ -78,10 +88,21 @@ export default function DashboardNovios() {
 
   return (
     <div className="min-h-screen bg-stone-50 py-12 px-4 font-sans text-stone-800">
-      <div className="max-w-3xl mx-auto bg-white border border-stone-200/60 rounded-3xl shadow-xs overflow-hidden">
+      <div className="max-w-3xl mx-auto bg-white border border-stone-200/60 rounded-3xl shadow-xs overflow-hidden relative">
         
+        {/* BARRA SUPERIOR DINÁMICA: Botón de regresar al paso anterior si no está en la primera página */}
+        {activeTab !== 'basicos' && (
+          <button
+            type="button"
+            onClick={() => irAAtras(activeTab === 'regalos' ? 'logistica' : 'basicos')}
+            className="absolute top-6 left-6 text-stone-400 hover:text-white transition-colors text-xs flex items-center gap-1.5 z-10 bg-stone-800/40 px-3 py-1.5 rounded-full backdrop-blur-xs border border-stone-700/30 cursor-pointer"
+          >
+            ← Volver al paso anterior
+          </button>
+        )}
+
         {/* Encabezado del Formulario */}
-        <div className="bg-stone-900 p-8 text-white text-center space-y-2">
+        <div className="bg-stone-900 p-8 text-white text-center space-y-2 pt-14 md:pt-8">
           <h1 className="font-serif text-2xl md:text-3xl font-light tracking-wide">Configura Tu Gran Día</h1>
           <p className="text-stone-400 text-xs md:text-sm font-light">Llena los campos para diseñar tu invitación interactiva al instante.</p>
         </div>
@@ -112,7 +133,10 @@ export default function DashboardNovios() {
             {/* PESTAÑA 1: DATOS BÁSICOS */}
             {activeTab === 'basicos' && (
               <motion.div
-                key="basicos" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }}
+                key="basicos" 
+                initial={{ opacity: 1, x: 0 }} 
+                animate={{ opacity: 1, x: 0 }} 
+                exit={{ opacity: 0, x: 10 }}
                 className="space-y-6"
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -141,6 +165,17 @@ export default function DashboardNovios() {
                     onUploadComplete={(url) => setCoverImage(url)} 
                     label="Foto Principal del Banner Web"
                   />
+                </div>
+
+                {/* BOTÓN SIGUIENTE */}
+                <div className="pt-4 border-t border-stone-100 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => irASiguiente('logistica')}
+                    className="bg-amber-700 hover:bg-amber-800 text-white font-medium text-xs md:text-sm px-6 py-3 rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                  >
+                    Siguiente: Lugar y Hora ➔
+                  </button>
                 </div>
               </motion.div>
             )}
@@ -189,6 +224,24 @@ export default function DashboardNovios() {
                     <option value="Cocktail">Cocktail</option>
                   </select>
                 </div>
+
+                {/* BOTONES DE NAVEGACIÓN PASO 2 */}
+                <div className="pt-4 border-t border-stone-100 flex justify-between gap-4">
+                  <button
+                    type="button"
+                    onClick={() => irAAtras('basicos')}
+                    className="border border-stone-300 text-stone-600 hover:bg-stone-50 font-medium text-xs md:text-sm px-5 py-3 rounded-xl transition-all cursor-pointer"
+                  >
+                    ⬅ Atrás
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => irASiguiente('regalos')}
+                    className="bg-amber-700 hover:bg-amber-800 text-white font-medium text-xs md:text-sm px-6 py-3 rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                  >
+                    Siguiente: Regalos ➔
+                  </button>
+                </div>
               </motion.div>
             )}
 
@@ -212,21 +265,28 @@ export default function DashboardNovios() {
                   <input type="text" name="amazonUrl" value={formData.amazonUrl} onChange={handleChange} placeholder="Enlace a Mesa de Regalos de Amazon" className="w-full px-4 py-2.5 border border-stone-200 rounded-xl text-xs focus:outline-none" />
                   <input type="text" name="liverpoolUrl" value={formData.liverpoolUrl} onChange={handleChange} placeholder="Enlace a Mesa de Regalos de Liverpool" className="w-full px-4 py-2.5 border border-stone-200 rounded-xl text-xs focus:outline-none" />
                 </div>
+
+                {/* BOTONES DE NAVEGACIÓN PASO 3 (Aquí se procesa el botón final de Guardado) */}
+                <div className="pt-4 border-t border-stone-100 flex justify-between gap-4">
+                  <button
+                    type="button"
+                    onClick={() => irAAtras('logistica')}
+                    className="border border-stone-300 text-stone-600 hover:bg-stone-50 font-medium text-xs md:text-sm px-5 py-3 rounded-xl transition-all cursor-pointer"
+                  >
+                    ⬅ Atrás
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={guardando}
+                    className="bg-stone-900 hover:bg-stone-800 text-white font-medium text-xs md:text-sm px-8 py-3.5 rounded-xl transition-all shadow-sm transform hover:scale-102 disabled:bg-stone-400 cursor-pointer"
+                  >
+                    {guardando ? "Guardando Configuración..." : "🔒 Guardar y Activar Invitación"}
+                  </button>
+                </div>
               </motion.div>
             )}
 
           </AnimatePresence>
-
-          {/* Botón de Envío / Guardado Global */}
-          <div className="pt-4 border-t border-stone-100 flex justify-end gap-4">
-            <button
-              type="submit"
-              disabled={guardando}
-              className="bg-stone-900 hover:bg-stone-800 text-white font-medium text-sm px-8 py-3.5 rounded-xl transition-all shadow-sm transform hover:scale-102 disabled:bg-stone-400 cursor-pointer"
-            >
-              {guardando ? "Guardando Configuración..." : "🔒 Guardar y Activar Invitación"}
-            </button>
-          </div>
         </form>
       </div>
     </div>
