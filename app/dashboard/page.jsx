@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import ImageUploader from '@/components/ImageUploader';
 import { motion, AnimatePresence } from 'framer-motion';
 // 1. IMPORTAMOS TU CONEXIÓN SEGURA DE SUPABASE
@@ -7,10 +8,15 @@ import { supabase } from '@/lib/supabase';
 export const dynamic = 'force-dynamic';
 
 export default function DashboardNovios() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('basicos');
   const [guardando, setGuardando] = useState(false);
   const [cargandoInvitados, setCargandoInvitados] = useState(false);
+  const [verificandoSesion, setVerificandoSesion] = useState(true);
   
+  // Estado para almacenar los datos del usuario logueado en Supabase
+  const [usuarioActivo, setUsuarioActivo] = useState(null);
+
   // 💎 Selector Piloto de Planes: 'basicos' | 'premium' | 'vip'
   const [planType, setPlanType] = useState('premium'); 
 
@@ -42,12 +48,28 @@ export default function DashboardNovios() {
   const planActual = limitesPorPlan[planType];
   const slugUrl = `${formData.groomName.toLowerCase()}-y-${formData.brideName.toLowerCase()}`.replace(/\s+/g, '-');
 
+  // 🔐 CONTROL DE ACCESO SEGURIZADO: Validar sesión del usuario al cargar la página
+  useEffect(() => {
+    const revisarSesion = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      
+      if (error || !user) {
+        // Si no hay una sesión activa, expulsamos al intruso al login de inmediato
+        router.push('/login');
+      } else {
+        setUsuarioActivo(user);
+        setVerificandoSesion(false);
+      }
+    };
+    revisarSesion();
+  }, [router]);
+
   // Jalar la lista de invitados en tiempo real cuando se abra la pestaña correspondiente
   useEffect(() => {
-    if (activeTab === 'invitados' && planActual.permiteInvitados && formData.groomName && formData.brideName) {
+    if (!verificandoSesion && activeTab === 'invitados' && planActual.permiteInvitados && formData.groomName && formData.brideName) {
       jalarListaInvitados();
     }
-  }, [activeTab, planType]);
+  }, [activeTab, planType, verificandoSesion]);
 
   const jalarListaInvitados = async () => {
     setCargandoInvitados(true);
@@ -55,6 +77,7 @@ export default function DashboardNovios() {
       .from('invitados')
       .select('*')
       .eq('boda_slug', slugUrl)
+      .eq('user_id', usuarioActivo?.id) // Traemos solo los invitados vinculados a este usuario
       .order('id', { ascending: false });
 
     if (!error && data) {
@@ -72,7 +95,13 @@ export default function DashboardNovios() {
     setGalleryImages((prev) => [...prev, url]);
   };
 
-  // ➕ Guardar un nuevo invitado y sus pases en Supabase en tiempo real
+  // 🚪 Función para cerrar sesión con seguridad de Supabase Auth
+  const handleCerrarSesion = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
+
+  // ➕ Guardar un nuevo invitado amarrado al usuario de forma privada
   const handleAgregarInvitado = async (e) => {
     e.preventDefault();
     if (!nuevoInvitado.trim()) return;
@@ -89,7 +118,8 @@ export default function DashboardNovios() {
           boda_slug: slugUrl,
           nombre_invitado: nuevoInvitado.trim(),
           pases_totales: parseInt(pasesAsignados),
-          estado: 'pendiente'
+          estado: 'pendiente',
+          user_id: usuarioActivo.id // 🔒 Inyectamos la firma única del dueño
         }
       ]);
 
@@ -102,7 +132,7 @@ export default function DashboardNovios() {
     }
   };
 
-  // 🔒 GUARDADO GLOBAL DE LA BODA EN SUPABASE
+  // 🔒 GUARDADO GLOBAL DE LA BODA CON FILTRADO POR USUARIO
   const handleSubmit = async (e) => {
     e.preventDefault();
     setGuardando(true);
@@ -130,7 +160,8 @@ export default function DashboardNovios() {
           slug: slugUrl,
           cover_image: coverImage, 
           gallery_images: galleryImages,
-          plan_type: planType
+          plan_type: planType,
+          user_id: usuarioActivo.id // 🔒 El registro queda atado únicamente a este perfil
         }
       ]);
 
@@ -144,7 +175,7 @@ export default function DashboardNovios() {
     }
   };
 
-  // Estructura de pestañas dinámicas basadas en los límites del plan pagado
+  // Estructura de pestañas dinámicas
   const tabs = [
     { id: 'basicos', label: '💍 Datos Básicos' },
     { id: 'logistica', label: '⛪ Lugar y Hora' },
@@ -154,10 +185,20 @@ export default function DashboardNovios() {
 
   const tempSlug = `${formData.groomName || 'boda'}-${formData.brideName || 'nueva'}`.toLowerCase().replace(/\s+/g, '-');
 
+  // Mientras se valida el token de sesión con el servidor, pintamos un estado de carga elegante
+  if (verificandoSesion) {
+    return (
+      <div className="min-h-screen bg-stone-50 font-sans flex items-center justify-center flex-col gap-2">
+        <p className="text-sm font-serif tracking-widest text-stone-900 animate-pulse">clicky<span className="text-amber-600 font-normal">papel</span>.com</p>
+        <p className="text-[10px] uppercase font-bold tracking-wider text-stone-400">Verificando Credenciales de Acceso...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-stone-50 font-sans text-stone-800 flex flex-col">
       
-      {/* HEADER PRINCIPAL DE LA MARCA */}
+      {/* HEADER PRINCIPAL CON CIERRE DE SESIÓN */}
       <header className="w-full bg-white border-b border-stone-200/80 px-6 py-4 flex items-center justify-between shadow-xs sticky top-0 z-50">
         <a href="https://clickypapel.com" className="flex items-center gap-2 group">
           <span className="font-serif text-lg tracking-wider font-light text-stone-900 group-hover:text-amber-700 transition-colors">
@@ -165,18 +206,29 @@ export default function DashboardNovios() {
           </span>
         </a>
         
-        {/* Selector de Plan para Pruebas del Administrador */}
-        <div className="flex items-center gap-2 bg-stone-100 p-1 rounded-xl border border-stone-200">
-          <span className="text-[10px] uppercase font-bold text-stone-400 pl-2">Plan Piloto:</span>
-          <select 
-            value={planType} 
-            onChange={(e) => { setPlanType(e.target.value); setActiveTab('basicos'); }}
-            className="text-xs font-semibold bg-white text-stone-700 px-2 py-1 rounded-lg border-none focus:outline-none cursor-pointer"
+        <div className="flex items-center gap-4">
+          {/* Selector de Plan para Pruebas */}
+          <div className="hidden sm:flex items-center gap-2 bg-stone-100 p-1 rounded-xl border border-stone-200">
+            <span className="text-[10px] uppercase font-bold text-stone-400 pl-2">Plan Piloto:</span>
+            <select 
+              value={planType} 
+              onChange={(e) => { setPlanType(e.target.value); setActiveTab('basicos'); }}
+              className="text-xs font-semibold bg-white text-stone-700 px-2 py-1 rounded-lg border-none focus:outline-none cursor-pointer"
+            >
+              <option value="basicos">Básico</option>
+              <option value="premium">Premium</option>
+              <option value="vip">VIP Celestial</option>
+            </select>
+          </div>
+
+          {/* Botón Profesional de Salida */}
+          <button 
+            type="button"
+            onClick={handleCerrarSesion}
+            className="text-xs font-medium text-stone-500 hover:text-rose-700 bg-stone-100 hover:bg-rose-50 px-4 py-2 rounded-full transition-all uppercase tracking-wider border border-transparent hover:border-rose-200 cursor-pointer"
           >
-            <option value="basicos">Básico (3 fotos, sin lista)</option>
-            <option value="premium">Premium (6 fotos, con lista)</option>
-            <option value="vip">VIP Celestial (10 fotos, completo)</option>
-          </select>
+            Cerrar Sesión ✕
+          </button>
         </div>
       </header>
 
@@ -200,6 +252,7 @@ export default function DashboardNovios() {
               {planActual.nombre}
             </span>
             <h1 className="font-serif text-2xl md:text-3xl font-light tracking-wide pt-1">Configura Tu Gran Día</h1>
+            <p className="text-stone-500 font-mono text-[10px]">{usuarioActivo?.email}</p>
           </div>
 
           {/* Pestañas de Navegación */}
@@ -260,7 +313,6 @@ export default function DashboardNovios() {
                     )}
                   </div>
 
-                  {/* Miniaturas de la galería */}
                   {galleryImages.length > 0 && (
                     <div className="bg-stone-50 p-3 rounded-xl border border-stone-100 flex flex-wrap gap-2 justify-center">
                       {galleryImages.map((img, i) => (
