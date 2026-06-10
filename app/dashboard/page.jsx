@@ -1,5 +1,6 @@
 "use client";
 import { useState } from 'react';
+import ImageUploader from '@/components/ImageUploader';
 import { motion, AnimatePresence } from 'framer-motion';
 // 1. IMPORTAMOS TU CONEXIÓN SEGURA DE SUPABASE
 import { supabase } from '@/lib/supabase'; 
@@ -7,6 +8,8 @@ import { supabase } from '@/lib/supabase';
 export default function DashboardNovios() {
   const [activeTab, setActiveTab] = useState('basicos');
   const [guardando, setGuardando] = useState(false);
+  // Estado para capturar la URL de la imagen subida a Supabase Storage
+  const [coverImage, setCoverImage] = useState('');
   
   // Estado que recolecta toda la información de la boda
   const [formData, setFormData] = useState({
@@ -49,7 +52,8 @@ export default function DashboardNovios() {
           clabe: formData.clabe,
           amazon_url: formData.amazonUrl,
           liverpool_url: formData.liverpoolUrl,
-          slug: slugUrl
+          slug: slugUrl,
+          cover_image: coverImage // 📸 Guardamos la URL de la foto en la columna correspondiente
         }
       ]);
 
@@ -68,6 +72,9 @@ export default function DashboardNovios() {
     { id: 'logistica', label: '⛪ Lugar y Hora' },
     { id: 'regalos', label: '🎁 Regalos y Efectivo' }
   ];
+
+  // Generamos un slug temporal en tiempo real para nombrar la carpeta de la foto antes de guardar
+  const tempSlug = `${formData.groomName || 'boda'}-${formData.brideName || 'nueva'}`.toLowerCase().replace(/\s+/g, '-');
 
   return (
     <div className="min-h-screen bg-stone-50 py-12 px-4 font-sans text-stone-800">
@@ -125,6 +132,15 @@ export default function DashboardNovios() {
                 <div className="space-y-2">
                   <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Frase de Bienvenida / Versículo</label>
                   <textarea name="welcomePhrase" rows="3" value={formData.welcomePhrase} onChange={handleChange} placeholder="Una dedicatoria que abrirá la invitación..." className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm focus:outline-none focus:border-amber-600" />
+                </div>
+
+                {/* 📸 COMPONENTE DE SUBIDA DE IMÁGENES INTEGRADO */}
+                <div className="pt-2">
+                  <ImageUploader 
+                    folderSlug={tempSlug} 
+                    onUploadComplete={(url) => setCoverImage(url)} 
+                    label="Foto Principal del Banner Web"
+                  />
                 </div>
               </motion.div>
             )}
