@@ -42,7 +42,8 @@ export default function ClickyPapelHome() {
   const planes = [
     {
       name: "💍 Digital Esencial",
-      price: "$1,199",
+      priceBefore: "$1,599", // Precio Bluff (+400)
+      price: "$1,199",       // Precio meta real
       desc: "El gancho perfecto. Una invitación impecable, automatizada y lista para compartir al instante.",
       features: [
         "URL personalizada (tugrandia.icu/novios)",
@@ -57,7 +58,8 @@ export default function ClickyPapelHome() {
     },
     {
       name: "🌟 Gran Día Premium",
-      price: "$2,899",
+      priceBefore: "$1,999", // Precio Bluff (+700)
+      price: "$1,599",       // Precio meta real
       desc: "El Rey de las Ventas. El control absoluto del evento y de tus invitados en tiempo real.",
       features: [
         "Todo lo incluido en el Plan Esencial",
@@ -73,7 +75,8 @@ export default function ClickyPapelHome() {
     },
     {
       name: "👑 VIP Celestial Boutique",
-      price: "$4,899",
+      priceBefore: "$4,599", // Precio Bluff (+700)
+      price: "$3,899",       // Precio meta real
       desc: "Experiencia de lujo sin preocupaciones. Nosotros nos encargamos de maquetar tu visión.",
       features: [
         "Todo lo incluido en el Plan Premium",
@@ -260,18 +263,18 @@ export default function ClickyPapelHome() {
             <Image src="https://images.unsplash.com/photo-1607190074257-dd4b7af0309f" alt="Papelería de boda fina" fill className="object-cover opacity-90 transition-transform duration-1000 ease-out group-hover:scale-105" sizes="(max-w-768px) 100vw, 50vw" />
             <div className="absolute inset-0 bg-gradient-to-t from-stone-900/50 via-stone-900/10 to-transparent" />
             <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="absolute bottom-6 left-6 right-6 bg-white/90 backdrop-blur-md p-4 rounded-xl border border-white/20 shadow-lg">
-              <p className="font-serif text-stone-800 italic text-sm md:text-base">"La fusión perfecta para novios exigentes e invitados tradicionales."</p>
+              <p className="font-serif text-stone-800 italic text-sm md:text-base">"La fusión perfecta para novios exigentes es invitados tradicionales."</p>
             </motion.div>
           </motion.div>
         </div>
       </section>
 
-      {/* 4. SECCIÓN DE PRECIOS ACTUALIZADA */}
+      {/* 4. SECCIÓN DE PRECIOS CON DESCUENTO VISUAL (BLUFF DE VENTA) */}
       <section id="pricing" className="py-24 px-6 bg-stone-50 border-t border-stone-200/40 relative z-10">
         <div className="max-w-6xl mx-auto text-center">
           <span className="font-serif text-amber-700 font-medium italic block text-lg mb-2">Nuestros Planes</span>
           <h2 className="text-3xl md:text-4xl font-serif font-light text-stone-900 mb-4">Diseñado para cada estilo de boda</h2>
-          <p className="text-stone-500 font-light text-sm md:text-base max-w-md mx-auto mb-16">Precios transparentes y sin comisiones ocultas para el día más importante de sus vidas.</p>
+          <p className="text-stone-500 font-light text-sm md:text-base max-w-md mx-auto mb-16">Precios especiales por temporada. Contrata hoy y congela tu tarifa sin cargos ocultos.</p>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
             {planes.map((plan, index) => (
@@ -287,10 +290,16 @@ export default function ClickyPapelHome() {
                 {plan.popular && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-600 text-white text-[10px] uppercase font-semibold tracking-widest px-3 py-1 rounded-full shadow-xs">¡El Más Recomendado!</span>}
                 <div className="space-y-4 text-left">
                   <h4 className="font-serif text-xl text-stone-900 font-light">{plan.name}</h4>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl md:text-4xl font-serif text-stone-800">{plan.price}</span>
-                    <span className="text-xs text-stone-400 font-light">MXN</span>
+                  
+                  {/* Bloque de Precios con Descuento Visual */}
+                  <div className="space-y-0.5">
+                    <p className="text-xs text-stone-400 line-through font-mono tracking-wide">{plan.priceBefore} MXN</p>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl md:text-4xl font-serif font-medium text-stone-800">{plan.price}</span>
+                      <span className="text-[10px] text-amber-700 font-mono font-bold uppercase tracking-wider bg-amber-50 px-1.5 py-0.5 rounded-md">¡Oferta Activa!</span>
+                    </div>
                   </div>
+
                   <p className="text-stone-400 font-light text-xs leading-relaxed min-h-[36px]">{plan.desc}</p>
                   <hr className="border-stone-100 my-2" />
                   <ul className="space-y-3 pt-2">
