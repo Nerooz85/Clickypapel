@@ -43,7 +43,10 @@ export default function WeddingInvitationPage() {
           groomName: data.groom_name,
           brideName: data.bride_name,
           eventDate: data.event_date || "2026-12-19T18:00:00", 
-          coverImage: "https://images.unsplash.com/photo-1519741497674-611481863552", 
+          // 📸 Usa la foto de portada guardada en Supabase; si no hay, usa una elegante por defecto
+          coverImage: data.cover_image || "https://images.unsplash.com/photo-1519741497674-611481863552", 
+          // 🖼️ Arreglo dinámico de la galería
+          galleryImages: data.gallery_images || [],
           welcomePhrase: data.welcome_phrase,
           ceremoniaHora: data.ceremonia_hora,
           ceremoniaLugar: data.ceremonia_lugar,
@@ -97,7 +100,10 @@ export default function WeddingInvitationPage() {
     <main className="min-h-screen bg-stone-50 overflow-x-hidden">
       <InvitationHero weddingData={weddingData} />
       <EventTimeline weddingData={weddingData} />
-      <PhotoGallery weddingData={weddingData} />
+      
+      {/* 🚀 Cambiado para pasar las imágenes reales a tu componente de Galería */}
+      <PhotoGallery weddingData={weddingData} images={weddingData.galleryImages} />
+      
       <GiftRegistry weddingData={weddingData} />
       <RsvpModule weddingId={slug} />
       
