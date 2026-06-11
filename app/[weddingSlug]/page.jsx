@@ -47,6 +47,8 @@ export default function WeddingInvitationPage() {
         setWeddingData(null);
       } else {
         setWeddingData({
+          id: data.id, // 🆔 Guardamos el ID real de la base de datos (ej. 11)
+          slug: data.slug, // 🔗 Guardamos el slug oficial
           groomName: data.groom_name,
           brideName: data.bride_name,
           eventDate: data.event_date || "2026-12-19T18:00:00", 
@@ -112,7 +114,12 @@ export default function WeddingInvitationPage() {
       <PhotoGallery weddingData={weddingData} images={weddingData.galleryImages} />
       
       <GiftRegistry weddingData={weddingData} />
-      <RsvpModule weddingId={slug?.toLowerCase()} />
+      
+      {/* 🛠️ Le pasamos ambas propiedades para que tu componente RSVP tenga de dónde elegir y no truene */}
+      <RsvpModule 
+        weddingId={weddingData.id} 
+        weddingSlug={weddingData.slug} 
+      />
       
       <footer className="text-center py-12 bg-stone-900 text-stone-500 text-xs">
         Invitación digital premium creada en <span className="text-stone-300">clickypapel.com</span>
