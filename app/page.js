@@ -226,9 +226,10 @@ export default function ClickyPapelHome() {
               Descubrir el concepto
             </motion.a>
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
-              <Link href="/Abiel-y-Debanhi" target="_blank" className="block w-full bg-white/10 backdrop-blur-md hover:bg-white/20 text-white font-medium text-sm px-8 py-3.5 rounded-xl border border-white/30 transition-all text-center shadow-xs">
-                ✨ Ver demo en vivo
-              </Link>
+             {/* ✨ Cambiado al nuevo slug oficial de la demo premium con datos reales */}
+             <Link href="/bruno-y-brisa" target="_blank" className="block w-full bg-white/10 backdrop-blur-md hover:bg-white/20 text-white font-medium text-sm px-8 py-3.5 rounded-xl border border-white/30 transition-all text-center shadow-xs">
+            ✨ Ver demo en vivo
+             </Link>
             </motion.div>
           </motion.div>
         </motion.div>
