@@ -29,14 +29,21 @@ export default function WeddingInvitationPage() {
       }
 
       setCargando(true);
+      
+      // 🔒 Forzamos minúsculas para que no importe si en la URL escriben "Abiel-y-Debanhi" o "abiel-y-debanhi"
+      const slugLimpio = slug.toLowerCase();
+
       const { data, error } = await supabase
         .from('bodas')
         .select('*')
-        .eq('slug', slug)
-        .single(); 
+        .eq('slug', slugLimpio)
+        .maybeSingle(); // 🚀 Cambiado a maybeSingle() para solucionar el error 406 de objeto JSON
 
-      if (error || !data) {
-        console.error("Error de Supabase o registro no encontrado:", error?.message);
+      if (error) {
+        console.error("Error de Supabase:", error.message);
+        setWeddingData(null);
+      } else if (!data) {
+        console.warn("No se encontró ningún registro para el slug:", slugLimpio);
         setWeddingData(null);
       } else {
         setWeddingData({
@@ -89,7 +96,7 @@ export default function WeddingInvitationPage() {
       <div className="min-h-screen bg-[#faf9f6] flex flex-col items-center justify-center font-sans text-center p-6 space-y-4">
         <h1 className="font-serif text-2xl text-stone-800 font-light">Invitación No Encontrada</h1>
         <p className="text-stone-400 text-sm font-light max-w-xs">El enlace al que intentas acceder no existe o fue desactivado.</p>
-        <p className="text-[11px] text-stone-300 font-mono bg-stone-100 px-3 py-1 rounded-sm">Buscando el slug: "{slug || 'indefinido'}"</p>
+        <p className="text-[11px] text-stone-300 font-mono bg-stone-100 px-3 py-1 rounded-sm">Buscando el slug: "{slug?.toLowerCase() || 'indefinido'}"</p>
         <a href="https://clickypapel.com" className="text-xs bg-stone-900 text-white px-5 py-2.5 rounded-full uppercase tracking-wider mt-2">Ir a Inicio</a>
       </div>
     );
@@ -105,7 +112,7 @@ export default function WeddingInvitationPage() {
       <PhotoGallery weddingData={weddingData} images={weddingData.galleryImages} />
       
       <GiftRegistry weddingData={weddingData} />
-      <RsvpModule weddingId={slug} />
+      <RsvpModule weddingId={slug?.toLowerCase()} />
       
       <footer className="text-center py-12 bg-stone-900 text-stone-500 text-xs">
         Invitación digital premium creada en <span className="text-stone-300">clickypapel.com</span>
