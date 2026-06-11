@@ -25,6 +25,12 @@ export default function DashboardNovios() {
   const [galleryImages, setGalleryImages] = useState([]); 
   const [listaInvitados, setListaInvitados] = useState([]);
 
+  // 🎵 ESTADOS INDEPENDIENTES PARA LA MÚSICA DE FONDO
+  const [tipoMusica, setTipoMusica] = useState('default'); // 'default' o 'custom'
+  const [cancionElegida, setCancionElegida] = useState('/music/1-thousand-years.mp3');
+  const [archivoMp3, setArchivoMp3] = useState(null);
+  const [errorMusica, setErrorMusica] = useState('');
+
   // Estados para el mini-formulario de agregar invitados de los novios
   const [nuevoInvitado, setNuevoInvitado] = useState('');
   const [pasesAsignados, setPasesAsignados] = useState(2);
@@ -101,6 +107,28 @@ export default function DashboardNovios() {
     router.push('/login');
   };
 
+  // 🔒 Candado de validación estricta de archivo .mp3
+  const handleSubirMp3 = (e) => {
+    const file = e.target.files[0];
+    setErrorMusica('');
+
+    if (!file) return;
+
+    if (file.type !== "audio/mpeg" && !file.name.endsWith('.mp3')) {
+      setErrorMusica("❌ Error: El archivo debe ser estrictamente formato .MP3");
+      setArchivoMp3(null);
+      return;
+    }
+
+    if (file.size > 8 * 1024 * 1024) {
+      setErrorMusica("❌ El archivo es muy pesado. Máximo 8MB.");
+      setArchivoMp3(null);
+      return;
+    }
+
+    setArchivoMp3(file);
+  };
+
   // ➕ Guardar un nuevo invitado amarrado al usuario de forma privada
   const handleAgregarInvitado = async (e) => {
     e.preventDefault();
@@ -136,42 +164,71 @@ export default function DashboardNovios() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setGuardando(true);
+    setErrorMusica('');
 
-    const { data, error } = await supabase
-      .from('bodas') 
-      .insert([
-        {
-          groom_name: formData.groomName,
-          bride_name: formData.brideName,
-          event_date: formData.eventDate,
-          welcome_phrase: formData.welcomePhrase,
-          ceremonia_hora: formData.ceremoniaHora,
-          ceremonia_lugar: formData.ceremoniaLugar,
-          ceremonia_maps_url: planType !== 'basicos' ? formData.ceremoniaMapsUrl : null,
-          recepcion_hora: formData.recepcionHora,
-          recepcion_lugar: formData.recepcionLugar,
-          recepcion_maps_url: planType !== 'basicos' ? formData.recepcionMapsUrl : null,
-          codigo_vestimenta: formData.codigoVestimenta,
-          banco: planActual.permiteRegalos ? formData.banco : null,
-          titular: planActual.permiteRegalos ? formData.titular : null,
-          clabe: planActual.permiteRegalos ? formData.clabe : null,
-          amazon_url: planActual.permiteRegalos ? formData.amazonUrl : null,
-          liverpool_url: planActual.permiteRegalos ? formData.liverpoolUrl : null,
-          slug: slugUrl,
-          cover_image: coverImage, 
-          gallery_images: galleryImages,
-          plan_type: planType,
-          user_id: usuarioActivo.id // 🔒 El registro queda atado únicamente a este perfil
-        }
-      ]);
+    let finalMusicUrl = cancionElegida;
 
-    setGuardando(false);
+    try {
+      // 🚀 SUBIDA DINÁMICA DEL AUDIO SI ES PREMIUM/VIP Y HAY ARCHIVO PERSONALIZADO
+      if (planType !== 'basicos' && tipoMusica === 'custom' && archivoMp3) {
+        const nombreArchivo = `music-${Date.now()}.mp3`;
+        const rutaStorage = `${slugUrl}/musica/${nombreArchivo}`;
 
-    if (error) {
-      console.error("Error al guardar la boda:", error.message);
-      alert("Hubo un error al activar la invitación. Intenta de nuevo.");
-    } else {
+        const { data: storageData, error: storageError } = await supabase.storage
+          .from('invitaciones')
+          .upload(rutaStorage, archivoMp3, { cacheControl: '3600', upsert: true });
+
+        if (storageError) throw new Error(`Error subiendo música: ${storageError.message}`);
+
+        const { data: urlData } = supabase.storage
+          .from('invitaciones')
+          .getPublicUrl(rutaStorage);
+
+        finalMusicUrl = urlData.publicUrl;
+      }
+
+      // Estructura final que va directo a PostgreSQL
+      const { data, error } = await supabase
+        .from('bodas') 
+        .insert([
+          {
+            groom_name: formData.groomName,
+            bride_name: formData.brideName,
+            event_date: formData.eventDate,
+            welcome_phrase: formData.welcomePhrase,
+            ceremonia_hora: formData.ceremoniaHora,
+            ceremonia_lugar: formData.ceremoniaLugar,
+            ceremonia_maps_url: planType !== 'basicos' ? formData.ceremoniaMapsUrl : null,
+            recepcion_hora: formData.recepcionHora,
+            recepcion_lugar: formData.recepcionLugar,
+            recepcion_maps_url: planType !== 'basicos' ? formData.recepcionMapsUrl : null,
+            codigo_vestimenta: formData.codigoVestimenta,
+            banco: planActual.permiteRegalos ? formData.banco : null,
+            titular: planActual.permiteRegalos ? formData.titular : null,
+            clabe: planActual.permiteRegalos ? formData.clabe : null,
+            amazon_url: planActual.permiteRegalos ? formData.amazonUrl : null,
+            liverpool_url: planActual.permiteRegalos ? formData.liverpoolUrl : null,
+            slug: slugUrl,
+            cover_image: coverImage, 
+            gallery_images: galleryImages,
+            plan_type: planType,
+            user_id: usuarioActivo.id, // 🔒 El registro queda atado únicamente a este perfil
+            
+            // 🎵 NUEVOS CAMPOS ADICIONALES DE MÚSICA SINCRO CON BASE DE DATOS
+            music_type: planType !== 'basicos' ? tipoMusica : 'default',
+            music_url: planType !== 'basicos' ? finalMusicUrl : '/music/1-thousand-years.mp3'
+          }
+        ]);
+
+      if (error) throw new Error(error.message);
+
       alert(`¡Felicidades! Tu invitación bajo el ${planActual.nombre} ha sido activada en: tugrandia.icu/${slugUrl}`);
+
+    } catch (err) {
+      console.error("Error al procesar la operación:", err.message);
+      alert(`Hubo un error al activar la invitación: ${err.message}`);
+    } finally {
+      setGuardando(false);
     }
   };
 
@@ -298,6 +355,63 @@ export default function DashboardNovios() {
                   <div className="space-y-2">
                     <label className="text-xs font-semibold uppercase tracking-wider text-stone-500">Frase de Bienvenida / Versículo</label>
                     <textarea name="welcomePhrase" rows="3" value={formData.welcomePhrase} onChange={handleChange} placeholder="Una dedicatoria que abrirá la invitación..." className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm focus:outline-none" />
+                  </div>
+
+                  {/* 🎵 MÓDULO INTERACTIVO DE MÚSICA DE FONDO INTEGRADO DE FORMA PROFESIONAL */}
+                  <div className="p-5 bg-stone-50/70 border border-stone-200/80 rounded-2xl space-y-4">
+                    <div>
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-stone-700">🎵 Banda Sonora de la Invitación</h4>
+                      <p className="text-stone-400 text-[11px] font-light">Establece la melodía de fondo para cuando abran el sobre digital.</p>
+                    </div>
+
+                    {planType === 'basicos' ? (
+                      /* Caso Plan Básico: Música Fija */
+                      <div className="bg-amber-50/50 border border-amber-200/50 p-3 rounded-xl text-[11px] text-amber-800">
+                        🔒 El Plan Básico reproduce **Clásico Romántico** por defecto. Sube de categoría a Premium o VIP para seleccionar temas musicales o subir tu propio track personalizado.
+                      </div>
+                    ) : (
+                      /* Caso Plan Premium / VIP: Selector y Uploader */
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${tipoMusica === 'default' ? 'border-amber-500 bg-amber-50/10' : 'border-stone-200 bg-white'}`}>
+                            <input type="radio" name="dashboard_music_type" checked={tipoMusica === 'default'} onChange={() => { setTipoMusica('default'); setErrorMusica(''); }} className="accent-amber-700" />
+                            <div className="text-left">
+                              <span className="text-xs font-semibold block text-stone-800">Opciones Gratis</span>
+                              <span className="text-[10px] text-stone-400 font-light">5 tracks finos incluidos.</span>
+                            </div>
+                          </label>
+
+                          <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${tipoMusica === 'custom' ? 'border-amber-500 bg-amber-50/10' : 'border-stone-200 bg-white'}`}>
+                            <input type="radio" name="dashboard_music_type" checked={tipoMusica === 'custom'} onChange={() => { setTipoMusica('custom'); setErrorMusica(''); }} className="accent-amber-700" />
+                            <div className="text-left">
+                              <span className="text-xs font-semibold block text-amber-950">Música Personalizada 👑</span>
+                              <span className="text-amber-700 font-mono text-[10px] font-bold bg-amber-100/50 px-1 rounded-xs">+ $350 MXN</span>
+                            </div>
+                          </label>
+                        </div>
+
+                        {tipoMusica === 'default' ? (
+                          <div className="space-y-1.5 text-left">
+                            <label className="text-[10px] font-bold text-stone-400 uppercase">Selecciona tu melodía:</label>
+                            <select value={cancionElegida} onChange={(e) => setCancionElegida(e.target.value)} className="w-full text-xs p-3 border border-stone-200 bg-white rounded-xl focus:outline-none cursor-pointer">
+                              <option value="/music/1-thousand-years.mp3">1. Clásico Romántico (A Thousand Years - Piano & Cello)</option>
+                              <option value="/music/2-perfect-acoustic.mp3">2. Pop Acústico (Perfect - Guitarra)</option>
+                              <option value="/music/3-canon-in-d.mp3">3. Elegancia Tradicional (Canon en Re - Cuerdas)</option>
+                              <option value="/music/4-can-help-falling.mp3">4. Vintage Emotivo (Can't Help Falling in Love - Elvis)</option>
+                              <option value="/music/5-marry-me.mp3">5. Instrumental Dulce (Marry Me - Piano)</option>
+                            </select>
+                          </div>
+                        ) : (
+                          <div className="p-4 bg-white border border-dashed border-stone-300 rounded-xl space-y-2 text-left">
+                            <label className="text-[10px] font-bold text-stone-500 uppercase block">Sube tu archivo .MP3:</label>
+                            <input type="file" accept=".mp3,audio/mpeg" onChange={handleSubirMp3} className="text-xs text-stone-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-amber-100 file:text-amber-800 hover:file:bg-amber-200 cursor-pointer w-full" />
+                            
+                            {archivoMp3 && <p className="text-emerald-600 text-[11px] font-medium">✓ Audio cargado: {archivoMp3.name}</p>}
+                            {errorMusica && <p className="text-rose-600 text-[11px] font-medium">{errorMusica}</p>}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Multimedia */}
