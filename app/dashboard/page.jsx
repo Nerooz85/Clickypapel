@@ -6,7 +6,7 @@ export default function NoviosDashboard() {
   const weddingSlug = 'bruno-y-brisa'; 
 
   // Estados de Control de la App
-  const [pasoActivo, setPasoActivo] = useState(4); // Puedes cambiarlo a 2 para iniciar desde el inicio del flujo
+  const [pasoActivo, setPasoActivo] = useState(2); // Inicia ordenadamente desde el paso 2
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [subiendoIndex, setSubiendoIndex] = useState(null); // Monitorea cuál foto se está subiendo
@@ -38,6 +38,13 @@ export default function NoviosDashboard() {
   const [cancionSonando, setCancionSonando] = useState(null);
   const audioPrevioRef = useRef(null);
 
+  // 💰 ESTADOS DEL PASO 5: MESA DE REGALOS & CUENTA CLABE
+  const [banco, setBanco] = useState('');
+  const [titular, setTitular] = useState('');
+  const [clabe, setClabe] = useState('');
+  const [amazonUrl, setAmazonUrl] = useState('');
+  const [liverpoolUrl, setLiverpoolUrl] = useState('');
+
   const cancionesCatalogo = [
     { id: '1', titulo: "A Thousand Years (Piano Elegante)", url: "/music/1-thousand-years.mp3" },
     { id: '2', titulo: "Perfect - Ed Sheeran (Orquestal)", url: "/music/2-perfect.mp3" },
@@ -59,14 +66,13 @@ export default function NoviosDashboard() {
     }
   };
 
-  // Actualizar el array de fotos desde inputs o uploads
   const handleFotoChange = (index, value) => {
     const copias = [...galeriaFotos];
     copias[index] = value;
     setGaleriaFotos(copias);
   };
 
-  // 🚀 FUNCIÓN MÁGICA: SUBIR ARCHIVO REAL A SUPABASE STORAGE
+  // 🚀 FUNCIÓN DE CARGA DIRECTA A SUPABASE STORAGE
   const handleSubirArchivo = async (e, index, esPortada = false) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -82,19 +88,16 @@ export default function NoviosDashboard() {
       const fileName = `${weddingSlug}-${esPortada ? 'portada' : `foto-${index}`}-${Date.now()}.${fileExt}`;
       const filePath = `${weddingSlug}/${fileName}`;
 
-      // 1. Subir el archivo real al bucket de Supabase
       const { error: uploadError } = await supabase.storage
         .from('invitaciones-media')
         .upload(filePath, file, { cacheControl: '3600', upsert: true });
 
       if (uploadError) throw uploadError;
 
-      // 2. Obtener la URL pública del archivo recién subido
       const { data: { publicUrl } } = supabase.storage
         .from('invitaciones-media')
         .getPublicUrl(filePath);
 
-      // 3. Acomodar la URL en su respectivo estado
       if (esPortada) {
         setCoverImage(publicUrl);
       } else {
@@ -139,6 +142,13 @@ export default function NoviosDashboard() {
         setMusicUrl(bodaData.music_url || '/music/1-thousand-years.mp3');
         setPlanContratatado(bodaData.plan_tipo || 'premium'); 
         setTieneMusicaPersonalizada(bodaData.musica_extra || false);
+        
+        // Carga de Datos Financieros del Paso 5
+        setBanco(bodaData.banco || '');
+        setTitular(bodaData.titular || '');
+        setClabe(bodaData.clabe || '');
+        setAmazonUrl(bodaData.amazon_url || '');
+        setLiverpoolUrl(bodaData.liverpool_url || '');
 
         if (bodaData.gallery_images) {
           const nuevasFotos = ['', '', '', '', '', ''];
@@ -147,7 +157,7 @@ export default function NoviosDashboard() {
         }
       }
 
-      // 2. Lista de Invitados para métricas y tabla del Paso 3
+      // 2. Lista de Invitados
       const { data: listaInvitados, error: invitadosError } = await supabase
         .from('invitados')
         .select('*')
@@ -232,7 +242,7 @@ export default function NoviosDashboard() {
     }
   };
 
-  // Guardar Paso 4 (Multimedia en vivo)
+  // Guardar Paso 4 (Multimedia)
   const handleGuardarPaso4 = async () => {
     setGuardando(true);
     try {
@@ -247,9 +257,34 @@ export default function NoviosDashboard() {
         .eq('slug', weddingSlug);
 
       if (error) throw error;
-      alert("🚀 ¡Sección multimedia sincronizada en vivo con éxito!");
+      setPasoActivo(5); // Pasa automáticamente a la mesa de regalos
     } catch (err) {
       alert("Error al guardar la sección multimedia.");
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  // Guardar Paso 5 (Regalos Financieros)
+  const handleGuardarPaso5 = async () => {
+    setGuardando(true);
+    try {
+      const { error } = await supabase
+        .from('bodas')
+        .update({
+          banco: banco.trim(),
+          titular: titular.trim(),
+          clabe: clabe.trim(),
+          amazon_url: amazonUrl.trim(),
+          liverpool_url: liverpoolUrl.trim()
+        })
+        .eq('slug', weddingSlug);
+
+      if (error) throw error;
+      alert("🎁 ¡Datos financieros y mesas de regalos sincronizados en vivo con éxito!");
+    } catch (err) {
+      console.error(err);
+      alert("Error al guardar la información de regalos.");
     } finally {
       setGuardando(false);
     }
@@ -272,7 +307,7 @@ export default function NoviosDashboard() {
         <div className="w-10 h-10 bg-amber-700/10 rounded-full flex items-center justify-center font-serif text-amber-800 font-bold">c`p</div>
         <nav className="flex flex-col gap-6 text-center w-full">
           {['Inicio', 'Invitación', 'RSVP', 'Regalos', 'Configuración'].map((item, idx) => (
-            <button key={item} type="button" onClick={() => idx === 1 ? setPasoActivo(2) : idx === 2 ? setPasoActivo(3) : null} className={`flex flex-col items-center gap-1 text-[10px] py-2 font-medium cursor-pointer ${idx===1 && pasoActivo===4 ? 'text-amber-700 bg-amber-50/60 border-r-2 border-amber-700 font-bold' : 'text-stone-400'}`}>
+            <button key={item} type="button" onClick={() => idx === 1 ? setPasoActivo(2) : idx === 2 ? setPasoActivo(3) : null} className={`flex flex-col items-center gap-1 text-[10px] py-2 font-medium cursor-pointer ${(idx===1 && pasoActivo===2) || (idx===1 && pasoActivo===4) || (idx===1 && pasoActivo===5) ? 'text-amber-700 bg-amber-50/60 border-r-2 border-amber-700 font-bold' : 'text-stone-400'}`}>
               <span className="text-base">{idx === 0 ? '🏠' : idx === 1 ? '✉️' : idx === 2 ? '📝' : idx === 3 ? '🎁' : '⚙️'}</span>
               {item}
             </button>
@@ -291,16 +326,17 @@ export default function NoviosDashboard() {
           <span className="text-[10px] bg-stone-900 text-white font-mono font-bold px-3 py-1 rounded-full">Slug: {weddingSlug}</span>
         </div>
 
-        {/* LÍNEA DE PROGRESO (WIZARD) */}
+        {/* LÍNEA DE PROGRESO (WIZARD MAESTRO) */}
         <div className="bg-white/40 p-4 rounded-2xl border border-stone-200/40 flex items-center justify-between text-[11px] font-bold text-stone-400 relative select-none">
           <div className="absolute h-[2px] bg-stone-200 top-1/2 left-8 right-8 -translate-y-1/2 z-0" />
-          <div className={`absolute h-[2px] bg-amber-700 top-1/2 left-8 -translate-y-1/2 z-0 transition-all duration-500 ${pasoActivo === 2 ? 'w-[25%]' : pasoActivo === 3 ? 'w-[50%]' : 'w-[75%]'}`} />
+          <div className={`absolute h-[2px] bg-amber-700 top-1/2 left-8 -translate-y-1/2 z-0 transition-all duration-500 ${pasoActivo === 2 ? 'w-[20%]' : pasoActivo === 3 ? 'w-[40%]' : pasoActivo === 4 ? 'w-[60%]' : 'w-[80%]'}`} />
           
           {[
-            { n: '1. Plan & Diseño', done: true },
-            { n: '2. Datos del Evento', active: pasoActivo === 2, done: pasoActivo > 2 },
-            { n: '3. Invitados & Pases', active: pasoActivo === 3, done: pasoActivo > 3 },
-            { n: '4. Música & Galería', active: pasoActivo === 4, done: false }
+            { n: '1. Plan', done: true },
+            { n: '2. Datos', active: pasoActivo === 2, done: pasoActivo > 2 },
+            { n: '3. Invitados', active: pasoActivo === 3, done: pasoActivo > 3 },
+            { n: '4. Multimedia', active: pasoActivo === 4, done: pasoActivo > 4 },
+            { n: '5. Regalos', active: pasoActivo === 5, done: false }
           ].map((p, i) => (
             <button key={i} type="button" disabled={i === 0} onClick={() => setPasoActivo(i + 1)} className="flex flex-col items-center gap-1.5 relative z-10 bg-[#f1ede6] px-3 cursor-pointer">
               <span className={`w-6 h-6 rounded-full flex items-center justify-center border font-mono text-xs transition-colors ${p.active ? 'bg-amber-700 border-amber-700 text-white' : p.done ? 'bg-white border-amber-700 text-amber-700' : 'bg-white border-stone-300'}`}>{p.done ? '✓' : i + 1}</span>
@@ -309,8 +345,11 @@ export default function NoviosDashboard() {
           ))}
         </div>
 
-        {/* 🔀 RENDERS POR PASOS */}
+        {/* 🔀 CONTROL DE RENDERS DINÁMICOS POR PASOS */}
         {pasoActivo === 2 ? (
+          /* ==========================================
+             PASO 2: DATOS GENERALES DEL EVENTO
+             ========================================== */
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start animate-fadeIn text-left">
             <div className="lg:col-span-2 bg-white rounded-3xl p-6 md:p-8 border border-stone-200/60 shadow-xs space-y-6">
               <div className="border-b border-stone-100 pb-3">
@@ -326,7 +365,7 @@ export default function NoviosDashboard() {
                 <div className="space-y-1 md:col-span-2"><label className="text-xs font-semibold text-stone-600">Lugar de la Fiesta</label><input type="text" value={recepcionLugar} onChange={(e) => setRecepcionLugar(e.target.value)} className="w-full px-4 py-3 border border-stone-200 rounded-xl text-xs bg-stone-50/50" /></div>
               </div>
             </div>
-            <div className="bg-white rounded-3xl p-6 border border-stone-200/60 flex flex-col justify-between h-full text-left space-y-4">
+            <div className="bg-white rounded-3xl p-6 border border-stone-200/60 flex flex-col justify-between text-left space-y-4">
               <div className="space-y-3">
                 <h4 className="text-base font-serif font-medium text-stone-900">Resumen</h4>
                 <select value={templateId} onChange={(e) => setTemplateId(e.target.value)} className="w-full p-3 border rounded-xl text-xs font-medium"><option value="romantico-clasico">💍 Romántico Clásico</option><option value="minimal-dark">🖤 Minimalista Dark</option><option value="boho-rancho">🌿 Boho Chic / Campo</option></select>
@@ -335,6 +374,9 @@ export default function NoviosDashboard() {
             </div>
           </div>
         ) : pasoActivo === 3 ? (
+          /* ==========================================
+             PASO 3: GESTIÓN DE INVITADOS & RSVP
+             ========================================== */
           <div className="space-y-6 animate-fadeIn text-left">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
@@ -368,12 +410,13 @@ export default function NoviosDashboard() {
             </div>
             <div className="text-right"><button type="button" onClick={() => setPasoActivo(4)} className="bg-amber-700 text-white text-xs font-bold uppercase tracking-widest px-6 py-3.5 rounded-xl shadow-md cursor-pointer">Avanzar a Multimedia ➔</button></div>
           </div>
-        ) : (
-          /* PASO 4 */
+        ) : pasoActivo === 4 ? (
+          /* ==========================================
+             PASO 4: CARGA DE ARCHIVOS MULTIMEDIA
+             ========================================== */
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start animate-fadeIn text-left">
             <div className="lg:col-span-2 space-y-6">
               
-              {/* PORTADA */}
               <div className="bg-white rounded-3xl p-6 md:p-8 border border-stone-200/60 shadow-xs space-y-4">
                 <h3 className="font-serif text-lg font-medium text-stone-900">🖼️ Fotografía de Portada (Hero Banner)</h3>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-1">
@@ -392,13 +435,11 @@ export default function NoviosDashboard() {
                 )}
               </div>
 
-              {/* MÚSICA */}
               <div className="bg-white rounded-3xl p-6 md:p-8 border border-stone-200/60 shadow-xs space-y-6">
                 <div>
                   <h3 className="font-serif text-lg font-medium text-stone-900">🎵 Banda Sonora de tu Invitación</h3>
                   <p className="text-xs text-stone-400 font-light mt-0.5">Escucha las pistas oficiales de tu catálogo y selecciona tu favorita.</p>
                 </div>
-
                 <div className="space-y-2">
                   {cancionesCatalogo.map((track) => (
                     <div key={track.id} className={`flex items-center justify-between p-3.5 rounded-xl border transition-all ${musicUrl === track.url ? 'border-amber-600 bg-amber-50/20' : 'border-stone-100 bg-stone-50/40'}`}>
@@ -412,15 +453,13 @@ export default function NoviosDashboard() {
                     </div>
                   ))}
                 </div>
-
                 <div className="pt-4 border-t border-stone-100 space-y-3">
                   <div className="flex justify-between items-center">
                     <h5 className="text-xs font-bold uppercase tracking-wider text-purple-900 flex items-center gap-1.5"><span>👑</span> Tu Canción Especial Única</h5>
-                    <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${(planContratado === 'vip' || tieneMusicaPersonalizada) ? 'bg-purple-100 text-purple-800' : 'bg-stone-100 text-stone-400'}`}>
+                    <span className={`text-[9px] font-black uppercase tracking-wildest px-2.5 py-0.5 rounded-full ${(planContratado === 'vip' || tieneMusicaPersonalizada) ? 'bg-purple-100 text-purple-800' : 'bg-stone-100 text-stone-400'}`}>
                       {(planContratado === 'vip' || tieneMusicaPersonalizada) ? '✨ Desbloqueado' : '🔒 Bloqueado'}
                     </span>
                   </div>
-
                   {(planContratado === 'vip' || tieneMusicaPersonalizada) ? (
                     <div className="space-y-1 animate-fadeIn">
                       <label className="text-xs font-semibold text-purple-950">Link de tu archivo .MP3 subido</label>
@@ -435,13 +474,11 @@ export default function NoviosDashboard() {
                 </div>
               </div>
 
-              {/* GALERÍA */}
               <div className="bg-white rounded-3xl p-6 md:p-8 border border-stone-200/60 shadow-xs space-y-4">
                 <div>
                   <h3 className="font-serif text-lg font-medium text-stone-900">📸 Carrete de Recuerdos Interactivo</h3>
                   <p className="text-xs text-stone-400 font-light mt-0.5">Sube, reemplaza o elimina las imágenes de tu galería en tiempo real.</p>
                 </div>
-                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {galeriaFotos.map((foto, index) => {
                     const estaBloqueado = index >= maxFotosPermitidas;
@@ -449,21 +486,15 @@ export default function NoviosDashboard() {
                       <div key={index} className={`bg-stone-50/40 p-4 rounded-2xl border border-stone-100 flex flex-col justify-between gap-3 text-left ${estaBloqueado ? 'opacity-20 pointer-events-none' : ''}`}>
                         <div className="flex justify-between items-center">
                           <span className="text-xs font-bold text-stone-700">Foto {index + 1} {index === 0 && ' (Principal)'}</span>
-                          {foto && (
-                            <button type="button" onClick={() => handleFotoChange(index, '')} className="text-[10px] text-rose-600 font-semibold hover:underline cursor-pointer">🗑️ Quitar</button>
-                          )}
+                          {foto && <button type="button" onClick={() => handleFotoChange(index, '')} className="text-[10px] text-rose-600 font-semibold hover:underline cursor-pointer">🗑️ Quitar</button>}
                         </div>
-
                         {foto ? (
-                          <div className="w-full h-24 rounded-xl overflow-hidden border border-stone-200 bg-white shadow-xs">
-                            <img src={foto} alt={`Miniatura ${index}`} className="w-full h-full object-cover" />
-                          </div>
+                          <div className="w-full h-24 rounded-xl overflow-hidden border border-stone-200 bg-white shadow-xs"><img src={foto} alt={`Miniatura ${index}`} className="w-full h-full object-cover" /></div>
                         ) : (
                           <div className="w-full h-24 border border-dashed border-stone-200 rounded-xl flex items-center justify-center text-stone-300 font-light text-xs italic bg-white select-none">Vacío — Sin archivo</div>
                         )}
-
                         <label className="w-full bg-white border border-stone-200 hover:bg-stone-50 text-stone-700 text-[10px] uppercase tracking-wider font-bold py-2.5 rounded-xl text-center cursor-pointer block transition-colors shadow-2xs">
-                          {subiendoIndex === index ? '⏱️ Cargando...' : foto ? '🔄 Reemplazar Archivo' : '📤 Subir Fotografía'}
+                          {subiendoIndex === index ? '⏱️ Cargando...' : foto ? '🔄 Reemplazar' : '📤 Subir Fotografía'}
                           <input type="file" accept="image/*" disabled={estaBloqueado} onChange={(e) => handleSubirArchivo(e, index, false)} className="hidden" />
                         </label>
                       </div>
@@ -474,22 +505,79 @@ export default function NoviosDashboard() {
 
             </div>
 
-            {/* BARRA LATERAL DE GUARDADO */}
             <div className="bg-white rounded-3xl p-6 border border-stone-200/60 shadow-xs flex flex-col justify-between h-full space-y-6 sticky top-6">
               <div className="space-y-4">
                 <h4 className="text-base font-serif font-medium text-stone-900">Estado de Publicación</h4>
                 <hr className="border-stone-100" />
                 <div className="space-y-2 text-xs font-light text-stone-500">
                   <div className="flex justify-between border-b pb-1.5 border-stone-50"><span>Plan:</span><strong className="text-stone-700 font-bold uppercase">{planContratado}</strong></div>
-                  <div className="flex justify-between border-b pb-1.5 border-stone-50"><span>Imágenes listas:</span><strong className="text-stone-700 font-bold">{galeriaFotos.filter(u => u.trim()!=='').length} de {maxFotosPermitidas}</strong></div>
+                  <div className="flex justify-between border-b pb-1.5 border-stone-50"><span>Imágenes:</span><strong className="text-stone-700 font-bold">{galeriaFotos.filter(u => u.trim()!=='').length} de {maxFotosPermitidas}</strong></div>
                   <div className="flex justify-between"><span>Audio:</span><span className="text-amber-700 font-mono truncate max-w-[120px]">{musicUrl}</span></div>
                 </div>
               </div>
               <button type="button" disabled={guardando} onClick={handleGuardarPaso4} className="w-full bg-stone-950 hover:bg-emerald-700 text-white text-xs uppercase font-bold tracking-widest py-4 rounded-xl shadow-md transition-all text-center cursor-pointer">
-                {guardando ? 'Sincronizando...' : '🚀 Lanzar Cambios en Vivo'}
+                {guardando ? 'Sincronizando...' : 'Guardar y Continuar ➔'}
               </button>
             </div>
+          </div>
+        ) : (
+          /* ==========================================
+             ✨ PASO 5: MESA DE REGALOS & FINANCE CONTROL
+             ========================================== */
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start animate-fadeIn text-left">
+            <div className="lg:col-span-2 space-y-6">
+              
+              {/* CUENTA CLABE */}
+              <div className="bg-white rounded-3xl p-6 md:p-8 border border-stone-200/60 shadow-xs space-y-4">
+                <h3 className="font-serif text-lg font-medium text-stone-900">💰 Lluvia de Sobres / Transferencias</h3>
+                <p className="text-xs text-stone-400 font-light -mt-2">Configura los datos para que tus invitados te envíen aportaciones en efectivo directo a tu cuenta.</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-stone-600">Institución Bancaria</label>
+                    <input type="text" value={banco} onChange={(e) => setBanco(e.target.value)} placeholder="Ej. BBVA o Banorte" className="w-full px-4 py-3 border rounded-xl text-xs bg-stone-50/50 focus:border-amber-700 focus:outline-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-stone-600">Nombre del Titular</label>
+                    <input type="text" value={titular} onChange={(e) => setTitular(e.target.value)} placeholder="Ej. Novios S." className="w-full px-4 py-3 border rounded-xl text-xs bg-stone-50/50 focus:border-amber-700 focus:outline-none" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-stone-600">Cuenta CLABE (18 dígitos)</label>
+                    <input type="text" maxLength={18} value={clabe} onChange={(e) => setClabe(e.target.value)} placeholder="0121 8001..." className="w-full px-4 py-3 border rounded-xl text-xs bg-stone-50/50 focus:border-amber-700 focus:outline-none font-mono" />
+                  </div>
+                </div>
+              </div>
 
+              {/* ENLACES CORPORATIVOS */}
+              <div className="bg-white rounded-3xl p-6 md:p-8 border border-stone-200/60 shadow-xs space-y-4">
+                <h3 className="font-serif text-lg font-medium text-stone-900">🛍️ Mesas de Regalos Corporativas</h3>
+                <p className="text-xs text-stone-400 font-light -mt-2">Pega los links de tus mesas oficiales para desplegar los accesos en tu tarjeta de regalos.</p>
+                
+                <div className="space-y-3 pt-1">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-stone-600">Enlace de Mesa Amazon (URL)</label>
+                    <input type="text" value={amazonUrl} onChange={(e) => setAmazonUrl(e.target.value)} placeholder="https://amazon.com.mx/baby-reg/..." className="w-full px-4 py-3 border rounded-xl text-xs bg-stone-50/50 focus:border-amber-700 focus:outline-none font-mono" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-stone-600">Enlace de Mesa Liverpool (URL)</label>
+                    <input type="text" value={liverpoolUrl} onChange={(e) => setLiverpoolUrl(e.target.value)} placeholder="https://mesaderegalos.liverpool.com.mx/..." className="w-full px-4 py-3 border rounded-xl text-xs bg-stone-50/50 focus:border-amber-700 focus:outline-none font-mono" />
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* GUARDADO FINAL DERECHO */}
+            <div className="bg-white rounded-3xl p-6 border border-stone-200/60 shadow-xs flex flex-col justify-between h-full space-y-6 sticky top-6">
+              <div className="space-y-3">
+                <h4 className="text-base font-serif font-medium text-stone-900">Mesa de Regalos Activa</h4>
+                <hr className="border-stone-100" />
+                <p className="text-xs text-stone-400 font-light leading-relaxed">Los datos bancarios y enlaces de tiendas que guardes en este paso se renderizarán al instante dentro del componente interactivo de regalos de tu invitación.</p>
+              </div>
+              <button type="button" disabled={guardando} onClick={handleGuardarPaso5} className="w-full bg-stone-950 hover:bg-emerald-700 text-white text-xs uppercase font-bold tracking-widest py-4 rounded-xl shadow-md transition-all text-center cursor-pointer">
+                {guardando ? 'Sincronizando...' : '🚀 Publicar Mesa de Regalos'}
+              </button>
+            </div>
           </div>
         )}
       </main>
