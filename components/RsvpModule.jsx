@@ -29,7 +29,7 @@ export default function RsvpModule({ weddingId, weddingSlug, diseño }) {
       if (dbError) throw dbError;
 
       if (data && data.length > 0) {
-        setFamiliaEncontrada(data[0]); // Tomamos la coincidencia principal
+        setFamiliaEncontrada(data[0]);
         setPasesConfirmados(data[0].pases_totales);
       } else {
         setError('❌ No se encontró tu nombre en la lista oficial. Verifica que esté bien escrito.');
@@ -72,7 +72,7 @@ export default function RsvpModule({ weddingId, weddingSlug, diseño }) {
     : 'bg-white border-stone-200 text-stone-800 focus:border-amber-600';
 
   return (
-    <section className="py-24 px-4 bg-transparent">
+    <section className="w-full pt-16 pb-24 px-4 bg-transparent block">
       <div className={`max-w-md mx-auto p-6 md:p-8 rounded-3xl border shadow-md transition-all duration-500 ${cardStyle}`}>
         <div className="text-center space-y-2 mb-6">
           <span className={`text-[10px] uppercase tracking-widest font-semibold block ${diseño.id === 'minimal-dark' ? 'text-zinc-500' : 'text-amber-700'}`}>
@@ -82,7 +82,6 @@ export default function RsvpModule({ weddingId, weddingSlug, diseño }) {
         </div>
 
         {!familiaEncontrada ? (
-          /* BUSCADOR DE NOMBRE */
           <form onSubmit={buscarInvitado} className="space-y-4">
             <div className="space-y-1 text-left">
               <label className="text-[10px] uppercase tracking-wider opacity-60 font-semibold block pl-1">Busca tu nombre o apellido:</label>
@@ -105,7 +104,6 @@ export default function RsvpModule({ weddingId, weddingSlug, diseño }) {
             {error && <p className="text-center text-[11px] text-rose-500 font-medium leading-normal pt-1">{error}</p>}
           </form>
         ) : !mensajeConfirmacion ? (
-          /* CONTROL DE ASISTENCIA ENCONTRADA */
           <div className="space-y-6 text-center animate-fadeIn">
             <div className="bg-stone-500/5 p-4 rounded-2xl border border-stone-200/20">
               <p className="text-[10px] uppercase tracking-widest opacity-50">Bienvenido(a)</p>
@@ -148,7 +146,6 @@ export default function RsvpModule({ weddingId, weddingSlug, diseño }) {
             </div>
           </div>
         ) : (
-          /* MENSAJE DE ÉXITO FINAL */
           <div className="text-center space-y-4 py-4 animate-scaleUp">
             <span className="text-3xl block">✨</span>
             <h4 className={`text-xl ${diseño.fuenteTitulo}`}>¡Respuesta Guardada!</h4>
