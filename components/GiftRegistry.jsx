@@ -1,88 +1,62 @@
-// components/GiftRegistry.jsx
-import { useState } from 'react';
+"use client";
 
-export default function GiftRegistry({ weddingData }) {
-  const [copied, setCopied] = useState(false);
-  
-  const { bankDetails, registries } = weddingData.mesaRegalos || {
-    // Datos demo que vendrán de la base de datos
-    bankDetails: {
-      banco: "BBVA",
-      titular: "Abiel & Debanhi",
-      clabe: "0123 4567 8901 2345 67"
-    },
-    registries: [
-      { name: "Amazon", url: "https://amazon.com", logo: "📦" },
-      { name: "Liverpool", url: "https://liverpool.com.mx", logo: "🛍️" }
-    ]
-  };
+export default function GiftRegistry({ weddingData, diseño }) {
+  const mesa = weddingData?.mesaRegalos;
+  const tieneBanco = mesa?.bankDetails?.banco || mesa?.bankDetails?.clabe;
+  const tieneTiendas = mesa?.registries && mesa.registries.length > 0;
 
-  const handleCopyClabe = () => {
-    navigator.clipboard.writeText(bankDetails.clabe);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  // Si el plan no permite regalos o no llenaron datos, ocultamos la sección limpiamente
+  if (!tieneBanco && !tieneTiendas) return null;
+
+  const cardStyle = diseño.id === 'minimal-dark'
+    ? 'bg-zinc-900/30 border-zinc-800 text-zinc-300'
+    : diseño.id === 'boho-rancho'
+    ? 'bg-[#faf7f2] border-amber-900/10 text-amber-950'
+    : 'bg-white border-stone-200 text-stone-700';
 
   return (
-    <section className="py-16 px-4 bg-white text-center">
-      <div className="max-w-md mx-auto">
-        <span className="font-serif text-amber-600/80 tracking-widest text-xs uppercase block mb-2">
+    <section className="py-20 px-4 max-w-2xl mx-auto space-y-12">
+      <div className="text-center space-y-2">
+        <span className={`text-[10px] uppercase tracking-widest font-semibold ${diseño.id === 'minimal-dark' ? 'text-zinc-500' : 'text-amber-700'}`}>
           Mesas de Regalos
         </span>
-        <h2 className="text-3xl font-serif text-stone-800 mb-6">Detalles de Obsequios</h2>
-        <p className="text-stone-500 text-sm font-light mb-10 leading-relaxed">
-          Tu presencia es nuestro mejor regalo, pero si deseas tener un detalle con nosotros, te dejamos algunas opciones.
+        <h2 className={`text-3xl ${diseño.fuenteTitulo}`}>Detalles para Obsequios</h2>
+        <p className="text-xs max-w-xs mx-auto opacity-70 font-light leading-relaxed">
+          Su presencia es nuestro mayor regalo, pero si desean tener un detalle con nosotros, aquí tienen las opciones:
         </p>
+      </div>
 
-        {/* Opción 1: Tiendas físicas/online */}
-        {registries && registries.length > 0 && (
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            {registries.map((reg, index) => (
-              <a
-                key={index}
-                href={reg.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex flex-col items-center justify-center p-6 bg-stone-50 hover:bg-stone-100 border border-stone-200/60 rounded-xl transition-all"
-              >
-                <span className="text-2xl mb-2">{reg.logo}</span>
-                <span className="font-medium text-stone-700 text-sm">Mesa de {reg.name}</span>
-              </a>
-            ))}
+      <div className="space-y-6">
+        {/* SECCIÓN DATOS BANCARIOS */}
+        {tieneBanco && (
+          <div className={`p-8 rounded-3xl border shadow-xs text-center space-y-3 transition-colors duration-500 ${cardStyle}`}>
+            <span className="text-xl">✉️</span>
+            <h3 className={`text-lg ${diseño.fuenteTitulo}`}>Lluvia de Sobres / Transferencia</h3>
+            <div className="text-xs space-y-1.5 font-light font-mono bg-stone-500/5 p-4 rounded-xl inline-block w-full max-w-sm">
+              {mesa.bankDetails.banco && <p><span className="opacity-60">Banco:</span> {mesa.bankDetails.banco}</p>}
+              {mesa.bankDetails.titular && <p><span className="opacity-60">Titular:</span> {mesa.bankDetails.titular}</p>}
+              {mesa.bankDetails.clabe && <p className="tracking-wider text-sm font-semibold mt-1"><span className="opacity-60 font-sans text-xs font-normal">CLABE:</span> {mesa.bankDetails.clabe}</p>}
+            </div>
           </div>
         )}
 
-        {/* Opción 2: Innovación en efectivo (Lluvia de sobres digital) */}
-        {bankDetails && (
-          <div className="bg-stone-50 border border-stone-100 rounded-2xl p-6 text-left">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-xl">✉️</span>
-              <div>
-                <h4 className="font-serif text-stone-800 text-base font-medium">Apoyo en Efectivo</h4>
-                <p className="text-stone-400 text-xs">Para nuestra luna de miel o futuro hogar</p>
-              </div>
-            </div>
-
-            <div className="bg-white p-4 rounded-xl border border-stone-200/60 space-y-2 relative">
-              <p className="text-xs text-stone-400 font-medium uppercase tracking-wider">Datos para transferencia:</p>
-              <p className="text-sm text-stone-700"><strong className="font-medium text-stone-500">Banco:</strong> {bankDetails.banco}</p>
-              <p className="text-sm text-stone-700"><strong className="font-medium text-stone-500">Titular:</strong> {bankDetails.titular}</p>
-              <div className="flex justify-between items-center pt-2 border-t border-stone-100 mt-2">
-                <div>
-                  <p className="text-[10px] text-stone-400 font-medium uppercase">CLABE Interbancaria</p>
-                  <p className="text-sm font-mono text-stone-800 tracking-wider">{bankDetails.clabe}</p>
-                </div>
-                <button
-                  onClick={handleCopyClabe}
-                  className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-all ${
-                    copied 
-                      ? 'bg-emerald-50 border-emerald-200 text-emerald-600' 
-                      : 'bg-stone-800 border-stone-800 text-white hover:bg-stone-900'
-                  }`}
+        {/* SECCIÓN TIENDAS ONLINE */}
+        {tieneTiendas && (
+          <div className={`p-8 rounded-3xl border shadow-xs text-center space-y-4 transition-colors duration-500 ${cardStyle}`}>
+            <span className="text-xl">🛍️</span>
+            <h3 className={`text-lg ${diseño.fuenteTitulo}`}>Mesas Virtuales</h3>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+              {mesa.registries.map((reg, index) => (
+                <a
+                  key={index}
+                  href={reg.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`w-full sm:w-auto px-6 py-3 rounded-xl text-xs font-medium uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${diseño.botonAcento}`}
                 >
-                  {copied ? '¡Copiado!' : 'Copiar'}
-                </button>
-              </div>
+                  <span>{reg.logo}</span> Ver Mesa en {reg.name}
+                </a>
+              ))}
             </div>
           </div>
         )}

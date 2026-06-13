@@ -1,133 +1,167 @@
-// components/RsvpModule.jsx
+"use client";
 import { useState } from 'react';
+import { supabase } from '@/lib/supabase';
 
-export default function RsvpModule({ weddingId }) {
-  const [searchName, setSearchName] = useState('');
-  const [guestGroup, setGuestGroup] = useState(null);
-  const [confirmedSeats, setConfirmedSeats] = useState(0);
-  const [status, setStatus] = useState('idle'); // idle, loading, found, not_found, success
+export default function RsvpModule({ weddingId, weddingSlug, diseño }) {
+  const [nombreBusqueda, setNombreBusqueda] = useState('');
+  const [cargando, setCargando] = useState(false);
+  const [familiaEncontrada, setFamiliaEncontrada] = useState(null);
+  const [pasesConfirmados, setPasesConfirmados] = useState(1);
+  const [mensajeConfirmacion, setMensajeConfirmacion] = useState(false);
+  const [error, setError] = useState('');
 
-  // Simulación de búsqueda en Supabase / Firebase
-  const handleSearchGuest = async (e) => {
+  const buscarInvitado = async (e) => {
     e.preventDefault();
-    if (!searchName.trim()) return;
-    setStatus('loading');
+    if (!nombreBusqueda.trim()) return;
 
-    // Aquí conectarías con tu base de datos. Simulamos una respuesta:
-    setTimeout(() => {
-      // Mock de datos que vendrían de la tabla 'Invitados'
-      const mockDbGuest = {
-        id: 'inv_123',
-        nombreFamilia: 'Familia Martínez Pérez',
-        pasesTotales: 4,
-        confirmados: 0
-      };
+    setCargando(true);
+    setError('');
+    setFamiliaEncontrada(null);
+    setMensajeConfirmacion(false);
 
-      if (searchName.toLowerCase().includes('martinez') || searchName.toLowerCase().includes('perez')) {
-        setGuestGroup(mockDbGuest);
-        setConfirmedSeats(mockDbGuest.pasesTotales); // Por defecto sugerimos que asisten todos
-        setStatus('found');
+    try {
+      const { data, error: dbError } = await supabase
+        .from('invitados')
+        .select('*')
+        .eq('boda_slug', weddingSlug)
+        .ilike('nombre_invitado', `%${nombreBusqueda.trim()}%`);
+
+      if (dbError) throw dbError;
+
+      if (data && data.length > 0) {
+        setFamiliaEncontrada(data[0]); // Tomamos la coincidencia principal
+        setPasesConfirmados(data[0].pases_totales);
       } else {
-        setStatus('not_found');
+        setError('❌ No se encontró tu nombre en la lista oficial. Verifica que esté bien escrito.');
       }
-    }, 1000);
+    } catch (err) {
+      setError('Hubo un problema al buscar en el servidor. Intenta de nuevo.');
+    } finally {
+      setCargando(false);
+    }
   };
 
-  // Simulación de guardar la confirmación
-  const handleConfirmAttendance = async (isAttending) => {
-    setStatus('loading');
-    
-    // Aquí harías el UPDATE en tu base de datos
-    setTimeout(() => {
-      setStatus('success');
-    }, 1200);
+  const enviarConfirmacion = async (estadoAsistencia) => {
+    setCargando(true);
+    try {
+      const { error: updateError } = await supabase
+        .from('invitados')
+        .update({
+          estado: estadoAsistencia,
+          pases_confirmados: estadoAsistencia === 'confirmado' ? pasesConfirmados : 0
+        })
+        .eq('id', familiaEncontrada.id);
+
+      if (updateError) throw updateError;
+      setMensajeConfirmacion(true);
+    } catch (err) {
+      alert('Error al guardar tu asistencia.');
+    } finally {
+      setCargando(false);
+    }
   };
+
+  const cardStyle = diseño.id === 'minimal-dark'
+    ? 'bg-zinc-900/20 border-zinc-800 text-zinc-300'
+    : diseño.id === 'boho-rancho'
+    ? 'bg-[#faf7f2] border-amber-900/10 text-amber-950'
+    : 'bg-white border-stone-200 text-stone-700';
+
+  const inputStyle = diseño.id === 'minimal-dark'
+    ? 'bg-zinc-900 border-zinc-800 text-white focus:border-zinc-500'
+    : 'bg-white border-stone-200 text-stone-800 focus:border-amber-600';
 
   return (
-    <section className="py-20 px-4 bg-stone-50 text-center">
-      <div className="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-sm border border-stone-100">
-        <h2 className="text-3xl font-serif text-stone-800 mb-2">Confirmar Asistencia</h2>
-        <p className="text-stone-500 text-sm mb-6 font-light">
-          Por favor, ayúdanos a confirmar tu presencia antes de la fecha límite.
-        </p>
+    <section className="py-24 px-4 bg-transparent">
+      <div className={`max-w-md mx-auto p-6 md:p-8 rounded-3xl border shadow-md transition-all duration-500 ${cardStyle}`}>
+        <div className="text-center space-y-2 mb-6">
+          <span className={`text-[10px] uppercase tracking-widest font-semibold block ${diseño.id === 'minimal-dark' ? 'text-zinc-500' : 'text-amber-700'}`}>
+            Pases Digitales
+          </span>
+          <h2 className={`text-2xl ${diseño.fuenteTitulo}`}>Confirmar Asistencia</h2>
+        </div>
 
-        {/* PASO 1: BÚSQUEDA POR NOMBRE */}
-        {(status === 'idle' || status === 'loading' || status === 'not_found') && (
-          <form onSubmit={handleSearchGuest} className="space-y-4">
-            <input
-              type="text"
-              placeholder="Ingresa tu nombre completo o apellido"
-              value={searchName}
-              onChange={(e) => setSearchName(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-stone-200 text-stone-700 placeholder-stone-400 focus:outline-none focus:border-stone-500 text-sm transition-colors"
-            />
-            <button
-              type="submit"
-              disabled={status === 'loading'}
-              className="w-full bg-stone-800 hover:bg-stone-900 text-white font-medium py-3 rounded-lg text-sm transition-colors"
+        {!familiaEncontrada ? (
+          /* BUSCADOR DE NOMBRE */
+          <form onSubmit={buscarInvitado} className="space-y-4">
+            <div className="space-y-1 text-left">
+              <label className="text-[10px] uppercase tracking-wider opacity-60 font-semibold block pl-1">Busca tu nombre o apellido:</label>
+              <input 
+                type="text" 
+                value={nombreBusqueda}
+                onChange={(e) => setNombreBusqueda(e.target.value)}
+                placeholder="Ej. Familia Martínez o Alberto Gómez" 
+                required
+                className={`w-full px-4 py-3 border rounded-xl text-xs focus:outline-none transition-all ${inputStyle}`}
+              />
+            </div>
+            <button 
+              type="submit" 
+              disabled={cargando}
+              className={`w-full py-3.5 rounded-xl uppercase text-xs tracking-wider font-semibold transition-all cursor-pointer ${diseño.botonAcento}`}
             >
-              {status === 'loading' ? 'Buscando...' : 'Buscar mi pase'}
+              {cargando ? 'Buscando pases...' : '🔍 Buscar mi invitación'}
             </button>
-            {status === 'not_found' && (
-              <p className="text-red-500 text-xs mt-2">
-                No encontramos tu nombre. Por favor intenta con tu apellido o contacta a los novios.
-              </p>
-            )}
+            {error && <p className="text-center text-[11px] text-rose-500 font-medium leading-normal pt-1">{error}</p>}
           </form>
-        )}
-
-        {/* PASO 2: SELECCIÓN DE PASES (FILTRO ANTI-COLADOS) */}
-        {status === 'found' && guestGroup && (
-          <div className="space-y-6 text-left animate-fade-in">
-            <div className="bg-stone-50 p-4 rounded-lg border border-stone-100">
-              <span className="text-xs text-stone-400 uppercase tracking-wider block">Invitación para:</span>
-              <span className="text-lg font-serif text-stone-700 font-medium">{guestGroup.nombreFamilia}</span>
+        ) : !mensajeConfirmacion ? (
+          /* CONTROL DE ASISTENCIA ENCONTRADA */
+          <div className="space-y-6 text-center animate-fadeIn">
+            <div className="bg-stone-500/5 p-4 rounded-2xl border border-stone-200/20">
+              <p className="text-[10px] uppercase tracking-widest opacity-50">Bienvenido(a)</p>
+              <h4 className="font-serif text-lg font-medium mt-0.5">{familiaEncontrada.nombre_invitado}</h4>
+              <p className="text-xs opacity-70 font-light mt-1">Tienes un total de <span className="font-mono font-bold text-sm">{familiaEncontrada.pases_totales}</span> pases asignados.</p>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-stone-600 block">
-                ¿Cuántos pases deseas confirmar? (Máximo {guestGroup.pasesTotales})
-              </label>
-              <select
-                value={confirmedSeats}
-                onChange={(e) => setConfirmedSeats(Number(e.target.value))}
-                className="w-full px-4 py-3 rounded-lg border border-stone-200 text-stone-700 bg-white text-sm focus:outline-none focus:border-stone-500"
-              >
-                {[...Array(guestGroup.pasesTotales + 1).keys()].map((num) => (
-                  <option key={num} value={num}>
-                    {num === 0 ? '0 pases (No podré asistir)' : `${num} ${num === 1 ? 'pase' : 'pases'}`}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <div className="space-y-4">
+              <div className="space-y-1.5 text-left">
+                <label className="text-[10px] uppercase tracking-wider opacity-60 font-semibold block pl-1">¿Cuántos pases confirmarás?</label>
+                <select 
+                  value={pasesConfirmados}
+                  onChange={(e) => setPasesConfirmados(parseInt(e.target.value))}
+                  className={`w-full p-3 border rounded-xl text-xs focus:outline-none cursor-pointer transition-all ${inputStyle}`}
+                >
+                  {Array.from({ length: familiaEncontrada.pases_totales }, (_, i) => i + 1).map((num) => (
+                    <option key={num} value={num}>{num} {num === 1 ? 'Persona' : 'Personas'}</option>
+                  ))}
+                </select>
+              </div>
 
-            <div className="grid grid-cols-2 gap-4 pt-2">
-              <button
-                onClick={() => handleConfirmAttendance(false)}
-                className="border border-stone-300 text-stone-600 font-medium py-3 rounded-lg text-sm hover:bg-stone-50 transition-colors"
-              >
-                No podré ir
-              </button>
-              <button
-                onClick={() => handleConfirmAttendance(true)}
-                className="bg-emerald-700 hover:bg-emerald-800 text-white font-medium py-3 rounded-lg text-sm transition-colors shadow-sm"
-              >
-                Confirmar pases
-              </button>
+              <div className="grid grid-cols-2 gap-3">
+                <button 
+                  type="button"
+                  onClick={() => enviarConfirmacion('confirmado')}
+                  disabled={cargando}
+                  className={`py-3.5 rounded-xl uppercase text-xs tracking-wider font-semibold transition-all cursor-pointer ${diseño.botonAcento}`}
+                >
+                  ✅ Sí Asistiré
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => enviarConfirmacion('declinado')}
+                  disabled={cargando}
+                  className="py-3.5 rounded-xl uppercase text-xs tracking-wider font-semibold bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 transition-all cursor-pointer"
+                >
+                  ❌ Declinar
+                </button>
+              </div>
             </div>
           </div>
-        )}
-
-        {/* PASO 3: ÉXITO */}
-        {status === 'success' && (
-          <div className="space-y-4 py-6 animate-scale-up">
-            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl">
-              ✓
-            </div>
-            <h3 className="text-xl font-serif text-stone-800">¡Confirmación recibida!</h3>
-            <p className="text-stone-500 text-sm max-w-xs mx-auto">
-              Tus pases han sido registrados. Los detalles actualizados se enviaron al panel de los novios. ¡Nos vemos en el gran día!
+        ) : (
+          /* MENSAJE DE ÉXITO FINAL */
+          <div className="text-center space-y-4 py-4 animate-scaleUp">
+            <span className="text-3xl block">✨</span>
+            <h4 className={`text-xl ${diseño.fuenteTitulo}`}>¡Respuesta Guardada!</h4>
+            <p className="text-xs opacity-75 font-light leading-relaxed max-w-xs mx-auto">
+              Muchas gracias. Los novios han recibido tu confirmación en vivo en su panel de administración.
             </p>
+            <button 
+              type="button" 
+              onClick={() => { setFamiliaEncontrada(null); setNombreBusqueda(''); setMensajeConfirmacion(false); }}
+              className="text-[10px] uppercase font-bold tracking-widest text-stone-400 hover:text-stone-600 transition-colors cursor-pointer mt-2"
+            >
+              ← Regresar / Buscar otro nombre
+            </button>
           </div>
         )}
       </div>
