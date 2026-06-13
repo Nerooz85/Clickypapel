@@ -66,10 +66,13 @@ function CheckoutContent() {
             {plan === 'basicos' ? 'Digital Esencial' : plan === 'vip' ? 'VIP Celestial' : 'Gran Día Premium'}
           </span>
         </div>
+        
+        {/* ✨ CAMBIO DE BRANDING ESTRATÉGICO: El cliente confirma visualmente que su invitación vivirá en tugrandia.icu */}
         <div className="flex justify-between font-medium">
           <span className="text-stone-500">Espacio reservado:</span>
-          <span className="text-amber-800 font-mono font-bold">clickypapel.com/{slug}</span>
+          <span className="text-amber-800 font-mono font-bold">tugrandia.icu/{slug}</span>
         </div>
+        
         {musicaExtra && (
           <div className="flex justify-between font-medium text-purple-950">
             <span>Complemento:</span>

@@ -1,9 +1,8 @@
 "use client";
-import { useState, Suspense } from 'react'; // 1. Importamos Suspense nativo
+import { useState, Suspense } from 'react'; 
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
-// 📝 COMPONENTE HIJO CON TODA TU LÓGICA COMERCIAL
 function RegistroForm() {
   const searchParams = useSearchParams();
 
@@ -48,7 +47,7 @@ function RegistroForm() {
 
       if (existeSlug) {
         setRegistrando(false);
-        return alert(`⚠️ El enlace 'clickypapel.com/${slugDeseado}' ya está ocupado. Intenta con otra combinación.`);
+        return alert(`⚠️ El enlace 'tugrandia.icu/${slugDeseado}' ya está ocupado. Intenta con otra combinación.`);
       }
 
       const { error: errorBoda } = await supabase
@@ -65,8 +64,10 @@ function RegistroForm() {
 
       if (errorBoda) throw errorBoda;
 
-      alert(`✨ ¡Espacio reservado con éxito! Avanzando al pago de $${precioTotal} MXN...`);
-      window.location.href = `/dashboard?slug=${slugDeseado}`;
+      alert(`✨ ¡Espacio reservado con éxito! Avanzando al pago de $${precioTotal.toLocaleString('es-MX')} MXN...`);
+      
+      // 🚀 ENLACE EN CALIENTE: Redirigimos directo al checkout inyectando el slug y los addons por URL
+      window.location.href = `/checkout?plan=${plan}&slug=${slugDeseado}&musica=${musicaExtra ? 'custom' : 'default'}`;
 
     } catch (err) {
       console.error(err);
@@ -101,7 +102,8 @@ function RegistroForm() {
           <div className="space-y-1">
             <label className="text-xs font-semibold text-stone-600">Tu Enlace Personalizado Deseado</label>
             <div className="flex items-center">
-              <span className="bg-stone-100 border border-r-0 border-stone-200 px-3 py-2.5 rounded-l-xl text-xs text-stone-400 font-mono select-none">clickypapel.com/</span>
+              {/* ✨ CAMBIO DE MARCA: Reflejamos tugrandia.icu de cara a la experiencia del cliente final */}
+              <span className="bg-stone-100 border border-r-0 border-stone-200 px-3 py-2.5 rounded-l-xl text-xs text-stone-400 font-mono select-none">tugrandia.icu/</span>
               <input type="text" required value={slugDeseado} onChange={(e) => handleSlugChange(e.target.value)} placeholder="tu-boda" className="w-full px-3.5 py-2.5 border rounded-r-xl text-xs bg-stone-50/40 focus:outline-none focus:border-amber-700 font-mono text-amber-900 font-bold" />
             </div>
           </div>
@@ -134,7 +136,9 @@ function RegistroForm() {
             <div className="flex justify-between items-start">
               <div>
                 <p className="font-bold text-stone-800">Paquete Digital Seleccionado</p>
-                <p className="text-[10px] text-stone-400 font-mono capitalize">Plan: {plan}</p>
+                <p className="text-[10px] text-stone-400 font-mono capitalize">
+                  Plan: {plan === 'basicos' ? 'Digital Esencial' : plan === 'vip' ? 'VIP Celestial' : 'Gran Día Premium'}
+                </p>
               </div>
               <span className="font-mono font-bold text-stone-700">${precioBase.toLocaleString('es-MX')}</span>
             </div>
@@ -169,7 +173,6 @@ function RegistroForm() {
   );
 }
 
-// 👑 COMPONENTE PADRE DE EXPORTACIÓN QUE BLINDA LA PÁGINA CON SUSPENSE
 export default function RegistroCheckoutPage() {
   return (
     <div className="min-h-screen bg-[#f1ede6] text-stone-800 flex items-center justify-center p-4 font-sans antialiased">

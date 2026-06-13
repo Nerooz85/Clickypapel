@@ -170,7 +170,9 @@ export default function NoviosDashboard() {
         setPaletaColores(bodaData.paleta_colores || '');
 
         setAlbumActivado(bodaData.album_compartido_activo || false);
-        setCodigoMesaUrl(`https://clickypapel.com/${slugLimpio}/compartir`);
+        
+        // ✨ CONFIGURACIÓN ESTRATÉGICA: Apunta el enlace de mesas a tugrandia.icu
+        setCodigoMesaUrl(`https://tugrandia.icu/${slugLimpio}/compartir`);
 
         if (bodaData.gallery_images) {
           const nuevasFotos = ['', '', '', '', '', ''];
@@ -239,11 +241,10 @@ export default function NoviosDashboard() {
     setGuardando(true);
     try {
       await supabase.from('bodas').update({ banco: banco.trim(), titular: titular.trim(), clabe: clabe.trim(), amazon_url: amazonUrl.trim(), liverpool_url: liverpoolUrl.trim() }).eq('slug', weddingSlug);
-      setPasoActivo(6); // Pasa automáticamente al nuevo paso 6 de logística
+      setPasoActivo(6); 
     } catch (err) { alert("Error"); } finally { setGuardando(false); }
   };
 
-  // Guardar Nuevo Paso 6
   const handleGuardarPaso6 = async () => {
     setGuardando(true);
     try {
@@ -401,7 +402,10 @@ export default function NoviosDashboard() {
                       <p className="text-xs font-semibold text-purple-200">🖨️ Código QR Oficial para Imprimir en tus Mesas:</p>
                       <input type="text" readOnly value={codigoMesaUrl} className="w-full px-3 py-2 rounded-xl text-xs bg-black/20 border border-white/10 font-mono text-purple-300" />
                     </div>
-                    <div className="bg-white p-2 rounded-2xl w-28 h-28 mx-auto shadow-md flex items-center justify-center"><img src={`https://chart.googleapis.com/chart?cht=qr&chs=120x120&chl=${codigoMesaUrl}`} alt="QR" className="w-full h-full" /></div>
+                    {/* ✨ CONFIGURACIÓN ESTRATÉGICA: Código QR de Mesas codificado para tugrandia.icu */}
+                    <div className="bg-white p-2 rounded-2xl w-28 h-28 mx-auto shadow-md flex items-center justify-center">
+                      <img src={`https://chart.googleapis.com/chart?cht=qr&chs=120x120&chl=${codigoMesaUrl}`} alt="QR" className="w-full h-full" />
+                    </div>
                   </div>
                 )}
                 {albumActivado && (
@@ -452,7 +456,7 @@ export default function NoviosDashboard() {
               <button type="button" disabled={guardando} onClick={handleGuardarPaso4} className="w-full bg-stone-950 text-white text-xs uppercase font-bold py-4 rounded-xl shadow-md cursor-pointer">{guardando ? 'Sincronizando...' : 'Guardar y Continuar ➔'}</button>
             </div>
           </div>
-        ) : pasoActive === 5 ? (
+        ) : pasoActivo === 5 ? (
           /* PASO 5 */
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start animate-fadeIn text-left">
             <div className="lg:col-span-2 space-y-6">
@@ -475,9 +479,7 @@ export default function NoviosDashboard() {
             </div>
           </div>
         ) : (
-          /* ========================================================
-             ✨ PASO 6: NUEVO RENDER MÓDULO DE LOGÍSTICA & VESTIMENTA
-             ======================================================== */
+          /* PASO 6 */
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start animate-fadeIn text-left">
             <div className="lg:col-span-2 space-y-6">
               
@@ -546,9 +548,12 @@ export default function NoviosDashboard() {
             <h4 className="font-serif text-base font-medium">Tarjeta de Acceso Oficial</h4>
             <div className="bg-[#fcfbfa] border-2 border-dashed border-stone-200 rounded-2xl p-5 space-y-4">
               <h5 className="font-serif text-lg">{brideName} & {groomName}</h5>
+              
+              {/* ✨ CONFIGURACIÓN ESTRATÉGICA: Código QR Individual mapeado para tugrandia.icu */}
               <div className="w-36 h-36 mx-auto bg-white p-2.5 rounded-xl border flex items-center justify-center">
-                <img src={`https://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=https://clickypapel.com/${weddingSlug}/rsvp?id=${invitadoSeleccionado.id}`} alt="QR" className="w-full h-full" />
+                <img src={`https://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=https://tugrandia.icu/${weddingSlug}/rsvp?id=${invitadoSeleccionado.id}`} alt="QR" className="w-full h-full" />
               </div>
+              
               <p className="text-xs font-bold">{invitadoSeleccionado.nombre_invitado}</p>
               <div className="bg-stone-900 text-white text-[9px] uppercase px-3 py-1 rounded-full">🎟️ {invitadoSeleccionado.pases_totales} Pases</div>
             </div>
