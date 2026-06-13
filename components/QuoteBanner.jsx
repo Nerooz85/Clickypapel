@@ -1,27 +1,24 @@
 "use client";
 
 export default function QuoteBanner({ weddingData, diseño }) {
-  // Configuración de Frases, Salmos e Imágenes de Fondo según el estilo seleccionado
+  // Configuración de textos, capas y opacidades según el estilo seleccionado
   const configuraciónPorEstilo = {
     'romantico-clasico': {
       texto: "«Por encima de todo, vístanse de amor, que es el vínculo perfecto.»",
       autor: "Colosenses 3:14",
-      bgImage: "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?q=80&w=1200&auto=format&fit=crop", // Flores/textura fina y clara
-      overlay: "bg-white/85", // Capa clara para asegurar legibilidad
+      overlay: "bg-white/85 backdrop-blur-xs", // Capa clara + desenfoque sutil
       textColor: "text-stone-800"
     },
     'minimal-dark': {
       texto: "«TODAVÍA CREO EN LOS MILAGROS, PORQUE TE ENCONTRÉ A TI.»",
       autor: "E.S.",
-      bgImage: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=1200&auto=format&fit=crop", // Pareja elegante B&N
-      overlay: "bg-zinc-950/80", // Capa oscura premium
+      overlay: "bg-zinc-950/80 backdrop-blur-xs", // Capa oscura premium + desenfoque sutil
       textColor: "text-zinc-100"
     },
     'boho-rancho': {
       texto: "«Donde tú vayas, yo iré; donde tú vivas, yo viviré. Tu pueblo será mi pueblo y tu Dios será mi Dios.»",
       autor: "Rut 1:16",
-      bgImage: "https://images.unsplash.com/photo-1507504038482-762143431056?q=80&w=1200&auto=format&fit=crop", // Atardecer de campo/pasto dorado
-      overlay: "bg-[#f4efe6]/85", // Capa cálida beige
+      overlay: "bg-[#f4efe6]/85 backdrop-blur-xs", // Capa cálida beige + desenfoque sutil
       textColor: "text-amber-950"
     }
   };
@@ -37,16 +34,19 @@ export default function QuoteBanner({ weddingData, diseño }) {
     ? "" 
     : config.autor;
 
+  // Extraemos la foto de portada de la boda; si por alguna razón no hay, dejamos un respaldo elegante
+  const imagenFondo = weddingData?.coverImage || "https://images.unsplash.com/photo-1519741497674-611481863552";
+
   return (
     <section 
-      className="relative py-32 px-6 my-12 bg-cover bg-center bg-no-attachment bg-no-repeat overflow-hidden border-y border-stone-200/20 shadow-xs transition-all duration-500"
-      style={{ backgroundImage: `url('${config.bgImage}')` }}
+      className="relative py-32 px-6 my-12 bg-cover bg-center bg-no-repeat overflow-hidden border-y border-stone-200/20 shadow-xs transition-all duration-500"
+      style={{ backgroundImage: `url('${imagenFondo}')` }}
     >
-      {/* 🎨 Capa de color traslúcida (Overlay) para que el texto resalte y no se pierda con la foto */}
-      <div className={`absolute inset-0 transition-colors duration-500 ${config.overlay}`} />
+      {/* 🎨 Capa inteligente (Overlay + Blur) que toma la foto de los novios y la vuelve un fondo artístico */}
+      <div className={`absolute inset-0 transition-all duration-500 ${config.overlay}`} />
 
       {/* Contenido de la Frase */}
-      <div className="relative max-w-xl mx-auto space-y-5 z-10">
+      <div className="relative max-w-xl mx-auto space-y-5 z-10 text-center">
         {/* Un adorno sutil flotando */}
         <span className={`text-xl opacity-40 block ${config.textColor}`}>✦</span>
         
