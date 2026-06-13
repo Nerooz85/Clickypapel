@@ -6,6 +6,7 @@ import InvitationHero from '@/components/InvitationHero';
 import EventTimeline from '@/components/EventTimeline';
 import PhotoGallery from '@/components/PhotoGallery';
 import GiftRegistry from '@/components/GiftRegistry';
+import QuoteBanner from '@/components/QuoteBanner'; // 📜 1. IMPORTAMOS TU NUEVO BANNER EDITORIAL
 import RsvpModule from '@/components/RsvpModule';
 
 export default function WeddingInvitationPage() {
@@ -309,6 +310,10 @@ export default function WeddingInvitationPage() {
       <EventTimeline weddingData={weddingData} diseño={diseño} />
       <PhotoGallery weddingData={weddingData} images={weddingData.galleryImages} diseño={diseño} />
       <GiftRegistry weddingData={weddingData} diseño={diseño} />
+      
+      {/* 📜 BANNER DE TRANSICIÓN EMOCIONAL EN EL SWEET SPOT */}
+      <QuoteBanner weddingData={weddingData} diseño={diseño} />
+      
       <RsvpModule weddingId={weddingData.id} weddingSlug={weddingData.slug} diseño={diseño} />
       
       <footer className="text-center py-12 bg-stone-900 text-stone-500 text-xs">
