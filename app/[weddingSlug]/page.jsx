@@ -69,10 +69,16 @@ export default function WeddingInvitationPage() {
           recepcionHora: data.recepcion_hora,
           recepcionLugar: data.recepcion_lugar,
           recepcionMapsUrl: data.recepcion_maps_url,
-          codigoVestimenta: data.codigo_vestimenta,
           musicType: data.music_type || 'default',
           musicUrl: data.music_url || '/music/1-thousand-years.mp3',
           albumCompartidoActivo: data.album_compartido_activo || false,
+          
+          // 🗓️🎨 DATA LOGÍSTICA INYECTADA DEL PASO 6 DEL DASHBOARD
+          itinerarioMisa: data.itinerario_misa,
+          itinerarioFiesta: data.itinerario_fiesta,
+          codigoVestimenta: data.codigo_vestimenta,
+          paletaColores: data.paleta_colores,
+
           mesaRegalos: {
             bankDetails: { banco: data.banco, titular: data.titular, clabe: data.clabe },
             registries: [
@@ -249,7 +255,7 @@ export default function WeddingInvitationPage() {
             <div className="space-y-1">
               <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Paso Final</span>
               <h3 className="font-serif text-xl text-stone-950 font-medium">Personaliza tu paquete</h3>
-              <p className="text-stone-400 text-xs font-light">Elegiste el diseño: <strong className="text-stone-700 font-semibold">{diseño.nombre}</strong></p>
+              <p className="text-stone-400 text-xs font-light">Elegiste el design: <strong className="text-stone-700 font-semibold">{diseño.nombre}</strong></p>
             </div>
 
             <div className="space-y-2">
@@ -304,7 +310,7 @@ export default function WeddingInvitationPage() {
                 <span className="text-[9px] uppercase tracking-wider text-stone-400 block font-semibold">Total estimado:</span>
                 <span className="text-xl font-mono font-black text-stone-900">${precioTotal.toLocaleString('es-MX')} MXN</span>
               </div>
-              <button type="button" onClick={handleProcederAlPago} className="bg-stone-950 hover:bg-amber-600 text-white text-xs uppercase font-bold tracking-wider px-6 py-3.5 rounded-xl shadow-md cursor-pointer">Comenzar Diseño ➔</button>
+              <button type="button" onClick={handleProcederAlPago} className="bg-stone-950 hover:bg-amber-600 text-white text-xs uppercase font-bold tracking-wider px-6 py-3.5 rounded-xl shadow-md transition-all cursor-pointer">Comenzar Diseño ➔</button>
             </div>
           </div>
         </div>
@@ -313,11 +319,12 @@ export default function WeddingInvitationPage() {
       {/* 🚀 INYECCIÓN DE TUS COMPONENTES ESTRUCTURALES MAESTROS */}
       <InvitationHero weddingData={weddingData} diseño={diseño} />
       
+      {/* 🗓️ JALA TU NUEVO TIMELINE OPTIMIZADO CON MAPAS, DRESS CODE Y PALETA EN CALIENTE */}
       <EventTimeline weddingData={weddingData} diseño={diseño} />
       
       <PhotoGallery weddingData={weddingData} images={weddingData.galleryImages} diseño={diseño} />
       
-      {/* 📸✨ MODAL O ACCESO AL ÁLBUM COMPARTIDO SI ESTÁ ACTIVADO EN EL PLAN PREMIUM */}
+      {/* 📸✨ ACCESO AL ÁLBUM COMPARTIDO SI ESTÁ ACTIVADO EN EL PLAN PREMIUM */}
       {weddingData.albumCompartidoActivo && (
         <section className="max-w-md mx-auto px-6 py-6 text-center animate-fadeIn">
           <div className="bg-gradient-to-br from-purple-900 to-indigo-950 text-white p-6 rounded-3xl shadow-xl space-y-4 text-left border border-purple-950">

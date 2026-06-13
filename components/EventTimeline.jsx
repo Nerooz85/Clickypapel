@@ -10,6 +10,18 @@ export default function EventTimeline({ weddingData, diseño }) {
 
   const labelStyle = diseño.id === 'minimal-dark' ? 'text-zinc-500' : 'text-stone-400';
 
+  // Sincronización en caliente con el Paso 6 del Dashboard
+  const horaMisa = weddingData?.itinerarioMisa || weddingData?.ceremoniaHora || "17:00 HRS";
+  const horaFiesta = weddingData?.itinerarioFiesta || weddingData?.recepcionHora || "19:30 HRS";
+  const textoPaleta = weddingData?.paletaColores || "Tonos terracota, beige, verde olivo";
+
+  // Mapeo automático de burbujas de color según la plantilla contratada
+  const coloresMuestra = diseño.id === 'minimal-dark' 
+    ? ['#18181b', '#27272a', '#52525b', '#71717a', '#a1a1aa']
+    : diseño.id === 'boho-rancho'
+    ? ['#8c6239', '#bf9b7a', '#dfd3c3', '#7d8a7c', '#c2baa6']
+    : ['#78350f', '#b45309', '#f59e0b', '#fef3c7', '#d97706']; // Clásico
+
   return (
     <section className="py-20 px-4 max-w-4xl mx-auto space-y-12">
       <div className="text-center space-y-2">
@@ -27,7 +39,7 @@ export default function EventTimeline({ weddingData, diseño }) {
             <h3 className={`text-xl ${diseño.fuenteTitulo}`}>Ceremonia Religiosa</h3>
           </div>
           <div className="text-xs space-y-2 font-light">
-            <p><strong className="font-semibold">Hora:</strong> {weddingData.ceremoniaHora || "17:00 HRS"}</p>
+            <p><strong className="font-semibold">Hora:</strong> {horaMisa}</p>
             <p><strong className="font-semibold">Lugar:</strong> {weddingData.ceremoniaLugar || "Templo del Evento"}</p>
           </div>
           {weddingData.ceremoniaMapsUrl && (
@@ -49,7 +61,7 @@ export default function EventTimeline({ weddingData, diseño }) {
             <h3 className={`text-xl ${diseño.fuenteTitulo}`}>Recepción / Fiesta</h3>
           </div>
           <div className="text-xs space-y-2 font-light">
-            <p><strong className="font-semibold">Hora:</strong> {weddingData.recepcionHora || "19:30 HRS"}</p>
+            <p><strong className="font-semibold">Hora:</strong> {horaFiesta}</p>
             <p><strong className="font-semibold">Lugar:</strong> {weddingData.recepcionLugar || "Salón de Eventos"}</p>
           </div>
           {weddingData.recepcionMapsUrl && (
@@ -65,10 +77,30 @@ export default function EventTimeline({ weddingData, diseño }) {
         </div>
       </div>
 
-      {/* CÓDIGO DE VESTIMENTA */}
-      <div className={`p-6 rounded-2xl text-center border max-w-sm mx-auto transition-colors duration-500 ${cardStyle}`}>
-        <span className={`text-[10px] uppercase tracking-widest font-bold block mb-1 ${labelStyle}`}>Código de Vestimenta</span>
-        <p className="text-sm font-medium tracking-wide">✨ {weddingData.codigoVestimenta || "Formal / Gala"}</p>
+      {/* 👔 EXCLUSIVO MODULO: CÓDIGO DE VESTIMENTA & PALETA DE INSPIRACIÓN INTERACTIVA */}
+      <div className={`p-6 rounded-3xl text-center border max-w-sm mx-auto transition-colors duration-500 space-y-4 ${cardStyle}`}>
+        <div className="space-y-1">
+          <span className={`text-[10px] uppercase tracking-widest font-bold block ${labelStyle}`}>Código de Vestimenta</span>
+          <p className="text-sm font-medium tracking-wide capitalize">✨ {weddingData.codigoVestimenta || "Formal / Gala"}</p>
+        </div>
+
+        {/* Círculos fluidos de paletas cromáticas */}
+        <div className="pt-3 border-t border-stone-200/50 border-dashed space-y-2.5">
+          <span className={`text-[9px] uppercase tracking-wider font-bold block ${labelStyle}`}>Paleta de Inspiración</span>
+          <div className="flex justify-center items-center gap-1.5">
+            {coloresMuestra.map((hex, i) => (
+              <div 
+                key={i} 
+                style={{ backgroundColor: hex }} 
+                className="w-6 h-6 rounded-full shadow-2xs border border-white hover:scale-110 transition-transform cursor-help"
+                title={hex}
+              />
+            ))}
+          </div>
+          <p className="text-[11px] italic opacity-70 font-light px-2 leading-relaxed">
+            "{textoPaleta}"
+          </p>
+        </div>
       </div>
     </section>
   );
