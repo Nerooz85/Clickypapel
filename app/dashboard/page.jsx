@@ -6,14 +6,19 @@ export default function NoviosDashboard() {
   const weddingSlug = 'bruno-y-brisa'; 
 
   // Estados de Control de la App
-  const [pasoActivo, setPasoActivo] = useState(3); // Lo dejamos en el paso 3 para visualizar la tabla de pases
+  const [pasoActivo, setPasoActivo] = useState(4); // Lo dejamos en multimedia para ver la integración
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [subiendoIndex, setSubiendoIndex] = useState(null);
 
   // 🪙 Información de Compra
-  const [planContratado, setPlanContratatado] = useState('premium'); 
+  const [planContratado, setPlanContratatado] = useState('premium'); // 'basicos' | 'premium' | 'vip'
   const [tieneMusicaPersonalizada, setTieneMusicaPersonalizada] = useState(false); 
+
+  // 📸✨ ESTADOS EXCLUSIVOS DEL ÁLBUM COMPARTIDO PREMIUM (NUEVO)
+  const [albumActivado, setAlbumActivado] = useState(false);
+  const [codigoMesaUrl, setCodigoMesaUrl] = useState('');
+  const [fotosDelEvento, setFotosDelEvento] = useState([]); // Almacenará las fotos que suban los invitados en la fiesta
 
   // 📝 ESTADOS PASO 2
   const [brideName, setBrideName] = useState('');
@@ -25,12 +30,10 @@ export default function NoviosDashboard() {
   const [recepcionMaps, setRecepcionMaps] = useState('');
   const [templateId, setTemplateId] = useState('romantico-clasico');
 
-  // 📊 ESTADOS PASO 3 (Invitados)
+  // 📊 ESTADOS PASO 3
   const [invitados, setInvitados] = useState([]);
   const [nuevoNombre, setNuevoNombre] = useState('');
   const [nuevosPases, setNuevosPases] = useState(2);
-
-  // 🎫 ESTADO PARA EL MODAL DEL PASE QR
   const [invitadoSeleccionado, setInvitadoSeleccionado] = useState(null);
 
   // 🎵📸 ESTADOS PASO 4
@@ -75,6 +78,25 @@ export default function NoviosDashboard() {
     setGaleriaFotos(copias);
   };
 
+  // Cargar archivos del Storage para simular las fotos que suben los invitados en la fiesta
+  const cargarFotosDelAlbumCompartido = async () => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('invitaciones-media')
+        .list(`${weddingSlug}/album-fiesta/`, { limit: 20, order: { column: 'created_at', ascending: false } });
+      
+      if (data && !error) {
+        const urlsPublicas = data.map(file => {
+          const { data: { publicUrl } } = supabase.storage
+            .from('invitaciones-media')
+            .getPublicUrl(`${weddingSlug}/album-fiesta/${file.name}`);
+          return publicUrl;
+        });
+        setFotosDelEvento(urlsPublicas);
+      }
+    } catch (e) { console.error(e); }
+  };
+
   const handleSubirArchivo = async (e, index, esPortada = false) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -91,15 +113,14 @@ export default function NoviosDashboard() {
         .upload(filePath, file, { cacheControl: '3600', upsert: true });
 
       if (uploadError) throw uploadError;
-
       const { data: { publicUrl } } = supabase.storage.from('invitaciones-media').getPublicUrl(filePath);
 
       if (esPortada) setCoverImage(publicUrl);
       else handleFotoChange(index, publicUrl);
 
-      alert("📸 ¡Imagen subida con éxito!");
+      alert("📸 ¡Imagen subida al instante!");
     } catch (err) {
-      alert("No se pudo subir la imagen.");
+      alert("Error al cargar archivo.");
     } finally {
       setSubiendoIndex(null);
     }
@@ -136,6 +157,10 @@ export default function NoviosDashboard() {
         setClabe(bodaData.clabe || '');
         setAmazonUrl(bodaData.amazon_url || '');
         setLiverpoolUrl(bodaData.liverpool_url || '');
+        
+        // Cargar estado del álbum compartido
+        setAlbumActivado(bodaData.album_compartido_activo || false);
+        setCodigoMesaUrl(`https://clickypapel.com/${slugLimpio}/compartir`);
 
         if (bodaData.gallery_images) {
           const nuevasFotos = ['', '', '', '', '', ''];
@@ -144,14 +169,13 @@ export default function NoviosDashboard() {
         }
       }
 
-      const { data: listaInvitados, error: invitadosError } = await supabase
-        .from('invitados')
-        .select('*')
-        .eq('boda_slug', slugLimpio)
-        .order('nombre_invitado', { ascending: true });
-
-      if (invitadosError) throw invitadosError;
+      const { data: listaInvitados } = await supabase.from('invitados').select('*').eq('boda_slug', slugLimpio).order('nombre_invitado', { ascending: true });
       if (listaInvitados) setInvitados(listaInvitados);
+
+      // Si el plan es premium, jalar de una vez el carrete de los invitados
+      if (bodaData?.plan_tipo !== 'basicos') {
+        await cargarFotosDelAlbumCompartido();
+      }
 
     } catch (err) {
       console.error(err);
@@ -162,99 +186,56 @@ export default function NoviosDashboard() {
 
   useEffect(() => { cargarTodoElDashboard(); }, []);
 
+  // Guardar Estado del Álbum Premium
+  const toggleAlbumCompartido = async () => {
+    const nuevoEstado = !albumActivado;
+    setAlbumActivado(nuevoEstado);
+    try {
+      await supabase
+        .from('bodas')
+        .update({ album_compartido_activo: nuevoEstado })
+        .eq('slug', weddingSlug);
+    } catch (e) { console.error(e); }
+  };
+
   const handleGuardarYContinuar = async () => {
     setGuardando(true);
     try {
-      const { error } = await supabase
-        .from('bodas')
-        .update({
-          bride_name: brideName,
-          groom_name: groomName,
-          event_date: eventDate ? `${eventDate}T18:00:00` : null,
-          ceremonia_lugar: ceremoniaLugar,
-          ceremonia_maps_url: ceremoniaMaps,
-          recepcion_lugar: recepcionLugar,
-          recepcion_maps_url: recepcionMaps,
-          template_id: templateId
-        })
-        .eq('slug', weddingSlug);
-      if (error) throw error;
+      await supabase.from('bodas').update({ bride_name: brideName, groom_name: groomName, event_date: eventDate ? `${eventDate}T18:00:00` : null, ceremonia_lugar: ceremoniaLugar, ceremonia_maps_url: ceremoniaMaps, recepcion_lugar: recepcionLugar, recepcion_maps_url: recepcionMaps, template_id: templateId }).eq('slug', weddingSlug);
       setPasoActivo(3); 
-    } catch (err) {
-      alert("Error al guardar.");
-    } finally {
-      setGuardando(false);
-    }
+    } catch (err) { alert("Error"); } finally { setGuardando(false); }
   };
 
   const handleAgregarInvitado = async (e) => {
-    e.preventDefault();
-    if (!nuevoNombre.trim()) return;
-    setGuardando(true);
+    e.preventDefault(); if (!nuevoNombre.trim()) return; setGuardando(true);
     try {
-      const { error } = await supabase
-        .from('invitados')
-        .insert([{
-          boda_slug: weddingSlug,
-          nombre_invitado: nuevoNombre.trim(),
-          pases_totales: nuevosPases,
-          pases_confirmados: 0,
-          estado: 'pendiente'
-        }]);
-      if (error) throw error;
-      setNuevoNombre('');
-      setNuevosPases(2);
+      await supabase.from('invitados').insert([{ boda_slug: weddingSlug, nombre_invitado: nuevoNombre.trim(), pases_totales: nuevosPases, pases_confirmados: 0, estado: 'pendiente' }]);
+      setNuevoNombre(''); setNuevosPases(2);
       const { data } = await supabase.from('invitados').select('*').eq('boda_slug', weddingSlug).order('nombre_invitado', { ascending: true });
       if (data) setInvitados(data);
-    } catch (err) {
-      alert("Error al registrar.");
-    } finally {
-      setGuardando(false);
-    }
+    } catch (err) { alert("Error"); } finally { setGuardando(false); }
   };
 
   const handleEliminarInvitado = async (id) => {
-    if (!confirm("¿Deseas eliminar a este invitado?")) return;
-    try {
-      const { error } = await supabase.from('invitados').delete().eq('id', id);
-      if (error) throw error;
-      setInvitados(invitados.filter(inv => inv.id !== id));
-    } catch (err) {
-      alert("Error al eliminar.");
-    }
+    if (!confirm("¿Eliminar?")) return;
+    try { await supabase.from('invitados').delete().eq('id', id); setInvitados(invitados.filter(inv => inv.id !== id)); } catch (e) { alert("Error"); }
   };
 
   const handleGuardarPaso4 = async () => {
     setGuardando(true);
     try {
       const fotosLimpias = galeriaFotos.filter(url => url.trim() !== '');
-      const { error } = await supabase
-        .from('bodas')
-        .update({ cover_image: coverImage.trim(), music_url: musicUrl, gallery_images: fotosLimpias })
-        .eq('slug', weddingSlug);
-      if (error) throw error;
+      await supabase.from('bodas').update({ cover_image: coverImage.trim(), music_url: musicUrl, gallery_images: fotosLimpias }).eq('slug', weddingSlug);
       setPasoActivo(5); 
-    } catch (err) {
-      alert("Error al guardar multimedia.");
-    } finally {
-      setGuardando(false);
-    }
+    } catch (err) { alert("Error"); } finally { setGuardando(false); }
   };
 
   const handleGuardarPaso5 = async () => {
     setGuardando(true);
     try {
-      const { error } = await supabase
-        .from('bodas')
-        .update({ banco: banco.trim(), titular: titular.trim(), clabe: clabe.trim(), amazon_url: amazonUrl.trim(), liverpool_url: liverpoolUrl.trim() })
-        .eq('slug', weddingSlug);
-      if (error) throw error;
-      alert("🎁 ¡Mesa de regalos guardada con éxito!");
-    } catch (err) {
-      alert("Error al guardar regalos.");
-    } finally {
-      setGuardando(false);
-    }
+      await supabase.from('bodas').update({ banco: banco.trim(), titular: titular.trim(), clabe: clabe.trim(), amazon_url: amazonUrl.trim(), liverpool_url: liverpoolUrl.trim() }).eq('slug', weddingSlug);
+      alert("🎁 ¡Guardado con éxito!");
+    } catch (err) { alert("Error"); } finally { setGuardando(false); }
   };
 
   const maxFotosPermitidas = planContratado === 'basicos' ? 3 : planContratado === 'premium' ? 6 : 12;
@@ -288,7 +269,7 @@ export default function NoviosDashboard() {
         <div className="bg-white px-6 py-3.5 rounded-2xl border border-stone-200/60 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-left">
           <div>
             <p className="text-xs font-semibold text-stone-800">Paquete Activo: <span className="text-amber-700 uppercase font-bold tracking-wider">{planContratado === 'basicos' ? '💍 Digital Esencial' : planContratado === 'premium' ? '🌟 Gran Día Premium' : '👑 VIP Celestial'}</span></p>
-            <p className="text-[11px] text-stone-400 font-light">Manejas el control operativo de tu evento.</p>
+            <p className="text-[11px] text-stone-400 font-light">Manejas el control operativo y los beneficios exclusivos de tu plan.</p>
           </div>
           <span className="text-[10px] bg-stone-900 text-white font-mono font-bold px-3 py-1 rounded-full">Slug: {weddingSlug}</span>
         </div>
@@ -337,9 +318,7 @@ export default function NoviosDashboard() {
             </div>
           </div>
         ) : pasoActivo === 3 ? (
-          /* ==========================================
-             PASO 3: LISTA CON GENERADOR DE PASES QR
-             ========================================== */
+          /* PASO 3 */
           <div className="space-y-6 animate-fadeIn text-left">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
@@ -368,19 +347,10 @@ export default function NoviosDashboard() {
                       <tr key={inv.id} className="hover:bg-stone-50/60">
                         <td className="p-4 pl-6 font-medium text-stone-900">{inv.nombre_invitado}</td>
                         <td className="p-4 text-center font-mono font-bold text-stone-500">{inv.pases_totales}</td>
-                        <td className="p-4 text-center">
-                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md ${inv.estado === 'confirmado' ? 'bg-emerald-50 text-emerald-700' : inv.estado === 'declinado' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700'}`}>{inv.estado}</span>
-                        </td>
+                        <td className="p-4 text-center"><span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md ${inv.estado === 'confirmado' ? 'bg-emerald-50 text-emerald-700' : inv.estado === 'declinado' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700'}`}>{inv.estado}</span></td>
                         <td className="p-4 text-center pr-6 flex items-center justify-center gap-3">
-                          {/* ✨ BOTÓN INTERACTIVO PARA DISPARAR EL MODAL DEL PASO DIGITAL IMPRIMIBLE */}
-                          <button 
-                            type="button" 
-                            onClick={() => setInvitadoSeleccionado(inv)}
-                            className="bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
-                          >
-                            🎟️ Diseñar Pase QR
-                          </button>
-                          <button type="button" onClick={() => handleEliminarInvitado(inv.id)} className="text-stone-300 hover:text-rose-600 transition-colors cursor-pointer text-sm">🗑️</button>
+                          <button type="button" onClick={() => setInvitadoSeleccionado(inv)} className="bg-amber-50 text-amber-900 border text-[10px] font-bold uppercase px-2.5 py-1.5 rounded-lg">🎟️ Diseñar Pase QR</button>
+                          <button type="button" onClick={() => handleEliminarInvitado(inv.id)} className="text-stone-300 hover:text-rose-600 text-sm">🗑️</button>
                         </td>
                       </tr>
                     ))}
@@ -391,18 +361,81 @@ export default function NoviosDashboard() {
             <div className="text-right"><button type="button" onClick={() => setPasoActivo(4)} className="bg-amber-700 text-white text-xs font-bold uppercase tracking-widest px-6 py-3.5 rounded-xl shadow-md cursor-pointer">Avanzar a Multimedia ➔</button></div>
           </div>
         ) : pasoActivo === 4 ? (
-          /* PASO 4 */
+          /* ==========================================
+             PASO 4: MULTIMEDIA + 📸✨ ÁLBUM COMPARTIDO PREMIUM
+             ========================================== */
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start animate-fadeIn text-left">
             <div className="lg:col-span-2 space-y-6">
-              <div className="bg-white rounded-3xl p-6 border space-y-4">
-                <h3 className="font-serif text-lg font-medium">🖼️ Fotografía de Portada</h3>
+              
+              {/* 📸✨ NUEVO MÓDULO: DETONADOR DEL ÁLBUM DIGITAL EN LA FIESTA */}
+              <div className="bg-gradient-to-br from-purple-900 to-indigo-950 text-white rounded-3xl p-6 md:p-8 border border-purple-950 shadow-xl space-y-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 transform translate-x-8 -translate-y-6 text-9xl text-white/5 font-serif select-none pointer-events-none">✨</div>
+                
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div className="space-y-1">
+                    <span className="text-[9px] bg-purple-500/30 text-purple-300 border border-purple-500/40 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Beneficio Exclusivo Premium</span>
+                    <h3 className="font-serif text-lg font-light text-white">📸 Álbum Digital Colectivo en Vivo</h3>
+                    <p className="text-xs text-purple-200/70 font-light">Permite que tus invitados suban capturas el día del evento escaneando un QR de mesa.</p>
+                  </div>
+                  
+                  {/* Switch Inteligente de Activación */}
+                  <button 
+                    type="button" 
+                    onClick={toggleAlbumCompartido}
+                    className={`px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider font-bold transition-all shadow-md cursor-pointer ${
+                      albumActivado ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-white text-purple-900 hover:bg-purple-5'
+                    }`}
+                  >
+                    {albumActivado ? '🟢 Álbum Activo' : '🔒 Activar Función'}
+                  </button>
+                </div>
+
+                {albumActivado && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-white/10 border-dashed items-center animate-fadeIn">
+                    <div className="md:col-span-2 space-y-2">
+                      <p className="text-xs font-semibold text-purple-200">🖨️ Código QR Oficial para Imprimir en tus Mesas:</p>
+                      <input type="text" readOnly value={codigoMesaUrl} className="w-full px-3 py-2 rounded-xl text-xs bg-black/20 border border-white/10 font-mono text-purple-300 focus:outline-none" />
+                      <span className="text-[10px] text-purple-300/80 block leading-normal">Tus invitados abrirán esta URL, se les desplegará un botón de cámara y subirán fotos sin contratiempos.</span>
+                    </div>
+                    {/* Generador de QR para el Álbum de Mesas */}
+                    <div className="bg-white p-2 rounded-2xl w-28 h-28 mx-auto shadow-md flex items-center justify-center">
+                      <img src={`https://chart.googleapis.com/chart?cht=qr&chs=120x120&chl=${codigoMesaUrl}`} alt="QR Mesas" className="w-full h-full object-contain" />
+                    </div>
+                  </div>
+                )}
+
+                {/* VISUALIZADOR DEL FEED DE FOTOS CARGADAS POR LOS INVITADOS */}
+                {albumActivado && (
+                  <div className="pt-4 border-t border-white/10 space-y-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-purple-300">Carrete en Vivo de la Fiesta ({fotosDelEvento.length} capturas)</h4>
+                    {fotosDelEvento.length === 0 ? (
+                      <div className="bg-black/10 border border-dashed border-white/10 rounded-xl p-6 text-center text-xs text-purple-200/50 italic font-light">
+                        El carrete colectivo está listo. Las fotos aparecerán aquí conforme los invitados las suban en las mesas.
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 max-h-40 overflow-y-auto pr-1">
+                        {fotosDelEvento.map((url, i) => (
+                          <div key={i} className="aspect-square bg-black/20 rounded-xl overflow-hidden border border-white/10 shadow-2xs group relative">
+                            <img src={url} alt="Carga Invitado" className="w-full h-full object-cover" />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* CONTROLES BASE PASO 4 (PORTADA, MÚSICA, GALERÍA) */}
+              <div className="bg-white rounded-3xl p-6 md:p-8 border space-y-4">
+                <h3 className="font-serif text-lg font-medium">🖼️ Fotografía de Portada (Hero Banner)</h3>
                 <div className="flex flex-col sm:flex-row items-center gap-3">
                   <input type="text" value={coverImage} readOnly placeholder="Sin archivo..." className="w-full px-4 py-3 border rounded-xl text-xs bg-stone-50/50 font-mono focus:outline-none" />
-                  <label className="bg-stone-900 text-white text-xs font-bold px-5 py-3.5 rounded-xl cursor-pointer select-none">📸 Cargar<input type="file" accept="image/*" onChange={(e) => handleSubirArchivo(e, null, true)} className="hidden" /></label>
+                  <label className="bg-stone-900 text-white text-xs font-bold px-5 py-3.5 rounded-xl cursor-pointer">📸 Cargar<input type="file" accept="image/*" onChange={(e) => handleSubirArchivo(e, null, true)} className="hidden" /></label>
                 </div>
               </div>
-              <div className="bg-white rounded-3xl p-6 border space-y-6">
-                <h3 className="font-serif text-lg font-medium">🎵 Catálogo de Audio</h3>
+
+              <div className="bg-white rounded-3xl p-6 md:p-8 border space-y-6">
+                <h3 className="font-serif text-lg font-medium">🎵 Banda Sonora de tu Invitación</h3>
                 <div className="space-y-2">
                   {cancionesCatalogo.map((track) => (
                     <div key={track.id} className={`flex items-center justify-between p-3 rounded-xl border ${musicUrl === track.url ? 'border-amber-600 bg-amber-50/10' : 'border-stone-100'}`}>
@@ -415,20 +448,35 @@ export default function NoviosDashboard() {
                   ))}
                 </div>
               </div>
-              <div className="bg-white rounded-3xl p-6 border space-y-4">
-                <h3 className="font-serif text-lg font-medium">📸 Carrete Fotográfico</h3>
+
+              <div className="bg-white rounded-3xl p-6 md:p-8 border space-y-4">
+                <h3 className="font-serif text-lg font-medium">📸 Carrete Fotográfico Base</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {galeriaFotos.map((foto, index) => (
                     <div key={index} className="bg-stone-50/60 p-4 rounded-xl border space-y-2">
                       <span className="text-xs font-bold text-stone-600">Imagen {index+1}</span>
+                      {foto && <div className="w-full h-20 rounded-lg overflow-hidden border mb-1"><img src={foto} className="w-full h-full object-cover" /></div>}
                       <label className="w-full bg-white border text-stone-700 text-[10px] font-bold py-2 rounded-xl text-center cursor-pointer block">📤 Subir Foto<input type="file" accept="image/*" onChange={(e) => handleSubirArchivo(e, index, false)} className="hidden" /></label>
                     </div>
                   ))}
                 </div>
               </div>
+
             </div>
+
+            {/* BARRA LATERAL DE GUARDADO */}
             <div className="bg-white rounded-3xl p-6 border flex flex-col justify-between h-full space-y-6 sticky top-6">
-              <button type="button" disabled={guardando} onClick={handleGuardarPaso4} className="w-full bg-stone-950 text-white text-xs uppercase font-bold py-4 rounded-xl shadow-md cursor-pointer">{guardando ? 'Sincronizando...' : 'Guardar y Continuar ➔'}</button>
+              <div className="space-y-4">
+                <h4 className="text-base font-serif font-medium text-stone-900">Estado de Publicación</h4>
+                <hr className="border-stone-100" />
+                <div className="space-y-2 text-xs font-light text-stone-500">
+                  <div className="flex justify-between border-b pb-1.5 border-stone-50"><span>Plan:</span><strong className="text-stone-700 font-bold uppercase">{planContratado}</strong></div>
+                  <div className="flex justify-between border-b pb-1.5 border-stone-50"><span>Álbum Colectivo:</span><strong className={albumActivado ? "text-purple-700" : "text-stone-400"}>{albumActivado ? "Habilitado" : "Apagado"}</strong></div>
+                </div>
+              </div>
+              <button type="button" disabled={guardando} onClick={handleGuardarPaso4} className="w-full bg-stone-950 text-white text-xs uppercase font-bold py-4 rounded-xl shadow-md transition-all text-center cursor-pointer">
+                {guardando ? 'Sincronizando...' : 'Guardar y Continuar ➔'}
+              </button>
             </div>
           </div>
         ) : (
@@ -450,63 +498,26 @@ export default function NoviosDashboard() {
               </div>
             </div>
             <div className="bg-white rounded-3xl p-6 border flex flex-col justify-between h-full space-y-6 sticky top-6">
-              <button type="button" disabled={guardando} onClick={handleGuardarPaso5} className="w-full bg-stone-950 text-white text-xs uppercase font-bold py-4 rounded-xl shadow-md cursor-pointer">{guardando ? 'Sincronizando...' : '🚀 Publicar Todo'}</button>
+              <button type="button" disabled={guardando} onClick={handleGuardarPaso5} className="w-full bg-stone-950 text-white text-xs uppercase font-bold py-4 rounded-xl shadow-md transition-all text-center cursor-pointer">{guardando ? 'Sincronizando...' : '🚀 Publicar Todo'}</button>
             </div>
           </div>
         )}
       </main>
 
-      {/* ========================================================
-         👑 INTERFAZ MODAL: VENTANA DE PASE IMPRIMIBLE CON CÓDIGO QR
-         ======================================================== */}
+      {/* MODAL DEL PASE QR */}
       {invitadoSeleccionado && (
         <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-white rounded-3xl border border-stone-200 shadow-2xl max-w-sm w-full p-6 text-center space-y-6 relative">
-            
-            {/* Encabezado del modal */}
-            <div className="text-center space-y-1">
-              <h4 className="font-serif text-base font-medium text-stone-900">Tarjeta de Acceso Oficial</h4>
-              <p className="text-[11px] text-stone-400 font-light">Captura la pantalla y envíala por WhatsApp al invitado.</p>
-            </div>
-
-            {/* 🎟️ DISEÑO EXCLUSIVO DEL PASE "CLICKYPAPEL" */}
-            <div className="bg-[#fcfbfa] border-2 border-dashed border-stone-200 rounded-2xl p-5 space-y-4 relative overflow-hidden select-none">
-              <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white border-r border-stone-200 rounded-full" />
-              <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white border-l border-stone-200 rounded-full" />
-
-              <div className="text-center space-y-0.5">
-                <span className="text-[9px] uppercase tracking-widest text-amber-800 font-bold font-mono">Nuestra Boda</span>
-                <h5 className="font-serif text-lg text-stone-900 leading-tight">{brideName || 'Novia'} & {groomName || 'Novio'}</h5>
+          <div className="bg-white rounded-3xl p-6 text-center space-y-6 max-w-sm w-full shadow-2xl">
+            <h4 className="font-serif text-base font-medium">Tarjeta de Acceso Oficial</h4>
+            <div className="bg-[#fcfbfa] border-2 border-dashed border-stone-200 rounded-2xl p-5 space-y-4">
+              <h5 className="font-serif text-lg">{brideName} & {groomName}</h5>
+              <div className="w-36 h-36 mx-auto bg-white p-2.5 rounded-xl border flex items-center justify-center">
+                <img src={`https://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=https://clickypapel.com/${weddingSlug}/rsvp?id=${invitadoSeleccionado.id}`} alt="QR" className="w-full h-full" />
               </div>
-
-              {/* Generación en caliente del Código QR de Google Charts API */}
-              <div className="w-36 h-36 mx-auto bg-white p-2.5 rounded-xl border border-stone-100 shadow-2xs flex items-center justify-center">
-                <img 
-                  src={`https://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=https://clickypapel.com/${weddingSlug}/rsvp?id=${invitadoSeleccionado.id}`} 
-                  alt="Código QR de Acceso Exclusivo" 
-                  className="w-full h-full object-contain"
-                />
-              </div>
-
-              <div className="text-center space-y-1 pt-1 border-t border-stone-100 border-dashed">
-                <p className="text-xs font-bold text-stone-900 truncate max-w-[240px] mx-auto">{invitadoSeleccionado.nombre_invitado}</p>
-                <div className="inline-block bg-stone-900 text-white text-[9px] uppercase font-mono font-black px-3 py-1 rounded-full tracking-wider">
-                  🎟️ {invitadoSeleccionado.pases_totales} {invitadoSeleccionado.pases_totales === 1 ? 'Pase Autorizado' : 'Pases Autorizados'}
-                </div>
-              </div>
+              <p className="text-xs font-bold">{invitadoSeleccionado.nombre_invitado}</p>
+              <div className="bg-stone-900 text-white text-[9px] uppercase px-3 py-1 rounded-full">🎟️ {invitadoSeleccionado.pases_totales} Pases</div>
             </div>
-
-            {/* Acciones de cierre del modal */}
-            <div className="grid grid-cols-1 gap-2">
-              <button 
-                type="button" 
-                onClick={() => setInvitadoSeleccionado(null)}
-                className="w-full bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold uppercase tracking-wider py-3 rounded-xl transition-colors cursor-pointer"
-              >
-                ✕ Cerrar Vista de Tarjeta
-              </button>
-            </div>
-
+            <button type="button" onClick={() => setInvitadoSeleccionado(null)} className="w-full bg-stone-100 text-stone-700 text-xs font-bold uppercase py-3 rounded-xl">✕ Cerrar</button>
           </div>
         </div>
       )}
