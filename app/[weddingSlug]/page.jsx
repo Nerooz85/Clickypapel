@@ -1,6 +1,6 @@
 "use client";
 import { useParams, useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase'; 
 import InvitationHero from '@/components/InvitationHero';
 import EventTimeline from '@/components/EventTimeline';
@@ -14,7 +14,7 @@ export default function WeddingInvitationPage() {
   const searchParams = useSearchParams();
   
   // Detectamos de forma automática si es una demo de tu catálogo
-  const esModoDemo = searchParams.get('demo') === 'true' || true; 
+  const esModoDemo = searchParams.get('demo') === 'true'; 
 
   const slug = params?.weddingSlug || params?.slug;
 
@@ -22,11 +22,14 @@ export default function WeddingInvitationPage() {
   const [cargando, setCargando] = useState(true);
   const [templateActivo, setTemplateActivo] = useState('romantico-clasico');
   const [menuDemosAbierto, setMenuDemosAbierto] = useState(false);
+  const [musicaSonando, setMusicaSonando] = useState(false);
 
-  // 🛒 ESTADOS PARA EL EMBUDO DE VENTA INTERACTIVO
+  // 🛒 ESTADOS PARA EL EMBUDO DE VENTA INTERACTIVO (MODAL)
   const [modalContratarAbierto, setModalContratarAbierto] = useState(false);
-  const [planSeleccionado, setPlanSeleccionado] = useState('premium'); // 'basico' | 'premium' | 'vip'
+  const [planSeleccionado, setPlanSeleccionado] = useState('premium'); 
   const [agregaMusicaExtra, setAgregaMusicaExtra] = useState(false);
+
+  const audioRef = useRef(null);
 
   useEffect(() => {
     async function jalarDatosBoda() {
@@ -36,7 +39,7 @@ export default function WeddingInvitationPage() {
       }
 
       setCargando(true);
-      const slugLimpio = slug.toLowerCase();
+      const slugLimpio = slug.toLowerCase().trim();
 
       const { data, error } = await supabase
         .from('bodas')
@@ -69,6 +72,7 @@ export default function WeddingInvitationPage() {
           codigoVestimenta: data.codigo_vestimenta,
           musicType: data.music_type || 'default',
           musicUrl: data.music_url || '/music/1-thousand-years.mp3',
+          albumCompartidoActivo: data.album_compartido_activo || false,
           mesaRegalos: {
             bankDetails: { banco: data.banco, titular: data.titular, clabe: data.clabe },
             registries: [
@@ -85,6 +89,18 @@ export default function WeddingInvitationPage() {
 
     jalarDatosBoda();
   }, [slug, params]);
+
+  // Manejo del control del reproductor flotante seguro
+  const toggleMusicaFlotante = () => {
+    if (audioRef.current) {
+      if (musicaSonando) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play().catch(e => console.log("Se requiere interacción previa", e));
+      }
+      setMusicaSonando(!musicaSonando);
+    }
+  };
 
   if (cargando) {
     return (
@@ -132,13 +148,12 @@ export default function WeddingInvitationPage() {
 
   const diseño = estilosPorTemplate[templateActivo] || estilosPorTemplate['romantico-clasico'];
 
-  // 💰 PRECIOS DE TUS PLANES (Configurables)
+  // 💰 PRECIOS DE PLANES
   const preciosPlanes = { basicos: 890, premium: 1490, vip: 2490 };
   const precioBase = preciosPlanes[planSeleccionado];
   const precioMusicaExtra = (planSeleccionado !== 'basicos' && agregaMusicaExtra) ? 350 : 0;
   const precioTotal = precioBase + precioMusicaExtra;
 
-  // 🚀 Enviar al checkout / registro guardando sus preferencias en la URL
   const handleProcederAlPago = () => {
     const urlCheckout = `https://clickypapel.com/registro?plan=${planSeleccionado}&template=${templateActivo}&musica=${agregaMusicaExtra ? 'custom' : 'default'}`;
     window.location.href = urlCheckout;
@@ -147,6 +162,19 @@ export default function WeddingInvitationPage() {
   return (
     <main className={`min-h-screen overflow-x-hidden transition-colors duration-500 relative ${diseño.bgGlobal} ${esModoDemo ? 'pt-16' : ''}`}>
       
+      {/* 🎵 REPRODUCTOR DE AUDIO DE FONDO CONTROLADO */}
+      {weddingData.musicUrl && <audio ref={audioRef} src={weddingData.musicUrl} loop />}
+
+      {/* 🎧 BOTÓN FLOTANTE ESTILIZADO DE AUDIO */}
+      <button 
+        type="button"
+        onClick={toggleMusicaFlotante}
+        className="fixed bottom-6 left-6 z-[150] bg-white/90 backdrop-blur-md border border-stone-200/80 p-3 rounded-full shadow-xl text-base cursor-pointer hover:scale-105 transition-transform"
+        title="Música de fondo"
+      >
+        {musicaSonando ? '🎵 ⏸️' : '🔇 ▶️'}
+      </button>
+
       {/* 🧭 HEADER PREMIUM COMERCIAL DE CLICKYPAPEL */}
       {esModoDemo && (
         <header className="fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md border-b border-stone-200/80 px-4 md:px-8 flex items-center justify-between z-[200] shadow-xs">
@@ -165,14 +193,10 @@ export default function WeddingInvitationPage() {
               📖 Catálogo de Demos <span className="text-[10px] opacity-60">{menuDemosAbierto ? '▲' : '▼'}</span>
             </button>
 
-            {/* 📋 LISTADO DE DEMOS ACTUALIZADO EN VIVO CON LA TRILOGÍA DE COLORES Y NICHOS */}
             {menuDemosAbierto && (
               <div className="absolute top-11 left-1/2 -translate-x-1/2 w-56 bg-white border border-stone-200 rounded-xl shadow-lg p-1.5 space-y-1 z-[210]">
                 <a href="/bruno-y-brisa?demo=true" className="block text-left text-xs px-3 py-2 rounded-lg hover:bg-stone-50 text-stone-700 font-medium">Demo 1: Bruno y Brisa (Clásica)</a>
-                
                 <a href="/demo-minimal-dark?demo=true" className="block text-left text-xs px-3 py-2 rounded-lg hover:bg-stone-50 text-stone-700 font-medium">Demo 2: Damián y Elena (Dark)</a>
-                
-                {/* 🌟 ACTIVADO: Enlace a tu nueva demo número 3 de XV Años */}
                 <a href="/demo-xv-boho?demo=true" className="block text-left text-xs px-3 py-2 rounded-lg hover:bg-stone-50 text-stone-700 font-medium">Demo 3: Regina (XV Boho Chic)</a>
               </div>
             )}
@@ -182,7 +206,7 @@ export default function WeddingInvitationPage() {
             <button 
               type="button"
               onClick={() => setModalContratarAbierto(true)}
-              className="bg-amber-600 hover:bg-amber-700 text-white text-[11px] uppercase tracking-wider font-bold px-4 py-2.5 rounded-full transition-all shadow-md inline-block cursor-pointer animate-pulse-slow"
+              className="bg-amber-600 hover:bg-amber-700 text-white text-[11px] uppercase tracking-wider font-bold px-4 py-2.5 rounded-full transition-all shadow-md inline-block cursor-pointer"
             >
               ✨ Quiero esta invitación ➔
             </button>
@@ -215,18 +239,12 @@ export default function WeddingInvitationPage() {
         </div>
       )}
 
-      {/* 🛍️ MODAL / ASISTENTE DE CONTRATACIÓN INTELIGENTE */}
+      {/* 🛍️ MODAL ASISTENTE DE CONTRATACIÓN */}
       {modalContratarAbierto && (
         <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center z-[300] p-4 animate-fadeIn">
           <div className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full border border-stone-200 shadow-2xl space-y-6 relative text-stone-800 text-left">
             
-            <button 
-              type="button" 
-              onClick={() => setModalContratarAbierto(false)}
-              className="absolute top-4 right-4 text-stone-400 hover:text-stone-700 font-bold text-sm bg-stone-100 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer"
-            >
-              ✕
-            </button>
+            <button type="button" onClick={() => setModalContratarAbierto(false)} className="absolute top-4 right-4 text-stone-400 hover:text-stone-700 font-bold text-sm bg-stone-100 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer">✕</button>
 
             <div className="space-y-1">
               <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Paso Final</span>
@@ -234,7 +252,6 @@ export default function WeddingInvitationPage() {
               <p className="text-stone-400 text-xs font-light">Elegiste el diseño: <strong className="text-stone-700 font-semibold">{diseño.nombre}</strong></p>
             </div>
 
-            {/* 1. SELECCIÓN DE PLAN */}
             <div className="space-y-2">
               <label className="text-[10px] uppercase font-bold text-stone-400 tracking-wider">1. Selecciona tu plan:</label>
               <div className="flex flex-col gap-2">
@@ -245,7 +262,6 @@ export default function WeddingInvitationPage() {
                   </div>
                   <span className="text-xs font-mono font-bold">$890 MXN</span>
                 </label>
-
                 <label className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${planSeleccionado === 'premium' ? 'border-amber-600 bg-amber-50/20' : 'border-stone-100 bg-stone-50/50'}`}>
                   <div className="flex items-center gap-3">
                     <input type="radio" name="modal_plan" checked={planSeleccionado === 'premium'} onChange={() => setPlanSeleccionado('premium')} className="accent-amber-700" />
@@ -253,7 +269,6 @@ export default function WeddingInvitationPage() {
                   </div>
                   <span className="text-xs font-mono font-bold">$1,490 MXN</span>
                 </label>
-
                 <label className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${planSeleccionado === 'vip' ? 'border-amber-600 bg-amber-50/20' : 'border-stone-100 bg-stone-50/50'}`}>
                   <div className="flex items-center gap-3">
                     <input type="radio" name="modal_plan" checked={planSeleccionado === 'vip'} onChange={() => setPlanSeleccionado('vip')} className="accent-amber-700" />
@@ -264,7 +279,6 @@ export default function WeddingInvitationPage() {
               </div>
             </div>
 
-            {/* 2. ADD-ON DE MÚSICA EXTRA */}
             <div className="space-y-2">
               <label className="text-[10px] uppercase font-bold text-stone-400 tracking-wider">2. Complementos Opcionales:</label>
               {planSeleccionado === 'basicos' ? (
@@ -274,12 +288,7 @@ export default function WeddingInvitationPage() {
               ) : (
                 <label className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-all ${agregaMusicaExtra ? 'border-emerald-600 bg-emerald-50/10' : 'border-stone-200 bg-white'}`}>
                   <div className="flex items-center gap-3">
-                    <input 
-                      type="checkbox" 
-                      checked={agregaMusicaExtra} 
-                      onChange={(e) => setAgregaMusicaExtra(e.target.checked)}
-                      className="accent-emerald-700 cursor-pointer w-4 h-4 rounded-sm"
-                    />
+                    <input type="checkbox" checked={agregaMusicaExtra} onChange={(e) => setAgregaMusicaExtra(e.target.checked)} className="accent-emerald-700 cursor-pointer w-4 h-4 rounded-sm" />
                     <div>
                       <span className="text-xs font-bold block text-stone-800">Música Personalizada 🎵</span>
                       <span className="text-[10px] text-stone-400 font-light block">Sube tu propio archivo .MP3 exacto.</span>
@@ -290,38 +299,50 @@ export default function WeddingInvitationPage() {
               )}
             </div>
 
-            {/* 3. RESUMEN DE COMPRA Y BOTÓN ACCIÓN */}
             <div className="pt-4 border-t border-stone-100 flex items-center justify-between">
               <div>
                 <span className="text-[9px] uppercase tracking-wider text-stone-400 block font-semibold">Total estimado:</span>
                 <span className="text-xl font-mono font-black text-stone-900">${precioTotal.toLocaleString('es-MX')} MXN</span>
               </div>
-              <button 
-                type="button"
-                onClick={handleProcederAlPago}
-                className="bg-stone-950 hover:bg-amber-600 text-white text-xs uppercase font-bold tracking-wider px-6 py-3.5 rounded-xl shadow-md transition-all cursor-pointer"
-              >
-                Comenzar Diseño ➔
-              </button>
+              <button type="button" onClick={handleProcederAlPago} className="bg-stone-950 hover:bg-amber-600 text-white text-xs uppercase font-bold tracking-wider px-6 py-3.5 rounded-xl shadow-md cursor-pointer">Comenzar Diseño ➔</button>
             </div>
           </div>
         </div>
       )}
 
-      <audio id="bg-boda-audio" src={weddingData.musicUrl} loop />
-
-      {/* Secciones del Evento */}
+      {/* 🚀 INYECCIÓN DE TUS COMPONENTES ESTRUCTURALES MAESTROS */}
       <InvitationHero weddingData={weddingData} diseño={diseño} />
+      
       <EventTimeline weddingData={weddingData} diseño={diseño} />
+      
       <PhotoGallery weddingData={weddingData} images={weddingData.galleryImages} diseño={diseño} />
+      
+      {/* 📸✨ MODAL O ACCESO AL ÁLBUM COMPARTIDO SI ESTÁ ACTIVADO EN EL PLAN PREMIUM */}
+      {weddingData.albumCompartidoActivo && (
+        <section className="max-w-md mx-auto px-6 py-6 text-center animate-fadeIn">
+          <div className="bg-gradient-to-br from-purple-900 to-indigo-950 text-white p-6 rounded-3xl shadow-xl space-y-4 text-left border border-purple-950">
+            <div className="space-y-1">
+              <span className="text-[10px] bg-purple-500/30 text-purple-300 border border-purple-500/40 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono inline-block">Función de la Fiesta</span>
+              <h4 className="font-serif text-lg font-light">¿Tomaste fotos en el evento? 📸</h4>
+              <p className="text-xs text-purple-200/70 font-light leading-relaxed">Súbelas directamente al álbum en vivo de los novios para que guarden cada recuerdo.</p>
+            </div>
+            <a 
+              href={`https://clickypapel.com/${weddingData.slug}/compartir`} 
+              className="w-full bg-white text-purple-950 font-bold text-center py-3 rounded-xl block text-xs uppercase tracking-wider shadow-md hover:bg-purple-50 transition-colors"
+            >
+              📤 Subir Fotos al Álbum Colectivo
+            </a>
+          </div>
+        </section>
+      )}
+
       <GiftRegistry weddingData={weddingData} diseño={diseño} />
       
-      {/* 📜 BANNER DE TRANSICIÓN EMOCIONAL EN EL SWEET SPOT */}
       <QuoteBanner weddingData={weddingData} diseño={diseño} />
       
       <RsvpModule weddingId={weddingData.id} weddingSlug={weddingData.slug} diseño={diseño} />
       
-      <footer className="text-center py-12 bg-stone-900 text-stone-500 text-xs">
+      <footer className="text-center py-12 bg-stone-900 text-stone-500 text-xs select-none">
         Invitación digital premium creada en <span className="text-stone-300">clickypapel.com</span>
       </footer>
     </main>
