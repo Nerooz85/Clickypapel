@@ -1,5 +1,5 @@
 "use client";
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase'; 
 import InvitationHero from '@/components/InvitationHero';
@@ -10,18 +10,20 @@ import RsvpModule from '@/components/RsvpModule';
 
 export default function WeddingInvitationPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   
-  // Forzamos la lectura exacta del parámetro que coincide con tu carpeta [weddingSlug]
+  // Detectamos si en la URL viene el parámetro ?demo=true (ej: clickypapel.com/bruno-y-brisa?demo=true)
+  const esModoDemo = searchParams.get('demo') === 'true' || true; // Puesto en true por defecto para tus pruebas
+
   const slug = params?.weddingSlug || params?.slug;
 
   const [weddingData, setWeddingData] = useState(null);
   const [cargando, setCargando] = useState(true);
 
-  useEffect(() => {
-    // Diagnóstico en consola para monitorear el comportamiento en vivo
-    console.log("Parámetros detectados en URL:", params);
-    console.log("Buscando en Supabase el slug:", slug);
+  // 🎨 Estado local para cambiar el diseño en vivo si es una demo de ClickyPapel
+  const [templateActivo, setTemplateActivo] = useState('romantico-clasico');
 
+  useEffect(() => {
     async function jalarDatosBoda() {
       if (!slug) {
         setCargando(false);
@@ -29,33 +31,28 @@ export default function WeddingInvitationPage() {
       }
 
       setCargando(true);
-      
-      // 🔒 Forzamos minúsculas para que no importe si en la URL escriben "Abiel-y-Debanhi" o "abiel-y-debanhi"
       const slugLimpio = slug.toLowerCase();
 
       const { data, error } = await supabase
         .from('bodas')
         .select('*')
         .eq('slug', slugLimpio)
-        .maybeSingle(); // 🚀 Cambiado a maybeSingle() para solucionar el error 406 de objeto JSON
+        .maybeSingle();
 
       if (error) {
         console.error("Error de Supabase:", error.message);
         setWeddingData(null);
       } else if (!data) {
-        console.warn("No se encontró ningún registro para el slug:", slugLimpio);
         setWeddingData(null);
       } else {
         setWeddingData({
-          id: data.id, // 🆔 Guardamos el ID real de la base de datos (ej. 11)
-          slug: data.slug, // 🔗 Guardamos el slug oficial
-          templateId: data.template_id || 'romantico-clasico', // 🎨 Jalamos el estilo visual de Supabase
+          id: data.id,
+          slug: data.slug,
+          templateId: data.template_id || 'romantico-clasico',
           groomName: data.groom_name,
           brideName: data.bride_name,
           eventDate: data.event_date || "2026-12-19T18:00:00", 
-          // 📸 Usa la foto de portada guardada en Supabase; si no hay, usa una elegante por defecto
           coverImage: data.cover_image || "https://images.unsplash.com/photo-1519741497674-611481863552", 
-          // 🖼️ Arreglo dinámico de la galería
           galleryImages: data.gallery_images || [],
           welcomePhrase: data.welcome_phrase,
           ceremoniaHora: data.ceremonia_hora,
@@ -65,23 +62,19 @@ export default function WeddingInvitationPage() {
           recepcionLugar: data.recepcion_lugar,
           recepcionMapsUrl: data.recepcion_maps_url,
           codigoVestimenta: data.codigo_vestimenta,
-          
-          // 🎵 Jalamos los campos de música que guardamos en el Dashboard
           musicType: data.music_type || 'default',
           musicUrl: data.music_url || '/music/1-thousand-years.mp3',
-
           mesaRegalos: {
-            bankDetails: {
-              banco: data.banco,
-              titular: data.titular,
-              clabe: data.clabe
-            },
+            bankDetails: { banco: data.banco, titular: data.titular, clabe: data.clabe },
             registries: [
               ...(data.amazon_url ? [{ name: "Amazon", url: data.amazon_url, logo: "📦" }] : []),
               ...(data.liverpool_url ? [{ name: "Liverpool", url: data.liverpool_url, logo: "🛍️" }] : [])
             ]
           }
         });
+
+        // Inicializamos el diseño con el que viene de la base de datos
+        setTemplateActivo(data.template_id || 'romantico-clasico');
       }
       setCargando(false);
     }
@@ -89,7 +82,6 @@ export default function WeddingInvitationPage() {
     jalarDatosBoda();
   }, [slug, params]);
 
-  // 1. Pantalla de carga mientras consulta a la base de datos
   if (cargando) {
     return (
       <div className="min-h-screen bg-[#faf9f6] flex items-center justify-center font-serif text-stone-500 animate-pulse text-sm tracking-widest uppercase">
@@ -98,23 +90,20 @@ export default function WeddingInvitationPage() {
     );
   }
 
-  // 2. Si el slug no existe en la base de datos
   if (!weddingData) {
     return (
       <div className="min-h-screen bg-[#faf9f6] flex flex-col items-center justify-center font-sans text-center p-6 space-y-4">
         <h1 className="font-serif text-2xl text-stone-800 font-light">Invitación No Encontrada</h1>
-        <p className="text-stone-400 text-sm font-light max-w-xs">El enlace al que intentas acceder no existe o fue desactivado.</p>
-        <p className="text-[11px] text-stone-300 font-mono bg-stone-100 px-3 py-1 rounded-sm">Buscando el slug: "{slug?.toLowerCase() || 'indefinido'}"</p>
         <a href="https://clickypapel.com" className="text-xs bg-stone-900 text-white px-5 py-2.5 rounded-full uppercase tracking-wider mt-2">Ir a Inicio</a>
       </div>
     );
   }
 
-  // 🛠️ 3. DICCIONARIO DE ESTILOS VISUALES PARA TUS DEMOS
-  // Puedes usar estas variables dentro de tus componentes hijos si quieres cambiar fuentes, fondos o botones
+  // 🛠️ DICCIONARIO DE ESTILOS VISUALES PARA TUS DEMOS
   const estilosPorTemplate = {
     'romantico-clasico': {
       id: 'romantico-clasico',
+      nombre: '💍 Romántico Clásico',
       bgGlobal: 'bg-[#faf9f6] text-stone-800',
       fuenteTitulo: 'font-serif text-stone-900',
       colorCard: 'bg-white',
@@ -122,6 +111,7 @@ export default function WeddingInvitationPage() {
     },
     'minimal-dark': {
       id: 'minimal-dark',
+      nombre: '🖤 Minimalista Dark',
       bgGlobal: 'bg-zinc-950 text-zinc-100 selection:bg-zinc-800',
       fuenteTitulo: 'font-sans tracking-widest text-white uppercase font-light',
       colorCard: 'bg-zinc-900/50 border border-zinc-800',
@@ -129,6 +119,7 @@ export default function WeddingInvitationPage() {
     },
     'boho-rancho': {
       id: 'boho-rancho',
+      nombre: '🌿 Boho Chic / Campo',
       bgGlobal: 'bg-[#f4efe6] text-amber-950',
       fuenteTitulo: 'font-serif italic text-amber-900 font-normal',
       colorCard: 'bg-[#fbf9f4] border border-stone-200',
@@ -136,31 +127,46 @@ export default function WeddingInvitationPage() {
     }
   };
 
-  // Si la base de datos trae un estilo que no tenemos, usamos el tradicional por defecto
-  const diseño = estilosPorTemplate[weddingData.templateId] || estilosPorTemplate['romantico-clasico'];
+  // El diseño activo ahora depende de lo que el usuario pulse en la barra flotante
+  const diseño = estilosPorTemplate[templateActivo] || estilosPorTemplate['romantico-clasico'];
 
-  // 4. Vista final si todo se encuentra en orden
   return (
-    <main className={`min-h-screen overflow-x-hidden transition-colors duration-500 ${diseño.bgGlobal}`}>
+    <main className={`min-h-screen overflow-x-hidden transition-colors duration-500 relative ${diseño.bgGlobal}`}>
       
-      {/* 🎵 El audio se vuelve dinámico y reproduce el track guardado de la boda */}
+      {/* 🔮 CONTROLADOR FLOTANTE INTERACTIVO EXCLUSIVO PARA TUS INTERNAUTAS */}
+      {esModoDemo && (
+        <div className="fixed bottom-6 right-6 z-[100] bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-stone-200 max-w-xs space-y-2 animate-bounce-short">
+          <div className="text-left">
+            <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Demo Interactiva</span>
+            <h4 className="text-xs font-semibold text-stone-900 font-sans mt-1">¡Prueba otro diseño en vivo!</h4>
+          </div>
+          <div className="flex flex-col gap-1.5 pt-1">
+            {Object.values(estilosPorTemplate).map((estilo) => (
+              <button
+                key={estilo.id}
+                type="button"
+                onClick={() => setTemplateActivo(estilo.id)}
+                className={`w-full text-left text-xs px-3 py-2 rounded-xl border transition-all cursor-pointer font-medium ${
+                  templateActivo === estilo.id 
+                    ? 'border-amber-600 bg-amber-50 text-amber-900 font-semibold' 
+                    : 'border-stone-200 bg-white hover:bg-stone-50 text-stone-700'
+                }`}
+              >
+                {estilo.nombre}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <audio id="bg-boda-audio" src={weddingData.musicUrl} loop />
 
-      {/* 🎨 Le inyectamos el objeto "diseño" a cada sección para modular los colores y fuentes */}
+      {/* Secciones Dinámicas */}
       <InvitationHero weddingData={weddingData} diseño={diseño} />
       <EventTimeline weddingData={weddingData} diseño={diseño} />
-      
-      {/* 🚀 Pasamos las imágenes reales a tu componente de Galería */}
       <PhotoGallery weddingData={weddingData} images={weddingData.galleryImages} diseño={diseño} />
-      
       <GiftRegistry weddingData={weddingData} diseño={diseño} />
-      
-      {/* 🛠️ Módulo RSVP seguro con ID y Slug */}
-      <RsvpModule 
-        weddingId={weddingData.id} 
-        weddingSlug={weddingData.slug} 
-        diseño={diseño}
-      />
+      <RsvpModule weddingId={weddingData.id} weddingSlug={weddingData.slug} diseño={diseño} />
       
       <footer className="text-center py-12 bg-stone-900 text-stone-500 text-xs">
         Invitación digital premium creada en <span className="text-stone-300">clickypapel.com</span>
