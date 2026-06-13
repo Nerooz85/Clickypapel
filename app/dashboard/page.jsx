@@ -6,19 +6,19 @@ export default function NoviosDashboard() {
   const weddingSlug = 'bruno-y-brisa'; 
 
   // Estados de Control de la App
-  const [pasoActivo, setPasoActivo] = useState(4); // Lo dejamos en multimedia para ver la integración
+  const [pasoActivo, setPasoActivo] = useState(4); 
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [subiendoIndex, setSubiendoIndex] = useState(null);
 
   // 🪙 Información de Compra
-  const [planContratado, setPlanContratatado] = useState('premium'); // 'basicos' | 'premium' | 'vip'
+  const [planContratado, setPlanContratatado] = useState('premium'); 
   const [tieneMusicaPersonalizada, setTieneMusicaPersonalizada] = useState(false); 
 
-  // 📸✨ ESTADOS EXCLUSIVOS DEL ÁLBUM COMPARTIDO PREMIUM (NUEVO)
+  // 📸✨ ESTADOS EXCLUSIVOS DEL ÁLBUM COMPARTIDO PREMIUM
   const [albumActivado, setAlbumActivado] = useState(false);
   const [codigoMesaUrl, setCodigoMesaUrl] = useState('');
-  const [fotosDelEvento, setFotosDelEvento] = useState([]); // Almacenará las fotos que suban los invitados en la fiesta
+  const [fotosDelEvento, setFotosDelEvento] = useState([]); 
 
   // 📝 ESTADOS PASO 2
   const [brideName, setBrideName] = useState('');
@@ -51,6 +51,12 @@ export default function NoviosDashboard() {
   const [amazonUrl, setAmazonUrl] = useState('');
   const [liverpoolUrl, setLiverpoolUrl] = useState('');
 
+  // 🗓️🎨 ESTADOS DEL NUEVO PASO 6: CRONOGRAMA & PROTOCOLOS VISUALES
+  const [itinerarioMisa, setItinerarioMisa] = useState('');
+  const [itinerarioFiesta, setItinerarioFiesta] = useState('');
+  const [codigoVestimentaText, setCodigoVestimentaText] = useState('formal'); 
+  const [paletaColores, setPaletaColores] = useState('');
+
   const cancionesCatalogo = [
     { id: '1', titulo: "A Thousand Years (Piano Elegante)", url: "/music/1-thousand-years.mp3" },
     { id: '2', titulo: "Perfect - Ed Sheeran (Orquestal)", url: "/music/2-perfect.mp3" },
@@ -78,7 +84,6 @@ export default function NoviosDashboard() {
     setGaleriaFotos(copias);
   };
 
-  // Cargar archivos del Storage para simular las fotos que suben los invitados en la fiesta
   const cargarFotosDelAlbumCompartido = async () => {
     try {
       const { data, error } = await supabase.storage
@@ -158,7 +163,12 @@ export default function NoviosDashboard() {
         setAmazonUrl(bodaData.amazon_url || '');
         setLiverpoolUrl(bodaData.liverpool_url || '');
         
-        // Cargar estado del álbum compartido
+        // Cargar nuevos datos de logística del paso 6
+        setItinerarioMisa(bodaData.itinerario_misa || '');
+        setItinerarioFiesta(bodaData.itinerario_fiesta || '');
+        setCodigoVestimentaText(bodaData.codigo_vestimenta || 'formal');
+        setPaletaColores(bodaData.paleta_colores || '');
+
         setAlbumActivado(bodaData.album_compartido_activo || false);
         setCodigoMesaUrl(`https://clickypapel.com/${slugLimpio}/compartir`);
 
@@ -172,7 +182,6 @@ export default function NoviosDashboard() {
       const { data: listaInvitados } = await supabase.from('invitados').select('*').eq('boda_slug', slugLimpio).order('nombre_invitado', { ascending: true });
       if (listaInvitados) setInvitados(listaInvitados);
 
-      // Si el plan es premium, jalar de una vez el carrete de los invitados
       if (bodaData?.plan_tipo !== 'basicos') {
         await cargarFotosDelAlbumCompartido();
       }
@@ -186,15 +195,11 @@ export default function NoviosDashboard() {
 
   useEffect(() => { cargarTodoElDashboard(); }, []);
 
-  // Guardar Estado del Álbum Premium
   const toggleAlbumCompartido = async () => {
     const nuevoEstado = !albumActivado;
     setAlbumActivado(nuevoEstado);
     try {
-      await supabase
-        .from('bodas')
-        .update({ album_compartido_activo: nuevoEstado })
-        .eq('slug', weddingSlug);
+      await supabase.from('bodas').update({ album_compartido_activo: nuevoEstado }).eq('slug', weddingSlug);
     } catch (e) { console.error(e); }
   };
 
@@ -234,8 +239,22 @@ export default function NoviosDashboard() {
     setGuardando(true);
     try {
       await supabase.from('bodas').update({ banco: banco.trim(), titular: titular.trim(), clabe: clabe.trim(), amazon_url: amazonUrl.trim(), liverpool_url: liverpoolUrl.trim() }).eq('slug', weddingSlug);
-      alert("🎁 ¡Guardado con éxito!");
+      setPasoActivo(6); // Pasa automáticamente al nuevo paso 6 de logística
     } catch (err) { alert("Error"); } finally { setGuardando(false); }
+  };
+
+  // Guardar Nuevo Paso 6
+  const handleGuardarPaso6 = async () => {
+    setGuardando(true);
+    try {
+      await supabase.from('bodas').update({
+        itinerario_misa: itinerarioMisa.trim(),
+        itinerario_fiesta: itinerarioFiesta.trim(),
+        codigo_vestimenta: codigoVestimentaText,
+        paleta_colores: paletaColores.trim()
+      }).eq('slug', weddingSlug);
+      alert("🗓️ ¡Línea de tiempo, protocolos y paleta publicados con éxito!");
+    } catch (err) { alert("Error al guardar logística."); } finally { setGuardando(false); }
   };
 
   const maxFotosPermitidas = planContratado === 'basicos' ? 3 : planContratado === 'premium' ? 6 : 12;
@@ -254,8 +273,8 @@ export default function NoviosDashboard() {
       <aside className="w-20 bg-white border-r border-stone-200 flex flex-col items-center py-6 gap-8 flex-none select-none">
         <div className="w-10 h-10 bg-amber-700/10 rounded-full flex items-center justify-center font-serif text-amber-800 font-bold">c`p</div>
         <nav className="flex flex-col gap-6 text-center w-full">
-          {['Inicio', 'Invitación', 'RSVP', 'Regalos', 'Configuración'].map((item, idx) => (
-            <button key={item} type="button" onClick={() => idx === 1 ? setPasoActivo(2) : idx === 2 ? setPasoActivo(3) : null} className={`flex flex-col items-center gap-1 text-[10px] py-2 font-medium cursor-pointer ${(idx===1 && pasoActivo===2) || (idx===1 && pasoActivo===4) || (idx===1 && pasoActivo===5) || (idx===2 && pasoActivo===3) ? 'text-amber-700 bg-amber-50/60 border-r-2 border-amber-700 font-bold' : 'text-stone-400'}`}>
+          {['Inicio', 'Invitación', 'RSVP', 'Regalos', 'Logística'].map((item, idx) => (
+            <button key={item} type="button" onClick={() => idx === 1 ? setPasoActivo(2) : idx === 2 ? setPasoActivo(3) : null} className={`flex flex-col items-center gap-1 text-[10px] py-2 font-medium cursor-pointer ${(idx===1 && pasoActivo===2) || (idx===1 && pasoActivo===4) || (idx===1 && pasoActivo===5) || (idx===1 && pasoActivo===6) || (idx===2 && pasoActivo===3) ? 'text-amber-700 bg-amber-50/60 border-r-2 border-amber-700 font-bold' : 'text-stone-400'}`}>
               <span className="text-base">{idx === 0 ? '🏠' : idx === 1 ? '✉️' : idx === 2 ? '📝' : idx === 3 ? '🎁' : '⚙️'}</span>
               {item}
             </button>
@@ -274,21 +293,22 @@ export default function NoviosDashboard() {
           <span className="text-[10px] bg-stone-900 text-white font-mono font-bold px-3 py-1 rounded-full">Slug: {weddingSlug}</span>
         </div>
 
-        {/* WIZARD */}
+        {/* WIZARD RECALCULADO A 6 PASOS */}
         <div className="bg-white/40 p-4 rounded-2xl border border-stone-200/40 flex items-center justify-between text-[11px] font-bold text-stone-400 relative select-none">
           <div className="absolute h-[2px] bg-stone-200 top-1/2 left-8 right-8 -translate-y-1/2 z-0" />
-          <div className={`absolute h-[2px] bg-amber-700 top-1/2 left-8 -translate-y-1/2 z-0 transition-all duration-500 ${pasoActivo === 2 ? 'w-[20%]' : pasoActivo === 3 ? 'w-[40%]' : pasoActivo === 4 ? 'w-[60%]' : 'w-[80%]'}`} />
+          <div className={`absolute h-[2px] bg-amber-700 top-1/2 left-8 -translate-y-1/2 z-0 transition-all duration-500 ${pasoActivo === 2 ? 'w-[16%]' : pasoActivo === 3 ? 'w-[32%]' : pasoActivo === 4 ? 'w-[48%]' : pasoActivo === 5 ? 'w-[64%]' : 'w-[80%]'}`} />
           
           {[
             { n: '1. Plan', done: true },
             { n: '2. Datos', active: pasoActivo === 2, done: pasoActivo > 2 },
             { n: '3. Invitados', active: pasoActivo === 3, done: pasoActivo > 3 },
-            { n: '4. Multimedia', active: pasoActivo === 4, done: pasoActivo > 4 },
-            { n: '5. Regalos', active: pasoActivo === 5, done: false }
+            { n: '4. Media', active: pasoActivo === 4, done: pasoActivo > 4 },
+            { n: '5. Regalos', active: pasoActivo === 5, done: pasoActivo > 5 },
+            { n: '6. Logística', active: pasoActivo === 6, done: false }
           ].map((p, i) => (
             <button key={i} type="button" disabled={i === 0} onClick={() => setPasoActivo(i + 1)} className="flex flex-col items-center gap-1.5 relative z-10 bg-[#f1ede6] px-3 cursor-pointer">
               <span className={`w-6 h-6 rounded-full flex items-center justify-center border font-mono text-xs transition-colors ${p.active ? 'bg-amber-700 border-amber-700 text-white' : p.done ? 'bg-white border-amber-700 text-amber-700' : 'bg-white border-stone-300'}`}>{p.done ? '✓' : i + 1}</span>
-              <span className={p.active ? 'text-stone-900 font-extrabold' : 'text-stone-400 font-medium'}>{p.n}</span>
+              <span className={p.active ? 'text-stone-900 font-extrabold text-[10px]' : 'text-stone-400 font-medium text-[10px]'}>{p.n}</span>
             </button>
           ))}
         </div>
@@ -361,81 +381,47 @@ export default function NoviosDashboard() {
             <div className="text-right"><button type="button" onClick={() => setPasoActivo(4)} className="bg-amber-700 text-white text-xs font-bold uppercase tracking-widest px-6 py-3.5 rounded-xl shadow-md cursor-pointer">Avanzar a Multimedia ➔</button></div>
           </div>
         ) : pasoActivo === 4 ? (
-          /* ==========================================
-             PASO 4: MULTIMEDIA + 📸✨ ÁLBUM COMPARTIDO PREMIUM
-             ========================================== */
+          /* PASO 4 */
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start animate-fadeIn text-left">
             <div className="lg:col-span-2 space-y-6">
               
-              {/* 📸✨ NUEVO MÓDULO: DETONADOR DEL ÁLBUM DIGITAL EN LA FIESTA */}
               <div className="bg-gradient-to-br from-purple-900 to-indigo-950 text-white rounded-3xl p-6 md:p-8 border border-purple-950 shadow-xl space-y-6 relative overflow-hidden">
                 <div className="absolute top-0 right-0 transform translate-x-8 -translate-y-6 text-9xl text-white/5 font-serif select-none pointer-events-none">✨</div>
-                
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div className="space-y-1">
                     <span className="text-[9px] bg-purple-500/30 text-purple-300 border border-purple-500/40 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Beneficio Exclusivo Premium</span>
                     <h3 className="font-serif text-lg font-light text-white">📸 Álbum Digital Colectivo en Vivo</h3>
                     <p className="text-xs text-purple-200/70 font-light">Permite que tus invitados suban capturas el día del evento escaneando un QR de mesa.</p>
                   </div>
-                  
-                  {/* Switch Inteligente de Activación */}
-                  <button 
-                    type="button" 
-                    onClick={toggleAlbumCompartido}
-                    className={`px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider font-bold transition-all shadow-md cursor-pointer ${
-                      albumActivado ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-white text-purple-900 hover:bg-purple-5'
-                    }`}
-                  >
-                    {albumActivado ? '🟢 Álbum Activo' : '🔒 Activar Función'}
-                  </button>
+                  <button type="button" onClick={toggleAlbumCompartido} className={`px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider font-bold transition-all shadow-md cursor-pointer ${albumActivado ? 'bg-emerald-600 text-white' : 'bg-white text-purple-900'}`}>{albumActivado ? '🟢 Álbum Activo' : '🔒 Activar Función'}</button>
                 </div>
-
                 {albumActivado && (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-white/10 border-dashed items-center animate-fadeIn">
                     <div className="md:col-span-2 space-y-2">
                       <p className="text-xs font-semibold text-purple-200">🖨️ Código QR Oficial para Imprimir en tus Mesas:</p>
-                      <input type="text" readOnly value={codigoMesaUrl} className="w-full px-3 py-2 rounded-xl text-xs bg-black/20 border border-white/10 font-mono text-purple-300 focus:outline-none" />
-                      <span className="text-[10px] text-purple-300/80 block leading-normal">Tus invitados abrirán esta URL, se les desplegará un botón de cámara y subirán fotos sin contratiempos.</span>
+                      <input type="text" readOnly value={codigoMesaUrl} className="w-full px-3 py-2 rounded-xl text-xs bg-black/20 border border-white/10 font-mono text-purple-300" />
                     </div>
-                    {/* Generador de QR para el Álbum de Mesas */}
-                    <div className="bg-white p-2 rounded-2xl w-28 h-28 mx-auto shadow-md flex items-center justify-center">
-                      <img src={`https://chart.googleapis.com/chart?cht=qr&chs=120x120&chl=${codigoMesaUrl}`} alt="QR Mesas" className="w-full h-full object-contain" />
-                    </div>
+                    <div className="bg-white p-2 rounded-2xl w-28 h-28 mx-auto shadow-md flex items-center justify-center"><img src={`https://chart.googleapis.com/chart?cht=qr&chs=120x120&chl=${codigoMesaUrl}`} alt="QR" className="w-full h-full" /></div>
                   </div>
                 )}
-
-                {/* VISUALIZADOR DEL FEED DE FOTOS CARGADAS POR LOS INVITADOS */}
                 {albumActivado && (
                   <div className="pt-4 border-t border-white/10 space-y-3">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-purple-300">Carrete en Vivo de la Fiesta ({fotosDelEvento.length} capturas)</h4>
-                    {fotosDelEvento.length === 0 ? (
-                      <div className="bg-black/10 border border-dashed border-white/10 rounded-xl p-6 text-center text-xs text-purple-200/50 italic font-light">
-                        El carrete colectivo está listo. Las fotos aparecerán aquí conforme los invitados las suban en las mesas.
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 max-h-40 overflow-y-auto pr-1">
-                        {fotosDelEvento.map((url, i) => (
-                          <div key={i} className="aspect-square bg-black/20 rounded-xl overflow-hidden border border-white/10 shadow-2xs group relative">
-                            <img src={url} alt="Carga Invitado" className="w-full h-full object-cover" />
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    {fotosDelEvento.length === 0 ? <div className="text-xs text-purple-200/50 italic bg-black/10 border rounded-xl p-6">El carrete colectivo está listo...</div> : <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 max-h-40 overflow-y-auto">{fotosDelEvento.map((url, i) => <div key={i} className="aspect-square bg-black/20 rounded-xl overflow-hidden"><img src={url} className="w-full h-full object-cover" /></div>)}</div>}
                   </div>
                 )}
               </div>
 
-              {/* CONTROLES BASE PASO 4 (PORTADA, MÚSICA, GALERÍA) */}
               <div className="bg-white rounded-3xl p-6 md:p-8 border space-y-4">
-                <h3 className="font-serif text-lg font-medium">🖼️ Fotografía de Portada (Hero Banner)</h3>
+                <h3 className="font-serif text-lg font-medium">🖼️ Fotografía de Portada</h3>
                 <div className="flex flex-col sm:flex-row items-center gap-3">
-                  <input type="text" value={coverImage} readOnly placeholder="Sin archivo..." className="w-full px-4 py-3 border rounded-xl text-xs bg-stone-50/50 font-mono focus:outline-none" />
+                  <input type="text" value={coverImage} readOnly placeholder="Sin archivo..." className="w-full px-4 py-3 border rounded-xl text-xs bg-stone-50/50 font-mono" />
                   <label className="bg-stone-900 text-white text-xs font-bold px-5 py-3.5 rounded-xl cursor-pointer">📸 Cargar<input type="file" accept="image/*" onChange={(e) => handleSubirArchivo(e, null, true)} className="hidden" /></label>
                 </div>
               </div>
 
               <div className="bg-white rounded-3xl p-6 md:p-8 border space-y-6">
-                <h3 className="font-serif text-lg font-medium">🎵 Banda Sonora de tu Invitación</h3>
+                <h3 className="font-serif text-lg font-medium">🎵 Banda Sonora</h3>
                 <div className="space-y-2">
                   {cancionesCatalogo.map((track) => (
                     <div key={track.id} className={`flex items-center justify-between p-3 rounded-xl border ${musicUrl === track.url ? 'border-amber-600 bg-amber-50/10' : 'border-stone-100'}`}>
@@ -461,25 +447,12 @@ export default function NoviosDashboard() {
                   ))}
                 </div>
               </div>
-
             </div>
-
-            {/* BARRA LATERAL DE GUARDADO */}
             <div className="bg-white rounded-3xl p-6 border flex flex-col justify-between h-full space-y-6 sticky top-6">
-              <div className="space-y-4">
-                <h4 className="text-base font-serif font-medium text-stone-900">Estado de Publicación</h4>
-                <hr className="border-stone-100" />
-                <div className="space-y-2 text-xs font-light text-stone-500">
-                  <div className="flex justify-between border-b pb-1.5 border-stone-50"><span>Plan:</span><strong className="text-stone-700 font-bold uppercase">{planContratado}</strong></div>
-                  <div className="flex justify-between border-b pb-1.5 border-stone-50"><span>Álbum Colectivo:</span><strong className={albumActivado ? "text-purple-700" : "text-stone-400"}>{albumActivado ? "Habilitado" : "Apagado"}</strong></div>
-                </div>
-              </div>
-              <button type="button" disabled={guardando} onClick={handleGuardarPaso4} className="w-full bg-stone-950 text-white text-xs uppercase font-bold py-4 rounded-xl shadow-md transition-all text-center cursor-pointer">
-                {guardando ? 'Sincronizando...' : 'Guardar y Continuar ➔'}
-              </button>
+              <button type="button" disabled={guardando} onClick={handleGuardarPaso4} className="w-full bg-stone-950 text-white text-xs uppercase font-bold py-4 rounded-xl shadow-md cursor-pointer">{guardando ? 'Sincronizando...' : 'Guardar y Continuar ➔'}</button>
             </div>
           </div>
-        ) : (
+        ) : pasoActive === 5 ? (
           /* PASO 5 */
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start animate-fadeIn text-left">
             <div className="lg:col-span-2 space-y-6">
@@ -498,7 +471,69 @@ export default function NoviosDashboard() {
               </div>
             </div>
             <div className="bg-white rounded-3xl p-6 border flex flex-col justify-between h-full space-y-6 sticky top-6">
-              <button type="button" disabled={guardando} onClick={handleGuardarPaso5} className="w-full bg-stone-950 text-white text-xs uppercase font-bold py-4 rounded-xl shadow-md transition-all text-center cursor-pointer">{guardando ? 'Sincronizando...' : '🚀 Publicar Todo'}</button>
+              <button type="button" disabled={guardando} onClick={handleGuardarPaso5} className="w-full bg-stone-950 text-white text-xs uppercase font-bold py-4 rounded-xl shadow-md cursor-pointer">{guardando ? 'Sincronizando...' : 'Guardar y Continuar ➔'}</button>
+            </div>
+          </div>
+        ) : (
+          /* ========================================================
+             ✨ PASO 6: NUEVO RENDER MÓDULO DE LOGÍSTICA & VESTIMENTA
+             ======================================================== */
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start animate-fadeIn text-left">
+            <div className="lg:col-span-2 space-y-6">
+              
+              {/* CRONOGRAMA */}
+              <div className="bg-white rounded-3xl p-6 md:p-8 border border-stone-200/60 shadow-xs space-y-4">
+                <h3 className="font-serif text-lg font-medium text-stone-900">🗓️ Cronograma de Horarios</h3>
+                <p className="text-xs text-stone-400 font-light -mt-2">Establece los horarios clave para guiar a tus invitados durante el protocolo.</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-stone-600">Hora de la Ceremonia (Misa)</label>
+                    <input type="text" value={itinerarioMisa} onChange={(e) => setItinerarioMisa(e.target.value)} placeholder="Ej. 18:00 hrs" className="w-full px-4 py-3 border rounded-xl text-xs bg-stone-50/50" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-stone-600">Hora de la Fiesta (Banquete)</label>
+                    <input type="text" value={itinerarioFiesta} onChange={(e) => setItinerarioFiesta(e.target.value)} placeholder="Ej. 20:30 hrs" className="w-full px-4 py-3 border rounded-xl text-xs bg-stone-50/50" />
+                  </div>
+                </div>
+              </div>
+
+              {/* DRESS CODE */}
+              <div className="bg-white rounded-3xl p-6 md:p-8 border border-stone-200/60 shadow-xs space-y-4">
+                <h3 className="font-serif text-lg font-medium text-stone-900">👔 Código de Vestimenta & Paleta</h3>
+                <p className="text-xs text-stone-400 font-light -mt-2">Comunícale a tus amigos qué tipo de vestuario se requiere y sugiéreles colores.</p>
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-stone-600">Protocolo de Vestimenta</label>
+                    <select value={codigoVestimentaText} onChange={(e) => setCodigoVestimentaText(e.target.value)} className="w-full p-3 border rounded-xl text-xs bg-stone-50/50 cursor-pointer font-medium text-stone-700">
+                      <option value="formal">Gala / Etiqueta Formal</option>
+                      <option value="coctel">Vestimenta de Cóctel</option>
+                      <option value="guayabera">Guayabera / Playa Chic</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-stone-600">Paleta de Colores Sugerida (Texto descriptivo)</label>
+                    <input type="text" value={paletaColores} onChange={(e) => setPaletaColores(e.target.value)} placeholder="Ej. Tonos terracota, beige, verde olivo" className="w-full px-4 py-3 border rounded-xl text-xs bg-stone-50/50 focus:border-amber-700 focus:outline-none" />
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {/* GUARDAR LOGÍSTICA */}
+            <div className="bg-white rounded-3xl p-6 border border-stone-200/60 shadow-xs flex flex-col justify-between h-full space-y-6 sticky top-6">
+              <div className="space-y-3">
+                <h4 className="text-base font-serif font-medium text-stone-900">Logística de Evento</h4>
+                <hr className="border-stone-100" />
+                <p className="text-xs text-stone-400 font-light leading-relaxed">Guardar este paso inyectará los datos de protocolo de vestimenta y cronograma dentro de los componentes de tu invitación.</p>
+              </div>
+              <button 
+                type="button" 
+                disabled={guardando} 
+                onClick={handleGuardarPaso6} 
+                className="w-full bg-stone-950 hover:bg-emerald-700 text-white text-xs uppercase font-bold tracking-widest py-4 rounded-xl shadow-md transition-all text-center cursor-pointer"
+              >
+                {guardando ? 'Sincronizando...' : '🚀 Lanzar Logística en Vivo'}
+              </button>
             </div>
           </div>
         )}
