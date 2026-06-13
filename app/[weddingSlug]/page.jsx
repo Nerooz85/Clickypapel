@@ -49,6 +49,7 @@ export default function WeddingInvitationPage() {
         setWeddingData({
           id: data.id, // 🆔 Guardamos el ID real de la base de datos (ej. 11)
           slug: data.slug, // 🔗 Guardamos el slug oficial
+          templateId: data.template_id || 'romantico-clasico', // 🎨 Jalamos el estilo visual de Supabase
           groomName: data.groom_name,
           brideName: data.bride_name,
           eventDate: data.event_date || "2026-12-19T18:00:00", 
@@ -64,6 +65,11 @@ export default function WeddingInvitationPage() {
           recepcionLugar: data.recepcion_lugar,
           recepcionMapsUrl: data.recepcion_maps_url,
           codigoVestimenta: data.codigo_vestimenta,
+          
+          // 🎵 Jalamos los campos de música que guardamos en el Dashboard
+          musicType: data.music_type || 'default',
+          musicUrl: data.music_url || '/music/1-thousand-years.mp3',
+
           mesaRegalos: {
             bankDetails: {
               banco: data.banco,
@@ -104,21 +110,56 @@ export default function WeddingInvitationPage() {
     );
   }
 
-  // 3. Vista final si todo se encuentra en orden
+  // 🛠️ 3. DICCIONARIO DE ESTILOS VISUALES PARA TUS DEMOS
+  // Puedes usar estas variables dentro de tus componentes hijos si quieres cambiar fuentes, fondos o botones
+  const estilosPorTemplate = {
+    'romantico-clasico': {
+      id: 'romantico-clasico',
+      bgGlobal: 'bg-[#faf9f6] text-stone-800',
+      fuenteTitulo: 'font-serif text-stone-900',
+      colorCard: 'bg-white',
+      botonAcento: 'bg-amber-700 hover:bg-amber-800 text-white'
+    },
+    'minimal-dark': {
+      id: 'minimal-dark',
+      bgGlobal: 'bg-zinc-950 text-zinc-100 selection:bg-zinc-800',
+      fuenteTitulo: 'font-sans tracking-widest text-white uppercase font-light',
+      colorCard: 'bg-zinc-900/50 border border-zinc-800',
+      botonAcento: 'bg-white text-zinc-950 hover:bg-zinc-200'
+    },
+    'boho-rancho': {
+      id: 'boho-rancho',
+      bgGlobal: 'bg-[#f4efe6] text-amber-950',
+      fuenteTitulo: 'font-serif italic text-amber-900 font-normal',
+      colorCard: 'bg-[#fbf9f4] border border-stone-200',
+      botonAcento: 'bg-emerald-800 hover:bg-emerald-950 text-white'
+    }
+  };
+
+  // Si la base de datos trae un estilo que no tenemos, usamos el tradicional por defecto
+  const diseño = estilosPorTemplate[weddingData.templateId] || estilosPorTemplate['romantico-clasico'];
+
+  // 4. Vista final si todo se encuentra en orden
   return (
-    <main className="min-h-screen bg-stone-50 overflow-x-hidden">
-      <InvitationHero weddingData={weddingData} />
-      <EventTimeline weddingData={weddingData} />
+    <main className={`min-h-screen overflow-x-hidden transition-colors duration-500 ${diseño.bgGlobal}`}>
       
-      {/* 🚀 Cambiado para pasar las imágenes reales a tu componente de Galería */}
-      <PhotoGallery weddingData={weddingData} images={weddingData.galleryImages} />
+      {/* 🎵 El audio se vuelve dinámico y reproduce el track guardado de la boda */}
+      <audio id="bg-boda-audio" src={weddingData.musicUrl} loop />
+
+      {/* 🎨 Le inyectamos el objeto "diseño" a cada sección para modular los colores y fuentes */}
+      <InvitationHero weddingData={weddingData} diseño={diseño} />
+      <EventTimeline weddingData={weddingData} diseño={diseño} />
       
-      <GiftRegistry weddingData={weddingData} />
+      {/* 🚀 Pasamos las imágenes reales a tu componente de Galería */}
+      <PhotoGallery weddingData={weddingData} images={weddingData.galleryImages} diseño={diseño} />
       
-      {/* 🛠️ Le pasamos ambas propiedades para que tu componente RSVP tenga de dónde elegir y no truene */}
+      <GiftRegistry weddingData={weddingData} diseño={diseño} />
+      
+      {/* 🛠️ Módulo RSVP seguro con ID y Slug */}
       <RsvpModule 
         weddingId={weddingData.id} 
         weddingSlug={weddingData.slug} 
+        diseño={diseño}
       />
       
       <footer className="text-center py-12 bg-stone-900 text-stone-500 text-xs">
