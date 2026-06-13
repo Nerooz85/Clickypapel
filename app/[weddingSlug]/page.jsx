@@ -165,15 +165,15 @@ export default function WeddingInvitationPage() {
               📖 Catálogo de Demos <span className="text-[10px] opacity-60">{menuDemosAbierto ? '▲' : '▼'}</span>
             </button>
 
-            {/* 📋 LISTADO DE DEMOS ACTUALIZADO EN VIVO */}
+            {/* 📋 LISTADO DE DEMOS ACTUALIZADO EN VIVO CON LA TRILOGÍA DE COLORES Y NICHOS */}
             {menuDemosAbierto && (
-              <div className="absolute top-11 left-1/2 -translate-x-1/2 w-52 bg-white border border-stone-200 rounded-xl shadow-lg p-1.5 space-y-1 z-[210]">
+              <div className="absolute top-11 left-1/2 -translate-x-1/2 w-56 bg-white border border-stone-200 rounded-xl shadow-lg p-1.5 space-y-1 z-[210]">
                 <a href="/bruno-y-brisa?demo=true" className="block text-left text-xs px-3 py-2 rounded-lg hover:bg-stone-50 text-stone-700 font-medium">Demo 1: Bruno y Brisa (Clásica)</a>
                 
-                {/* 🌟 ENLACE ACTIVO DE TU NUEVA DEMO MINIMAL DARK */}
                 <a href="/demo-minimal-dark?demo=true" className="block text-left text-xs px-3 py-2 rounded-lg hover:bg-stone-50 text-stone-700 font-medium">Demo 2: Damián y Elena (Dark)</a>
                 
-                <a href="/demo-xv?demo=true" className="block text-left text-xs px-3 py-2 rounded-lg hover:bg-stone-50 text-stone-400 font-normal italic pointer-events-none">Demo 3: Próximamente XV</a>
+                {/* 🌟 ACTIVADO: Enlace a tu nueva demo número 3 de XV Años */}
+                <a href="/demo-xv-boho?demo=true" className="block text-left text-xs px-3 py-2 rounded-lg hover:bg-stone-50 text-stone-700 font-medium">Demo 3: Regina (XV Boho Chic)</a>
               </div>
             )}
           </div>
