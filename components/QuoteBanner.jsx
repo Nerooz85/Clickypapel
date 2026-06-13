@@ -37,11 +37,11 @@ export default function QuoteBanner({ weddingData, diseño }) {
   // Extraemos la foto de portada de la boda; si por alguna razón no hay, dejamos un respaldo elegante
   const imagenFondo = weddingData?.coverImage || "https://images.unsplash.com/photo-1519741497674-611481863552";
 
-  return (
-    <section 
-      className="relative py-32 px-6 my-12 bg-cover bg-center bg-no-repeat overflow-hidden border-y border-stone-200/20 shadow-xs transition-all duration-500"
-      style={{ backgroundImage: `url('${imagenFondo}')` }}
-    >
+return (
+  <section 
+    className="relative py-36 px-6 w-full bg-cover bg-center bg-no-repeat overflow-hidden border-y border-stone-200/10 shadow-xs transition-all duration-500"
+    style={{ backgroundImage: `url('${imagenFondo}')` }}
+  >
       {/* 🎨 Capa inteligente (Overlay + Blur) que toma la foto de los novios y la vuelve un fondo artístico */}
       <div className={`absolute inset-0 transition-all duration-500 ${config.overlay}`} />
 
