@@ -24,6 +24,10 @@ export default function WeddingInvitationPage() {
   const [menuDemosAbierto, setMenuDemosAbierto] = useState(false);
   const [musicaSonando, setMusicaSonando] = useState(false);
 
+  // 🎨 ESTADOS INTERACTIVOS EN VIVO PARA LA PALETA DE COLORES
+  const [colorSeleccionado, setColorSeleccionado] = useState(null);
+  const [mensajeCopiado, setMensajeCopiado] = useState(false);
+
   // 🛒 ESTADOS PARA EL EMBUDO DE VENTA INTERACTIVO (MODAL)
   const [modalContratarAbierto, setModalContratarAbierto] = useState(false);
   const [planSeleccionado, setPlanSeleccionado] = useState('premium'); 
@@ -108,6 +112,14 @@ export default function WeddingInvitationPage() {
     }
   };
 
+  // Función interactiva para copiar el Hexadecimal del color al portapapeles
+  const copiarColorHex = (hex) => {
+    setColorSeleccionado(hex);
+    navigator.clipboard.writeText(hex);
+    setMensajeCopiado(true);
+    setTimeout(() => setMensajeCopiado(false), 2000);
+  };
+
   if (cargando) {
     return (
       <div className="min-h-screen bg-[#faf9f6] flex items-center justify-center font-serif text-stone-500 animate-pulse text-sm tracking-widest uppercase">
@@ -131,7 +143,7 @@ export default function WeddingInvitationPage() {
       nombre: '💍 Romántico Clásico',
       bgGlobal: 'bg-[#faf9f6] text-stone-800',
       fuenteTitulo: 'font-serif text-stone-900',
-      colorCard: 'bg-white',
+      colorCard: 'bg-white border-stone-200/60',
       botonAcento: 'bg-amber-700 hover:bg-amber-800 text-white'
     },
     'minimal-dark': {
@@ -139,7 +151,7 @@ export default function WeddingInvitationPage() {
       nombre: '🖤 Minimalista Dark',
       bgGlobal: 'bg-zinc-950 text-zinc-100 selection:bg-zinc-800',
       fuenteTitulo: 'font-sans tracking-widest text-white uppercase font-light',
-      colorCard: 'bg-zinc-900/50 border border-zinc-800',
+      colorCard: 'bg-zinc-900/40 border-zinc-800 text-zinc-300',
       botonAcento: 'bg-white text-zinc-950 hover:bg-zinc-200'
     },
     'boho-rancho': {
@@ -147,12 +159,39 @@ export default function WeddingInvitationPage() {
       nombre: '🌿 Boho Chic / Campo',
       bgGlobal: 'bg-[#f4efe6] text-amber-950',
       fuenteTitulo: 'font-serif italic text-amber-900 font-normal',
-      colorCard: 'bg-[#fbf9f4] border border-stone-200',
+      colorCard: 'bg-[#faf7f2] border-amber-900/10 text-amber-950',
       botonAcento: 'bg-emerald-800 hover:bg-emerald-950 text-white'
     }
   };
 
   const diseño = estilosPorTemplate[templateActivo] || estilosPorTemplate['romantico-clasico'];
+
+  // Mapeo interactivo de paletas físicas reales según el Template contratado
+  const paletasInteractivas = {
+    'minimal-dark': [
+      { hex: '#18181b', nombre: 'Deep Charcoal' },
+      { hex: '#27272a', nombre: 'Asphalt Matte' },
+      { hex: '#52525b', nombre: 'Zinc Medium' },
+      { hex: '#71717a', font: 'Smoky Quartz' },
+      { hex: '#a1a1aa', nombre: 'Soft Silver' }
+    ],
+    'boho-rancho': [
+      { hex: '#8c6239', nombre: 'Terracota rústico' },
+      { hex: '#bf9b7a', nombre: 'Arena cálida' },
+      { hex: '#dfd3c3', nombre: 'Lino Natural' },
+      { hex: '#7d8a7c', nombre: 'Verde Olivo Silvestre' },
+      { hex: '#c2baa6', nombre: 'Eucalipto Seco' }
+    ],
+    'romantico-clasico': [
+      { hex: '#78350f', nombre: 'Miel de Otoño' },
+      { hex: '#b45309', nombre: 'Ambar Quemado' },
+      { hex: '#f59e0b', nombre: 'Oro Satinado' },
+      { hex: '#fef3c7', nombre: 'Crema Marfil' },
+      { hex: '#d97706', nombre: 'Miel Dorado' }
+    ]
+  };
+
+  const coloresMuestra = paletasInteractivas[templateActivo] || paletasInteractivas['romantico-clasico'];
 
   // 💰 PRECIOS DE PLANES
   const preciosPlanes = { basicos: 890, premium: 1490, vip: 2490 };
@@ -310,7 +349,7 @@ export default function WeddingInvitationPage() {
                 <span className="text-[9px] uppercase tracking-wider text-stone-400 block font-semibold">Total estimado:</span>
                 <span className="text-xl font-mono font-black text-stone-900">${precioTotal.toLocaleString('es-MX')} MXN</span>
               </div>
-              <button type="button" onClick={handleProcederAlPago} className="bg-stone-950 hover:bg-amber-600 text-white text-xs uppercase font-bold tracking-wider px-6 py-3.5 rounded-xl shadow-md transition-all cursor-pointer">Comenzar Diseño ➔</button>
+              <button type="button" onClick={handleProcederAlPago} className="bg-stone-950 hover:bg-amber-700 text-white text-xs uppercase font-bold tracking-wider px-6 py-3.5 rounded-xl shadow-md transition-all cursor-pointer">Comenzar Diseño ➔</button>
             </div>
           </div>
         </div>
@@ -319,8 +358,58 @@ export default function WeddingInvitationPage() {
       {/* 🚀 INYECCIÓN DE TUS COMPONENTES ESTRUCTURALES MAESTROS */}
       <InvitationHero weddingData={weddingData} diseño={diseño} />
       
-      {/* 🗓️ JALA TU NUEVO TIMELINE OPTIMIZADO CON MAPAS, DRESS CODE Y PALETA EN CALIENTE */}
+      {/* 🗓️ JALA TU TIMELINE DE LOGÍSTICA (MAPAS Y HORARIOS) */}
       <EventTimeline weddingData={weddingData} diseño={diseño} />
+
+      {/* ========================================================
+         ✨ MENÚ INTERACTIVO COMPLETO EN VIVO: DRESS CODE & PALETA CHROMÁTICA
+         ======================================================== */}
+      <section className="py-12 px-4 max-w-sm mx-auto text-center space-y-6">
+        <div className="space-y-1">
+          <span className={`text-[10px] uppercase tracking-widest font-bold block ${templateActivo === 'minimal-dark' ? 'text-zinc-500' : 'text-stone-400'}`}>Código de Vestimenta</span>
+          <p className="text-sm font-medium tracking-wide capitalize">✨ {weddingData?.codigoVestimenta || "Formal / Gala"}</p>
+        </div>
+
+        {/* Contenedor interactivo */}
+        <div className={`p-6 rounded-3xl border shadow-xs transition-colors duration-500 space-y-4 ${diseño.colorCard}`}>
+          <div className="space-y-1">
+            <span className={`text-[9px] uppercase tracking-wider font-bold block ${templateActivo === 'minimal-dark' ? 'text-zinc-500' : 'text-stone-400'}`}>
+              Paleta de Inspiración Interactiva
+            </span>
+            <p className="text-[10px] opacity-50 font-light">Toca una burbuja de color para descubrir su tono o copiarlo:</p>
+          </div>
+
+          {/* Renderizado de burbujas interactivas */}
+          <div className="flex justify-center items-center gap-2">
+            {coloresMuestra.map((color, i) => (
+              <button 
+                key={i} 
+                type="button"
+                style={{ backgroundColor: color.hex }} 
+                onClick={() => copiarColorHex(color.hex)}
+                className={`w-8 h-8 rounded-full shadow-xs border-2 hover:scale-110 transition-transform cursor-pointer ${
+                  colorSeleccionado === color.hex ? 'border-amber-600 scale-105' : 'border-white'
+                }`}
+                title={`Copiar ${color.nombre}`}
+              />
+            ))}
+          </div>
+
+          {/* Feedback interactivo en vivo */}
+          <div className="h-8 flex items-center justify-center">
+            {colorSeleccionado ? (
+              <p className="text-[11px] font-mono font-medium animate-fadeIn text-amber-700">
+                {coloresMuestra.find(c => c.hex === colorSeleccionado)?.nombre || 'Tono'} ({colorSeleccionado}) 
+                {mensajeCopiado && <span className="text-emerald-600 ml-1.5 font-sans font-bold">¡Copiado! 📋</span>}
+              </p>
+            ) : (
+              <p className="text-[11px] italic opacity-60 font-light">
+                "{weddingData?.paletaColores || "Tonos sugeridos por los novios"}"
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
       
       <PhotoGallery weddingData={weddingData} images={weddingData.galleryImages} diseño={diseño} />
       
@@ -334,7 +423,7 @@ export default function WeddingInvitationPage() {
               <p className="text-xs text-purple-200/70 font-light leading-relaxed">Súbelas directamente al álbum en vivo de los novios para que guarden cada recuerdo.</p>
             </div>
             <a 
-              href={`https://clickypapel.com/${weddingData.slug}/compartir`} 
+              href={`https://tugrandia.icu/${weddingData.slug}/compartir`} 
               className="w-full bg-white text-purple-950 font-bold text-center py-3 rounded-xl block text-xs uppercase tracking-wider shadow-md hover:bg-purple-50 transition-colors"
             >
               📤 Subir Fotos al Álbum Colectivo
