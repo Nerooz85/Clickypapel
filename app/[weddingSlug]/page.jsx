@@ -172,13 +172,13 @@ export default function WeddingInvitationPage() {
       { hex: '#18181b', nombre: 'Deep Charcoal' },
       { hex: '#27272a', nombre: 'Asphalt Matte' },
       { hex: '#52525b', nombre: 'Zinc Medium' },
-      { hex: '#71717a', font: 'Smoky Quartz' },
+      { hex: '#71717a', nombre: 'Smoky Quartz' },
       { hex: '#a1a1aa', nombre: 'Soft Silver' }
     ],
     'boho-rancho': [
       { hex: '#8c6239', nombre: 'Terracota rústico' },
       { hex: '#bf9b7a', nombre: 'Arena cálida' },
-      { hex: '#dfd3c3', nombre: 'Lino Natural' },
+      { hex: '#dfd3c3', font: 'Lino Natural', nombre: 'Lino Natural' },
       { hex: '#7d8a7c', nombre: 'Verde Olivo Silvestre' },
       { hex: '#c2baa6', nombre: 'Eucalipto Seco' }
     ],
@@ -220,7 +220,7 @@ export default function WeddingInvitationPage() {
         {musicaSonando ? '🎵 ⏸️' : '🔇 ▶️'}
       </button>
 
-      {/* 🧭 HEADER PREMIUM COMERCIAL DE CLICKYPAPEL */}
+      {/* 🧭 HEADER PREMIUM COMERCIAL DE CLICKYPAPEL (CONECTADO EN EXCLUSIVA PARA EL MODO DEMO) */}
       {esModoDemo && (
         <header className="fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md border-b border-stone-200/80 px-4 md:px-8 flex items-center justify-between z-[200] shadow-xs">
           <a href="https://clickypapel.com" className="flex items-center gap-1 group">
@@ -259,7 +259,7 @@ export default function WeddingInvitationPage() {
         </header>
       )}
 
-      {/* 🔮 INTERFAZ FLOTANTE LATERAL PARA EL CAMBIO DE TEMPLATE */}
+      {/* 🔮 INTERFAZ PANEL LATERAL FLOTANTE PARA EL CAMBIO DE TEMPLATE EN CALIENTE */}
       {esModoDemo && (
         <div className="fixed bottom-6 right-6 z-[100] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-stone-200 max-w-xs space-y-2">
           <div className="text-left">
@@ -355,7 +355,7 @@ export default function WeddingInvitationPage() {
         </div>
       )}
 
-      {/* 🚀 INYECCIÓN DE TUS COMPONENTES ESTRUCTURALES MAESTROS */}
+      {/* 🚀 INYECCIÓN DE COMPONENTES ESTRUCTURALES MAESTROS */}
       <InvitationHero weddingData={weddingData} diseño={diseño} />
       
       {/* 🗓️ JALA TU TIMELINE DE LOGÍSTICA (MAPAS Y HORARIOS) */}
