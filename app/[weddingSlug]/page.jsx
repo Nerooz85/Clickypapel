@@ -21,6 +21,7 @@ export default function WeddingInvitationPage() {
   const [weddingData, setWeddingData] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [templateActivo, setTemplateActivo] = useState('romantico-clasico');
+  const [subTemaColor, setSubTemaColor] = useState('oro'); // 🎨 Controla la variante cromática de la demo
   const [menuDemosAbierto, setMenuDemosAbierto] = useState(false);
   const [musicaSonando, setMusicaSonando] = useState(false);
 
@@ -93,6 +94,11 @@ export default function WeddingInvitationPage() {
         });
 
         setTemplateActivo(data.template_id || 'romantico-clasico');
+        
+        // Inicialización inteligente del sub-color para que coincida con su estructura por defecto
+        if (data.template_id === 'minimal-dark') setSubTemaColor('obsidian');
+        else if (data.template_id === 'boho-rancho') setSubTemaColor('terracota');
+        else setSubTemaColor('oro');
       }
       setCargando(false);
     }
@@ -120,78 +126,43 @@ export default function WeddingInvitationPage() {
     setTimeout(() => setMensajeCopiado(false), 2000);
   };
 
-  if (cargando) {
-    return (
-      <div className="min-h-screen bg-[#faf9f6] flex items-center justify-center font-serif text-stone-500 animate-pulse text-sm tracking-widest uppercase">
-        Abriendo la experiencia... ✨
-      </div>
-    );
-  }
-
-  if (!weddingData) {
-    return (
-      <div className="min-h-screen bg-[#faf9f6] flex flex-col items-center justify-center font-sans text-center p-6 space-y-4">
-        <h1 className="font-serif text-2xl text-stone-800 font-light">Invitación No Encontrada</h1>
-        <a href="https://clickypapel.com" className="text-xs bg-stone-900 text-white px-5 py-2.5 rounded-full uppercase tracking-wider mt-2">Ir a Inicio</a>
-      </div>
-    );
-  }
-
+  // 🎨 MATRIZ DE CONFIGURACIÓN PREMIUM: MAPEO DE TEMPLATES Y SUS 3 SUB-PALETAS DE COLOR EN VIVO
   const estilosPorTemplate = {
     'romantico-clasico': {
-      id: 'romantico-clasico',
-      nombre: '💍 Romántico Clásico',
-      bgGlobal: 'bg-[#faf9f6] text-stone-800',
-      fuenteTitulo: 'font-serif text-stone-900',
-      colorCard: 'bg-white border-stone-200/60',
-      botonAcento: 'bg-amber-700 hover:bg-amber-800 text-white'
+      oro: { bgGlobal: 'bg-[#faf9f6] text-stone-800', colorCard: 'bg-white border-stone-200/60', nombre: '✨ Gala Oro Tradicional' },
+      esmeralda: { bgGlobal: 'bg-[#f5f6f4] text-stone-800', colorCard: 'bg-white border-emerald-900/10', nombre: '🌲 Gala Esmeralda Clásico' },
+      rose: { bgGlobal: 'bg-[#fdfbfb] text-stone-800', colorCard: 'bg-white border-rose-900/10', nombre: '🌸 Gala Romance Rose' }
     },
     'minimal-dark': {
-      id: 'minimal-dark',
-      nombre: '🖤 Minimalista Dark',
-      bgGlobal: 'bg-zinc-950 text-zinc-100 selection:bg-zinc-800',
-      fuenteTitulo: 'font-sans tracking-widest text-white uppercase font-light',
-      colorCard: 'bg-zinc-900/40 border-zinc-800 text-zinc-300',
-      botonAcento: 'bg-white text-zinc-950 hover:bg-zinc-200'
+      obsidian: { bgGlobal: 'bg-zinc-950 text-zinc-100 selection:bg-zinc-800', colorCard: 'bg-zinc-900/40 border-zinc-800 text-zinc-300', nombre: '🖤 Obsidian Dark' },
+      titanium: { bgGlobal: 'bg-zinc-900 text-zinc-200', colorCard: 'bg-zinc-800/50 border-zinc-700', nombre: '🪙 Titanium Minimal' },
+      midnight: { bgGlobal: 'bg-slate-950 text-slate-100', colorCard: 'bg-slate-900/40 border-slate-800', nombre: '🌌 Midnight Navy' }
     },
     'boho-rancho': {
-      id: 'boho-rancho',
-      nombre: '🌿 Boho Chic / Campo',
-      bgGlobal: 'bg-[#f4efe6] text-amber-950',
-      fuenteTitulo: 'font-serif italic text-amber-900 font-normal',
-      colorCard: 'bg-[#faf7f2] border-amber-900/10 text-amber-950',
-      botonAcento: 'bg-emerald-800 hover:bg-emerald-950 text-white'
+      terracota: { bgGlobal: 'bg-[#f4efe6] text-amber-950', colorCard: 'bg-[#faf7f2] border-amber-900/10', nombre: '🌿 Terracota Orgánico' },
+      olivo: { bgGlobal: 'bg-[#edf0ec] text-stone-900', colorCard: 'bg-white border-stone-200', nombre: '🍃 Verde Olivo Silvestre' },
+      mostaza: { bgGlobal: 'bg-[#f7f3eb] text-amber-950', colorCard: 'bg-white border-amber-800/10', nombre: '🌾 Trigo / Mostaza Chic' }
     }
   };
 
-  const diseño = estilosPorTemplate[templateActivo] || estilosPorTemplate['romantico-clasico'];
+  // Evaluamos de forma dinámica el sub-tema para pintar toda la interfaz
+  const grupoActual = estilosPorTemplate[templateActivo] || estilosPorTemplate['romantico-clasico'];
+  const diseño = grupoActual[subTemaColor] || Object.values(grupoActual)[0];
 
-  // Mapeo interactivo de paletas físicas reales según el Template contratado
-  const paletasInteractivas = {
-    'minimal-dark': [
-      { hex: '#18181b', nombre: 'Deep Charcoal' },
-      { hex: '#27272a', nombre: 'Asphalt Matte' },
-      { hex: '#52525b', nombre: 'Zinc Medium' },
-      { hex: '#71717a', nombre: 'Smoky Quartz' },
-      { hex: '#a1a1aa', nombre: 'Soft Silver' }
-    ],
-    'boho-rancho': [
-      { hex: '#8c6239', nombre: 'Terracota rústico' },
-      { hex: '#bf9b7a', nombre: 'Arena cálida' },
-      { hex: '#dfd3c3', font: 'Lino Natural', nombre: 'Lino Natural' },
-      { hex: '#7d8a7c', nombre: 'Verde Olivo Silvestre' },
-      { hex: '#c2baa6', nombre: 'Eucalipto Seco' }
-    ],
-    'romantico-clasico': [
-      { hex: '#78350f', nombre: 'Miel de Otoño' },
-      { hex: '#b45309', nombre: 'Ambar Quemado' },
-      { hex: '#f59e0b', nombre: 'Oro Satinado' },
-      { hex: '#fef3c7', nombre: 'Crema Marfil' },
-      { hex: '#d97706', nombre: 'Miel Dorado' }
-    ]
+  // Mapeo interactivo de burbujas individuales físicas según el sub-tema de color activo
+  const paletasInteractivasBurbujas = {
+    oro: [{ hex: '#78350f', nombre: 'Miel de Otoño' }, { hex: '#b45309', nombre: 'Ambar Quemado' }, { hex: '#f59e0b', nombre: 'Oro Satinado' }, { hex: '#fef3c7', nombre: 'Crema Marfil' }, { hex: '#d97706', nombre: 'Miel Dorado' }],
+    esmeralda: [{ hex: '#064e3b', nombre: 'Verde Imperial' }, { hex: '#0f766e', nombre: 'Teal Profundo' }, { hex: '#115e59', nombre: 'Musgo Suave' }, { hex: '#ccfbf1', nombre: 'Menta Ice' }, { hex: '#047857', nombre: 'Esmeralda' }],
+    rose: [{ hex: '#4c0519', nombre: 'Vino Intenso' }, { hex: '#9d174d', nombre: 'Rosa Viejo' }, { hex: '#fbcfe8', nombre: 'Blush Satin' }, { hex: '#fff1f2', nombre: 'Crema Rosado' }, { hex: '#db2777', nombre: 'Rosa Intenso' }],
+    obsidian: [{ hex: '#18181b', nombre: 'Deep Charcoal' }, { hex: '#27272a', nombre: 'Asphalt Matte' }, { hex: '#52525b', nombre: 'Zinc Medium' }, { hex: '#71717a', nombre: 'Smoky Quartz' }, { hex: '#a1a1aa', nombre: 'Soft Silver' }],
+    titanium: [{ hex: '#0f172a', nombre: 'Slate Dark' }, { hex: '#334155', nombre: 'Acero' }, { hex: '#64748b', nombre: 'Titanio' }, { hex: '#cbd5e1', nombre: 'Gris Platino' }, { hex: '#94a3b8', nombre: 'Aluminio' }],
+    midnight: [{ hex: '#020617', nombre: 'Azul Profundo' }, { hex: '#1e3a8a', nombre: 'Navy Clásico' }, { hex: '#3b82f6', nombre: 'Zafiro' }, { hex: '#dbeafe', nombre: 'Celeste Pastel' }, { hex: '#1d4ed8', nombre: 'Cobalto' }],
+    terracota: [{ hex: '#8c6239', nombre: 'Terracota rústico' }, { hex: '#bf9b7a', nombre: 'Arena cálida' }, { hex: '#dfd3c3', nombre: 'Lino Natural' }, { hex: '#7d8a7c', nombre: 'Verde Olivo Silvestre' }, { hex: '#c2baa6', nombre: 'Eucalipto Seco' }],
+    olivo: [{ hex: '#14532d', nombre: 'Bosque Profundo' }, { hex: '#166534', nombre: 'Olivo Seco' }, { hex: '#4ade80', nombre: 'Pistache' }, { hex: '#dcfce7', nombre: 'Salvia claro' }, { hex: '#15803d', nombre: 'Verde Prado' }],
+    mostaza: [{ hex: '#78350f', nombre: 'Cacao' }, { hex: '#ca8a04', nombre: 'Mostaza Chic' }, { hex: '#fef08a', nombre: 'Vainilla' }, { hex: '#fefce8', nombre: 'Lino Viejo' }, { hex: '#eab308', nombre: 'Girasol' }]
   };
 
-  const coloresMuestra = paletasInteractivas[templateActivo] || paletasInteractivas['romantico-clasico'];
+  const coloresMuestra = paletasInteractivasBurbujas[subTemaColor] || paletasInteractivasBurbujas['oro'];
 
   // 💰 PRECIOS DE PLANES
   const preciosPlanes = { basicos: 890, premium: 1490, vip: 2490 };
@@ -200,7 +171,7 @@ export default function WeddingInvitationPage() {
   const precioTotal = precioBase + precioMusicaExtra;
 
   const handleProcederAlPago = () => {
-    const urlCheckout = `https://clickypapel.com/registro?plan=${planSeleccionado}&template=${templateActivo}&musica=${agregaMusicaExtra ? 'custom' : 'default'}`;
+    const urlCheckout = `https://clickypapel.com/registro?plan=${planSeleccionado}&template=${templateActivo}&subtema=${subTemaColor}&musica=${agregaMusicaExtra ? 'custom' : 'default'}`;
     window.location.href = urlCheckout;
   };
 
@@ -208,7 +179,7 @@ export default function WeddingInvitationPage() {
     <main className={`min-h-screen overflow-x-hidden transition-colors duration-500 relative ${diseño.bgGlobal} ${esModoDemo ? 'pt-16' : ''}`}>
       
       {/* 🎵 REPRODUCTOR DE AUDIO DE FONDO CONTROLADO */}
-      {weddingData.musicUrl && <audio ref={audioRef} src={weddingData.musicUrl} loop />}
+      {weddingData?.musicUrl && <audio ref={audioRef} src={weddingData.musicUrl} loop />}
 
       {/* 🎧 BOTÓN FLOTANTE ESTILIZADO DE AUDIO */}
       <button 
@@ -220,9 +191,10 @@ export default function WeddingInvitationPage() {
         {musicaSonando ? '🎵 ⏸️' : '🔇 ▶️'}
       </button>
 
-      {/* 🧭 HEADER PREMIUM COMERCIAL DE CLICKYPAPEL (CONECTADO EN EXCLUSIVA PARA EL MODO DEMO) */}
+      {/* 🧭 HEADER PREMIUM COMERCIAL DE CLICKYPAPEL - REDIRIGE CORRECTAMENTE AL HOME */}
       {esModoDemo && (
         <header className="fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md border-b border-stone-200/80 px-4 md:px-8 flex items-center justify-between z-[200] shadow-xs">
+          {/* 🔗 Enlace correcto de redirección corporativa */}
           <a href="https://clickypapel.com" className="flex items-center gap-1 group">
             <span className="font-serif text-base tracking-wider font-light text-stone-900 group-hover:text-amber-700 transition-colors">
               clicky<span className="font-normal text-amber-600">papel</span>.com
@@ -259,27 +231,51 @@ export default function WeddingInvitationPage() {
         </header>
       )}
 
-      {/* 🔮 INTERFAZ PANEL LATERAL FLOTANTE PARA EL CAMBIO DE TEMPLATE EN CALIENTE */}
+      {/* 🔮 MENÚ INTERACTIVO COMPLETO LATERAL: CAMBIADOR DE 3 DEMOS DE COLOR POR TEMPLATE EN TIEMPO REAL */}
       {esModoDemo && (
-        <div className="fixed bottom-6 right-6 z-[100] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-stone-200 max-w-xs space-y-2">
-          <div className="text-left">
-            <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Estilo Visual</span>
+        <div className="fixed bottom-6 right-6 z-[100] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-stone-200 max-w-xs space-y-3 text-left">
+          <div>
+            <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Muestrario de Demos en Vivo</span>
           </div>
-          <div className="flex flex-col gap-1.5 pt-0.5">
-            {Object.values(estilosPorTemplate).map((estilo) => (
-              <button
-                key={estilo.id}
-                type="button"
-                onClick={() => setTemplateActivo(estilo.id)}
-                className={`w-full text-left text-xs px-3 py-2 rounded-xl border transition-all cursor-pointer font-medium ${
-                  templateActivo === estilo.id 
-                    ? 'border-amber-600 bg-amber-50 text-amber-900 font-semibold' 
-                    : 'border-stone-200 bg-white hover:bg-stone-50 text-stone-700'
-                }`}
-              >
-                {estilo.nombre}
-              </button>
-            ))}
+
+          {/* Selector 1: Concepto Estructural */}
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-stone-400 block uppercase">1. Concepto Base:</label>
+            <select 
+              value={templateActivo} 
+              onChange={(e) => {
+                const nuevoTpl = e.target.value;
+                setTemplateActivo(nuevoTpl);
+                // Reseteamos el subtema de color en automático para que no rompa el estilo visual
+                setSubTemaColor(nuevoTpl === 'minimal-dark' ? 'obsidian' : nuevoTpl === 'boho-rancho' ? 'terracota' : 'oro');
+              }}
+              className="w-full text-xs p-2 rounded-xl border bg-white font-medium text-stone-700 focus:outline-none"
+            >
+              <option value="romantico-clasico">💍 Romántico Clásico</option>
+              <option value="minimal-dark">🖤 Minimalista Dark</option>
+              <option value="boho-rancho">🌿 Boho Chic / Campo</option>
+            </select>
+          </div>
+
+          {/* Selector 2: Las 3 Demos de Color Dinámicas */}
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-stone-400 block uppercase">2. Variante cromática en Vivo:</label>
+            <div className="flex flex-col gap-1">
+              {Object.keys(estilosPorTemplate[templateActivo] || {}).map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setSubTemaColor(key)}
+                  className={`w-full text-left text-[11px] px-3 py-1.5 rounded-lg border transition-all cursor-pointer font-medium ${
+                    subTemaColor === key 
+                      ? 'border-amber-600 bg-amber-50 text-amber-900 font-semibold' 
+                      : 'border-stone-100 bg-stone-50/50 text-stone-600 hover:bg-stone-50'
+                  }`}
+                >
+                  {estilosPorTemplate[templateActivo][key].nombre}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -288,15 +284,13 @@ export default function WeddingInvitationPage() {
       {modalContratarAbierto && (
         <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center z-[300] p-4 animate-fadeIn">
           <div className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full border border-stone-200 shadow-2xl space-y-6 relative text-stone-800 text-left">
-            
             <button type="button" onClick={() => setModalContratarAbierto(false)} className="absolute top-4 right-4 text-stone-400 hover:text-stone-700 font-bold text-sm bg-stone-100 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer">✕</button>
-
             <div className="space-y-1">
               <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Paso Final</span>
               <h3 className="font-serif text-xl text-stone-950 font-medium">Personaliza tu paquete</h3>
               <p className="text-stone-400 text-xs font-light">Elegiste el design: <strong className="text-stone-700 font-semibold">{diseño.nombre}</strong></p>
             </div>
-
+            
             <div className="space-y-2">
               <label className="text-[10px] uppercase font-bold text-stone-400 tracking-wider">1. Selecciona tu plan:</label>
               <div className="flex flex-col gap-2">
@@ -362,7 +356,7 @@ export default function WeddingInvitationPage() {
       <EventTimeline weddingData={weddingData} diseño={diseño} />
 
       {/* ========================================================
-         ✨ MENÚ INTERACTIVO COMPLETO EN VIVO: DRESS CODE & PALETA CHROMÁTICA
+         ✨ MENÚ INTERACTIVO EN VIVO: DRESS CODE & PALETA CHROMÁTICA INDIVIDUAL
          ======================================================== */}
       <section className="py-12 px-4 max-w-sm mx-auto text-center space-y-6">
         <div className="space-y-1">
@@ -370,7 +364,7 @@ export default function WeddingInvitationPage() {
           <p className="text-sm font-medium tracking-wide capitalize">✨ {weddingData?.codigoVestimenta || "Formal / Gala"}</p>
         </div>
 
-        {/* Contenedor interactivo */}
+        {/* Contenedor de burbujas físicas */}
         <div className={`p-6 rounded-3xl border shadow-xs transition-colors duration-500 space-y-4 ${diseño.colorCard}`}>
           <div className="space-y-1">
             <span className={`text-[9px] uppercase tracking-wider font-bold block ${templateActivo === 'minimal-dark' ? 'text-zinc-500' : 'text-stone-400'}`}>
@@ -379,7 +373,6 @@ export default function WeddingInvitationPage() {
             <p className="text-[10px] opacity-50 font-light">Toca una burbuja de color para descubrir su tono o copiarlo:</p>
           </div>
 
-          {/* Renderizado de burbujas interactivas */}
           <div className="flex justify-center items-center gap-2">
             {coloresMuestra.map((color, i) => (
               <button 
@@ -395,7 +388,6 @@ export default function WeddingInvitationPage() {
             ))}
           </div>
 
-          {/* Feedback interactivo en vivo */}
           <div className="h-8 flex items-center justify-center">
             {colorSeleccionado ? (
               <p className="text-[11px] font-mono font-medium animate-fadeIn text-amber-700">
@@ -414,7 +406,7 @@ export default function WeddingInvitationPage() {
       <PhotoGallery weddingData={weddingData} images={weddingData.galleryImages} diseño={diseño} />
       
       {/* 📸✨ ACCESO AL ÁLBUM COMPARTIDO SI ESTÁ ACTIVADO EN EL PLAN PREMIUM */}
-      {weddingData.albumCompartidoActivo && (
+      {weddingData?.albumCompartidoActivo && (
         <section className="max-w-md mx-auto px-6 py-6 text-center animate-fadeIn">
           <div className="bg-gradient-to-br from-purple-900 to-indigo-950 text-white p-6 rounded-3xl shadow-xl space-y-4 text-left border border-purple-950">
             <div className="space-y-1">
@@ -433,10 +425,8 @@ export default function WeddingInvitationPage() {
       )}
 
       <GiftRegistry weddingData={weddingData} diseño={diseño} />
-      
       <QuoteBanner weddingData={weddingData} diseño={diseño} />
-      
-      <RsvpModule weddingId={weddingData.id} weddingSlug={weddingData.slug} diseño={diseño} />
+      <RsvpModule weddingId={weddingData?.id} weddingSlug={weddingData?.slug} diseño={diseño} />
       
       <footer className="text-center py-12 bg-stone-900 text-stone-500 text-xs select-none">
         Invitación digital premium creada en <span className="text-stone-300">clickypapel.com</span>
