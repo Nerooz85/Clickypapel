@@ -36,6 +36,45 @@ export default function WeddingInvitationPage() {
 
   const audioRef = useRef(null);
 
+  // 📋 MATRIZ ESTRUCTURAL DE LAS 25 DEMOS EN VIVO CATEGORIZADAS
+  const catalogo25Demos = {
+    'Bodas 💍': [
+      { slug: 'demo-boda-tradicional', nombre: 'Clásica Tradicional' },
+      { slug: 'demo-boda-industrial', nombre: 'Industrial Loft (Dark)' },
+      { slug: 'demo-boda-boho', nombre: 'Boho Chic Hacienda' },
+      { slug: 'demo-boda-playa', nombre: 'Playa Sunset Resort' },
+      { slug: 'demo-boda-vintage', nombre: 'Bosque Vintage Rústico' }
+    ],
+    'XV Años 👑': [
+      { slug: 'demo-xv-romantica', nombre: 'Cuento de Hadas' },
+      { slug: 'demo-xv-neon', nombre: 'Neon Club / Antro Night' },
+      { slug: 'demo-xv-boho', nombre: 'Boho Chic / Jardín' },
+      { slug: 'demo-xv-glam', nombre: 'Glam Editorial' },
+      { slug: 'demo-xv-glitter', nombre: 'Glitter & Oro Luxury' }
+    ],
+    'Boda Civil 🥂': [
+      { slug: 'demo-civil-minimal', nombre: 'Minimalista Urbano' },
+      { slug: 'demo-civil-garden', nombre: 'Garden Wine Íntimo' },
+      { slug: 'demo-civil-brunch', nombre: 'Mimosa Brunch' },
+      { slug: 'demo-civil-sunset', nombre: 'Sunset Toast Terraza' },
+      { slug: 'demo-civil-urban', nombre: 'Nocturna Rooftop Cóctel' }
+    ],
+    'Baby Shower 🍼': [
+      { slug: 'demo-baby-boy', nombre: 'Baby Boy Menta Pastel' },
+      { slug: 'demo-baby-girl', nombre: 'Baby Girl Blush Rose' },
+      { slug: 'demo-baby-neutral', nombre: 'Lino Neutral Minimal' },
+      { slug: 'demo-baby-safari', nombre: 'Safari Silvestre' },
+      { slug: 'demo-baby-reveal', nombre: 'Gender Reveal Party' }
+    ],
+    'Bautizos 🕊️': [
+      { slug: 'demo-bautizo-clean', nombre: 'Clean Blanco Tradicional' },
+      { slug: 'demo-bautizo-botanico', nombre: 'Botánico Salvia Jardín' },
+      { slug: 'demo-bautizo-sky', nombre: 'Sky Celestial Moderno' },
+      { slug: 'demo-bautizo-vintage', nombre: 'Vintage Shabby Chic' },
+      { slug: 'demo-bautizo-moderno', nombre: 'Minimal Slate Box' }
+    ]
+  };
+
   useEffect(() => {
     async function jalarDatosBoda() {
       if (!slug) {
@@ -79,6 +118,11 @@ export default function WeddingInvitationPage() {
           codigoVestimenta: data.codigo_vestimenta,
           paletaColores: data.paleta_colores,
         });
+
+        // Autodetectar paleta inicial lógica según el layout asignado en la base de datos
+        if (data.template_id === 'minimal-dark') setPaletaActiva('dark');
+        else if (data.template_id === 'boho-rancho') setPaletaActiva('boho');
+        else setPaletaActiva('oro');
       }
       setCargando(false);
     }
@@ -115,11 +159,11 @@ export default function WeddingInvitationPage() {
 
   // 🔤 MATRIX DE 5 TIPOGRAFÍAS DE ALTA GAMA
   const listadoFuentes = {
-    serif: 'font-serif tracking-normal',             // Clásico Romance
-    sans: 'font-sans tracking-wide antialiased',     // Moderno Limpio
-    mono: 'font-mono tracking-tight text-xs',        // Avant-Garde Editorial
-    cursive: 'font-serif italic tracking-wide',      // Cursiva Elegante
-    display: 'font-sans uppercase tracking-widest'   // Minimalista Minimal
+    serif: 'font-serif tracking-normal',             
+    sans: 'font-sans tracking-wide antialiased',     
+    mono: 'font-mono tracking-tight text-xs',        
+    cursive: 'font-serif italic tracking-wide',      
+    display: 'font-sans uppercase tracking-widest'   
   };
 
   const diseño = listadoPaletas[paletaActiva] || listadoPaletas.oro;
@@ -147,34 +191,65 @@ export default function WeddingInvitationPage() {
   }
 
   return (
-    <main className={`min-h-screen overflow-x-hidden transition-all duration-500 relative ${diseño.bgGlobal} ${claseFuente} pt-36 md:pt-20`}>
+    <main className={`min-h-screen overflow-x-hidden transition-all duration-500 relative ${diseño.bgGlobal} ${claseFuente} pt-20`}>
       
       {weddingData?.musicUrl && <audio ref={audioRef} src={weddingData.musicUrl} loop />}
 
-      {/* 🧭 HEADER EXPANSIVO COMERCIAL: SELECCIÓN DE LAS 5 DEMOS PRINCIPALES Y LOGO NEUTRAL */}
-      <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md border-b border-stone-200/80 px-4 md:px-8 py-3 flex flex-col md:flex-row items-center justify-between gap-3 z-[200] shadow-xs">
-        <a href="https://clickypapel.com" className="flex items-center gap-1 group select-none">
-          <span className="font-serif text-base tracking-wider font-light text-stone-900 group-hover:text-amber-700 transition-colors">
-            clicky<span className="font-normal text-amber-600">papel</span>.com
-          </span>
-        </a>
+      {/* 🧭 HEADER EXPANSIVO COMERCIAL: CONEXIÓN DE LAS 25 DEMOS EN MENÚ DESPLEGABLE */}
+      {esModoDemo && (
+        <header className="fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md border-b border-stone-200/80 px-4 md:px-8 flex items-center justify-between z-[200] shadow-xs font-sans">
+          <a href="https://clickypapel.com" className="flex items-center gap-1 group select-none">
+            <span className="font-serif text-base tracking-wider font-light text-stone-900 group-hover:text-amber-700 transition-colors">
+              clicky<span className="font-normal text-amber-600">papel</span>.com
+            </span>
+          </a>
 
-        {/* Enrutador central interactivo para saltar de Demo en Demo */}
-        <div className="flex flex-wrap justify-center items-center gap-1.5 bg-stone-100 p-1 rounded-xl border border-stone-200/60">
-          <a href="/bruno-y-brisa?demo=true" className={`text-[11px] px-3 py-1 rounded-lg font-medium transition-all ${slug === 'bruno-y-brisa' ? 'bg-white text-stone-950 shadow-2xs font-bold' : 'text-stone-500 hover:text-stone-900'}`}>Demo 1: Clásica</a>
-          <a href="/demo-minimal-dark?demo=true" className={`text-[11px] px-3 py-1 rounded-lg font-medium transition-all ${slug === 'demo-minimal-dark' ? 'bg-white text-stone-950 shadow-2xs font-bold' : 'text-stone-500 hover:text-stone-900'}`}>Demo 2: Dark</a>
-          <a href="/demo-xv-boho?demo=true" className={`text-[11px] px-3 py-1 rounded-lg font-medium transition-all ${slug === 'demo-xv-boho' ? 'bg-white text-stone-950 shadow-2xs font-bold' : 'text-stone-500 hover:text-stone-900'}`}>Demo 3: XV Boho</a>
-          <a href="/demo-gala-glam?demo=true" className={`text-[11px] px-3 py-1 rounded-lg font-medium transition-all ${slug === 'demo-gala-glam' ? 'bg-white text-stone-950 shadow-2xs font-bold' : 'text-stone-500 hover:text-stone-900'}`}>Demo 4: Premium</a>
-          <a href="/demo-bautizo-clean?demo=true" className={`text-[11px] px-3 py-1 rounded-lg font-medium transition-all ${slug === 'demo-bautizo-clean' ? 'bg-white text-stone-950 shadow-2xs font-bold' : 'text-stone-500 hover:text-stone-900'}`}>Demo 5: Kids</a>
-        </div>
+          {/* Selector Desplegable Multievento para las 25 Demos */}
+          <div className="relative">
+            <button 
+              type="button"
+              onClick={() => setMenuDemosAbierto(!menuDemosAbierto)}
+              className="text-xs font-bold text-stone-700 hover:text-stone-950 bg-stone-100 px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-2xs border border-stone-200/40"
+            >
+              📖 Ver Muestrario Catálogo <span className="text-[10px] opacity-60">{menuDemosAbierto ? '▲' : '▼'}</span>
+            </button>
 
-        <button type="button" onClick={() => setModalContratarAbierto(true)} className="bg-stone-950 hover:bg-amber-700 text-white text-[11px] uppercase tracking-widest font-bold px-5 py-2.5 rounded-xl transition-all shadow-md block whitespace-nowrap cursor-pointer">
-          ✨ Crear mi cuenta ➔
-        </button>
-      </header>
+            {menuDemosAbierto && (
+              <div className="absolute top-12 left-1/2 -translate-x-1/2 w-[90vw] max-w-[580px] bg-white border border-stone-200 rounded-2xl shadow-2xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-4 z-[210] max-h-[420px] overflow-y-auto animate-fadeIn">
+                {Object.keys(catalogo25Demos).map((categoria) => (
+                  <div key={categoria} className="space-y-1.5">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 block border-b pb-0.5 border-stone-100 select-none">
+                      {categoria}
+                    </span>
+                    <div className="space-y-0.5">
+                      {catalogo25Demos[categoria].map((demo) => (
+                        <a 
+                          key={demo.slug}
+                          href={`/${demo.slug}?demo=true`} 
+                          className={`block text-left text-[11px] px-2 py-1.5 rounded-lg font-medium transition-all ${
+                            slug === demo.slug 
+                              ? 'bg-amber-50 text-amber-900 font-bold border-l-2 border-amber-600' 
+                              : 'text-stone-600 hover:bg-stone-50 hover:text-stone-900'
+                          }`}
+                        >
+                          {demo.nombre}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <button type="button" onClick={() => setModalContratarAbierto(true)} className="bg-stone-950 hover:bg-amber-700 text-white text-[11px] uppercase tracking-widest font-bold px-5 py-2.5 rounded-xl transition-all shadow-md block whitespace-nowrap cursor-pointer">
+            ✨ Crear mi cuenta ➔
+          </button>
+        </header>
+      )}
 
       {/* 🔮 BARRA FLOTANTE INTERACTIVA DE ESTILOS: CAMBIO DE PALETAS (5) Y TIPOGRAFÍAS (5) EN TIEMPO REAL */}
-      <div className="fixed bottom-6 right-6 z-[100] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-stone-200/80 max-w-xs w-64 space-y-3.5 text-left text-stone-800">
+      <div className="fixed bottom-6 right-6 z-[100] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-stone-200/80 max-w-xs w-64 space-y-3.5 text-left text-stone-800 font-sans">
         <div>
           <span className="text-[9px] bg-amber-100 text-amber-900 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Diseño en tiempo real</span>
         </div>
@@ -229,7 +304,6 @@ export default function WeddingInvitationPage() {
               <p className="text-stone-400 text-xs font-light">Se exportará la paleta <strong className="text-stone-700 capitalize">{paletaActiva}</strong> y tipografía <strong className="text-stone-700 capitalize">{fuenteActiva}</strong>.</p>
             </div>
             
-            {/* ... Controles de selección de plan básico, premium o vip ... */}
             <div className="space-y-2">
               <div className="flex flex-col gap-2">
                 {['basicos', 'premium', 'vip'].map((p) => (
@@ -271,7 +345,7 @@ export default function WeddingInvitationPage() {
             <div className={`p-6 rounded-3xl border shadow-sm transition-colors duration-500 space-y-4 ${diseño.colorCard}`}>
               <div className="space-y-1">
                 <span className="text-[9px] uppercase tracking-wider font-bold block text-stone-400">Paleta de Inspiración Interactiva</span>
-                <p className="text-[10px] opacity-50 font-light">Toca una burbuja de color para descubrir su tono o copiarlo:</p>
+                <p className="text-[10px] opacity-50 font-light">Toca una barra de color para descubrir su tono o copiarlo:</p>
               </div>
 
               <div className="flex justify-center items-center gap-2">
