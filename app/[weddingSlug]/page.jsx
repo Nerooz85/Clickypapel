@@ -21,13 +21,13 @@ export default function WeddingInvitationPage() {
   const [categoriaAbierta, setCategoriaAbierta] = useState(null); 
   const [musicaSonando, setMusicaSonando] = useState(false);
 
-  // 🎨 ESTADOS DE DISEÑO INTERACTIVO (Cambia la UI de la web, NO la ropa de los invitados)
-  const [paletaActiva, setPaletaActiva] = useState('oro');       
+  // 🎨 ESTADOS DE DISEÑO INTERACTIVO (Las 5 Nuevas Tendencias)
+  const [paletaActiva, setPaletaActiva] = useState('cashmere');       
   const [fuenteActiva, setFuenteActiva] = useState('serif');     
   const [colorSeleccionado, setColorSeleccionado] = useState(null);
   const [mensajeCopiado, setMensajeCopiado] = useState(false);
 
-  // Burbujas fijas elegidas por los "novios/anfitriones" para su evento
+  // Burbujas de ropa fijas (Elección de los novios, esto no cambia con la interfaz)
   const [burbujasEvento, setBurbujasEvento] = useState([]);
 
   // 🛒 ESTADOS PARA EL MODAL DE CONTRATACIÓN
@@ -39,43 +39,42 @@ export default function WeddingInvitationPage() {
 
   const catalogo25Demos = {
     'Bodas 💍': [
-      { slug: 'demo-boda-tradicional', nombre: '✨ Gala Oro Tradicional' },
+      { slug: 'demo-boda-tradicional', nombre: '✨ Gala Cashmere' },
       { slug: 'demo-boda-industrial', nombre: '🖤 Obsidian Dark' },
-      { slug: 'demo-boda-boho', nombre: '🌿 Terracota Orgánico' },
-      { slug: 'demo-boda-playa', nombre: '🌸 Romance Rose' },
-      { slug: 'demo-boda-vintage', nombre: '🌾 Mostaza / Trigo Chic' }
+      { slug: 'demo-boda-boho', nombre: '🏺 Terracota Sunset' },
+      { slug: 'demo-boda-playa', nombre: '☁️ Ethereal Celestial' },
+      { slug: 'demo-boda-vintage', nombre: '🍵 Matcha Orgánico' }
     ],
     'XV Años 👑': [
-      { slug: 'demo-xv-glitter', nombre: '✨ Gala Oro Tradicional' },
-      { slug: 'demo-xv-glam', nombre: '🪙 Titanium Minimal' },
-      { slug: 'demo-xv-boho', nombre: '🍃 Verde Olivo Silvestre' },
-      { slug: 'demo-xv-romantica', nombre: '🌸 Romance Rose' },
-      { slug: 'demo-xv-neon', nombre: '🌌 Midnight Navy' }
+      { slug: 'demo-xv-glitter', nombre: '✨ Gala Cashmere' },
+      { slug: 'demo-xv-glam', nombre: '🖤 Obsidian Minimal' },
+      { slug: 'demo-xv-boho', nombre: '🍵 Matcha Silvestre' },
+      { slug: 'demo-xv-romantica', nombre: '☁️ Celestial Perla' },
+      { slug: 'demo-xv-neon', nombre: '🖤 Obsidian Night' }
     ],
     'Boda Civil 🥂': [
-      { slug: 'demo-civil-brunch', nombre: '✨ Gala Oro Tradicional' },
-      { slug: 'demo-civil-minimal', nombre: '🪙 Titanium Minimal' },
-      { slug: 'demo-civil-garden', nombre: '🍃 Verde Olivo Silvestre' },
-      { slug: 'demo-civil-sunset', nombre: '🌿 Terracota Orgánico' },
-      { slug: 'demo-civil-urban', nombre: '🌌 Midnight Navy' }
+      { slug: 'demo-civil-brunch', nombre: '✨ Gala Cashmere' },
+      { slug: 'demo-civil-minimal', nombre: '🖤 Obsidian Minimal' },
+      { slug: 'demo-civil-garden', nombre: '🍵 Matcha Silvestre' },
+      { slug: 'demo-civil-sunset', nombre: '🏺 Terracota Sunset' },
+      { slug: 'demo-civil-urban', nombre: '🖤 Obsidian Night' }
     ],
     'Baby Shower 🍼': [
-      { slug: 'demo-baby-neutral', nombre: '🌾 Mostaza / Trigo Chic' },
-      { slug: 'demo-baby-boy', nombre: '🌲 Gala Esmeralda (Menta)' },
-      { slug: 'demo-baby-girl', nombre: '🌸 Romance Rose' },
-      { slug: 'demo-baby-safari', nombre: '🌿 Terracota Orgánico' },
-      { slug: 'demo-baby-reveal', nombre: '🌌 Midnight Navy' }
+      { slug: 'demo-baby-neutral', nombre: '✨ Cashmere Lino' },
+      { slug: 'demo-baby-boy', nombre: '☁️ Celestial Baby' },
+      { slug: 'demo-baby-girl', nombre: '🏺 Terracota Soft' },
+      { slug: 'demo-baby-safari', nombre: '🍵 Matcha Orgánico' },
+      { slug: 'demo-baby-reveal', nombre: '🖤 Obsidian Night' }
     ],
     'Bautizos 🕊️': [
-      { slug: 'demo-bautizo-clean', nombre: '✨ Gala Oro Tradicional' },
-      { slug: 'demo-bautizo-moderno', nombre: '🪙 Titanium Minimal' },
-      { slug: 'demo-bautizo-botanico', nombre: '🍃 Verde Olivo Silvestre' },
-      { slug: 'demo-bautizo-vintage', nombre: '🌾 Mostaza / Trigo Chic' },
-      { slug: 'demo-bautizo-sky', nombre: '🌲 Gala Esmeralda (Menta)' }
+      { slug: 'demo-bautizo-clean', nombre: '✨ Gala Cashmere' },
+      { slug: 'demo-bautizo-moderno', nombre: '🖤 Obsidian Minimal' },
+      { slug: 'demo-bautizo-botanico', nombre: '🍵 Matcha Silvestre' },
+      { slug: 'demo-bautizo-vintage', nombre: '🏺 Terracota Sunset' },
+      { slug: 'demo-bautizo-sky', nombre: '☁️ Ethereal Celestial' }
     ]
   };
 
-  // Función para inyectar las burbujas correctas según la vibra de la Demo cargada
   const obtenerBurbujasPorDemo = (slugDemo, template) => {
     if (slugDemo.includes('dark') || slugDemo.includes('neon') || slugDemo.includes('urban') || slugDemo.includes('glam')) {
       return [{hex:'#18181b', n:'Negro'}, {hex:'#3f3f46', n:'Gris Oscuro'}, {hex:'#71717a', n:'Plata'}, {hex:'#ffffff', n:'Blanco'}];
@@ -86,7 +85,6 @@ export default function WeddingInvitationPage() {
     } else if (slugDemo.includes('girl') || slugDemo.includes('playa') || slugDemo.includes('romantica')) {
       return [{hex:'#9d174d', n:'Rosa Viejo'}, {hex:'#fbcfe8', n:'Blush'}, {hex:'#fff1f2', n:'Rosado'}, {hex:'#fef3c7', n:'Marfil'}];
     } else {
-      // Tradicional / Clean / Default
       return [{hex:'#78350f', n:'Dorado Oscuro'}, {hex:'#b45309', n:'Ámbar'}, {hex:'#f59e0b', n:'Oro'}, {hex:'#fef3c7', n:'Crema'}];
     }
   };
@@ -123,12 +121,11 @@ export default function WeddingInvitationPage() {
           paletaColores: data.paleta_colores,
         });
 
-        // 1. Asignamos la paleta de UI inicial según el diseño base
-        if (data.template_id === 'minimal-dark') setPaletaActiva('dark');
-        else if (data.template_id === 'boho-rancho') setPaletaActiva('boho');
-        else setPaletaActiva('oro');
+        // Autodetectar el tema tendencia al cargar
+        if (data.template_id === 'minimal-dark') setPaletaActiva('obsidian');
+        else if (data.template_id === 'boho-rancho') setPaletaActiva('terracota');
+        else setPaletaActiva('cashmere');
 
-        // 2. Asignamos las burbujas de vestimenta (Estas se quedan fijas)
         setBurbujasEvento(obtenerBurbujasPorDemo(slugLimpio, data.template_id));
       }
       setCargando(false);
@@ -152,13 +149,38 @@ export default function WeddingInvitationPage() {
     setTimeout(() => setMensajeCopiado(false), 2000);
   };
 
-  // 🎨 CONFIGURACIÓN MAESTRA DEL TEMA DE INTERFAZ (SÓLO CAMBIA FONDOS Y TEXTOS)
+  // 🎨 CONFIGURACIÓN DE LAS 5 TENDENCIAS DE INTERFAZ 2026
   const listadoPaletas = {
-    oro: { bgGlobal: 'bg-[#faf9f6] text-stone-800 selection:bg-amber-100', colorCard: 'bg-white border-stone-200/70 shadow-2xs', textAcento: 'text-amber-800 font-semibold', btn: 'bg-amber-700 hover:bg-amber-800 text-white shadow-sm transition-all' },
-    esmeralda: { bgGlobal: 'bg-[#f4f6f4] text-stone-800 selection:bg-emerald-100', colorCard: 'bg-white border-emerald-900/10 shadow-2xs', textAcento: 'text-emerald-800 font-semibold', btn: 'bg-emerald-800 hover:bg-emerald-950 text-white shadow-sm transition-all' },
-    rose: { bgGlobal: 'bg-[#fdfbfb] text-stone-800 selection:bg-rose-100', colorCard: 'bg-white border-rose-900/10 shadow-2xs', textAcento: 'text-rose-700 font-semibold', btn: 'bg-rose-700 hover:bg-rose-800 text-white shadow-sm transition-all' },
-    dark: { bgGlobal: 'bg-zinc-950 text-zinc-100 selection:bg-zinc-800', colorCard: 'bg-zinc-900/40 border-zinc-800/80 backdrop-blur-xs text-zinc-300', textAcento: 'text-white font-bold tracking-wider', btn: 'bg-white text-zinc-950 hover:bg-zinc-200 shadow-sm transition-all' },
-    boho: { bgGlobal: 'bg-[#f4efe6] text-amber-950 selection:bg-amber-900/10', colorCard: 'bg-[#faf7f2] border-amber-900/15 shadow-2xs', textAcento: 'text-amber-900 font-semibold', btn: 'bg-amber-900 text-white hover:bg-amber-950 shadow-sm transition-all' }
+    cashmere: { 
+      bgGlobal: 'bg-[#fcfaf8] text-[#3d3733] selection:bg-[#eaddd7]', 
+      colorCard: 'bg-white border-stone-200/50 shadow-sm', 
+      textAcento: 'text-[#8a7968] font-bold tracking-wide', 
+      btn: 'bg-[#8a7968] hover:bg-[#736456] text-white shadow-sm transition-all' 
+    },
+    matcha: { 
+      bgGlobal: 'bg-[#f4f6f0] text-[#2c3d30] selection:bg-[#dbe4d4]', 
+      colorCard: 'bg-white border-[#cbd5c0]/50 shadow-sm', 
+      textAcento: 'text-[#4a6b4e] font-bold tracking-wide', 
+      btn: 'bg-[#4a6b4e] hover:bg-[#365039] text-white shadow-sm transition-all' 
+    },
+    terracota: { 
+      bgGlobal: 'bg-[#fdf8f5] text-[#5c3a21] selection:bg-[#f6e1d5]', 
+      colorCard: 'bg-white border-[#f0ddd1]/70 shadow-sm', 
+      textAcento: 'text-[#d97757] font-bold tracking-wide', 
+      btn: 'bg-[#d97757] hover:bg-[#bd6345] text-white shadow-sm transition-all' 
+    },
+    celestial: { 
+      bgGlobal: 'bg-[#f5f7fa] text-[#2c3e50] selection:bg-[#dce3ea]', 
+      colorCard: 'bg-white border-[#dbe1e8]/70 shadow-sm', 
+      textAcento: 'text-[#5d7b9d] font-bold tracking-wide', 
+      btn: 'bg-[#5d7b9d] hover:bg-[#4a6583] text-white shadow-sm transition-all' 
+    },
+    obsidian: { 
+      bgGlobal: 'bg-zinc-950 text-zinc-200 selection:bg-zinc-800', 
+      colorCard: 'bg-zinc-900/60 border-zinc-700/50 backdrop-blur-md', 
+      textAcento: 'text-zinc-300 font-bold tracking-wider', 
+      btn: 'bg-zinc-200 hover:bg-white text-zinc-950 shadow-sm transition-all' 
+    }
   };
 
   const listadoFuentes = {
@@ -169,7 +191,7 @@ export default function WeddingInvitationPage() {
     display: 'font-sans uppercase tracking-widest antialiased font-light text-sm'  
   };
 
-  const diseño = listadoPaletas[paletaActiva] || listadoPaletas.oro;
+  const diseño = listadoPaletas[paletaActiva] || listadoPaletas.cashmere;
   const claseFuente = listadoFuentes[fuenteActiva] || listadoFuentes.serif;
 
   const preciosPlanes = { basicos: 890, premium: 1490, vip: 2490 };
@@ -197,13 +219,13 @@ export default function WeddingInvitationPage() {
       
       {weddingData?.musicUrl && <audio ref={audioRef} src={weddingData.musicUrl} loop />}
 
-      {/* HEADER PREMIUM COMERCIAL (Intacto) */}
+      {/* HEADER PREMIUM COMERCIAL */}
       {esModoDemo && (
         <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md border-b border-stone-200/80 px-4 md:px-8 py-3 flex flex-col lg:flex-row items-center justify-between gap-4 z-[200] shadow-xs font-sans">
           
           <a href="https://clickypapel.com" className="flex items-center gap-1 group select-none shrink-0">
-            <span className="font-serif text-base tracking-wider font-light text-stone-900 group-hover:text-amber-700 transition-colors">
-              clicky<span className="font-normal text-amber-600">papel</span>.com
+            <span className="font-serif text-base tracking-wider font-light text-stone-900 group-hover:text-[#8a7968] transition-colors">
+              clicky<span className="font-normal text-[#8a7968]">papel</span>.com
             </span>
           </a>
 
@@ -226,7 +248,7 @@ export default function WeddingInvitationPage() {
                         <a 
                           key={demo.slug}
                           href={`/${demo.slug}?demo=true`} 
-                          className={`block text-left text-[11px] px-3 py-2 rounded-xl font-semibold transition-all ${slug === demo.slug ? 'bg-amber-50 text-amber-900 font-bold border-l-2 border-amber-600' : 'text-stone-600 hover:bg-stone-50 hover:text-stone-950'}`}
+                          className={`block text-left text-[11px] px-3 py-2 rounded-xl font-semibold transition-all ${slug === demo.slug ? 'bg-stone-50 text-[#8a7968] font-bold border-l-2 border-[#8a7968]' : 'text-stone-600 hover:bg-stone-50 hover:text-stone-950'}`}
                           onClick={() => setCategoriaAbierta(null)}
                         >
                           {demo.nombre}
@@ -239,30 +261,30 @@ export default function WeddingInvitationPage() {
             })}
           </nav>
 
-          <button type="button" onClick={() => setModalContratarAbierto(true)} className="bg-stone-950 hover:bg-amber-700 text-white text-[11px] uppercase tracking-widest font-bold px-5 py-2.5 rounded-xl transition-all shadow-md shrink-0 cursor-pointer">
+          <button type="button" onClick={() => setModalContratarAbierto(true)} className="bg-stone-950 hover:bg-[#8a7968] text-white text-[11px] uppercase tracking-widest font-bold px-5 py-2.5 rounded-xl transition-all shadow-md shrink-0 cursor-pointer">
             ✨ Quiero esta invitación ➔
           </button>
         </header>
       )}
 
-      {/* 🔮 BARRA FLOTANTE INTERACTIVA DE TEMA (Cambia cascarón web, no ropa) */}
+      {/* 🔮 BARRA FLOTANTE INTERACTIVA DE TEMA (Con Nombres e Iconos Actualizados) */}
       <div className="fixed bottom-6 right-6 z-[100] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-stone-200/80 max-w-xs w-64 space-y-3.5 text-left text-stone-800 font-sans">
         <div>
-          <span className="text-[9px] bg-amber-100 text-amber-900 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Diseño de la App</span>
+          <span className="text-[9px] bg-[#eaddd7] text-[#5c4f44] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Diseño de la App</span>
         </div>
 
         <div className="space-y-1">
-          <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wide block">1. Color de Fondo y Tema:</label>
+          <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wide block">1. Tema y Color UI:</label>
           <div className="grid grid-cols-5 gap-1.5">
             {Object.keys(listadoPaletas).map((key) => (
               <button
                 key={key}
                 type="button"
                 onClick={() => setPaletaActiva(key)}
-                className={`h-7 rounded-lg border text-[10px] uppercase font-bold transition-all cursor-pointer ${paletaActiva === key ? 'border-stone-950 ring-2 ring-stone-950/20 scale-105' : 'border-stone-200 bg-stone-50 text-stone-500'}`}
-                title={`Cambiar fondo a ${key}`}
+                className={`h-7 rounded-lg border text-[10px] uppercase font-bold transition-all cursor-pointer flex items-center justify-center ${paletaActiva === key ? 'border-stone-950 ring-2 ring-stone-950/20 scale-105 bg-stone-100' : 'border-stone-200 bg-stone-50 text-stone-500'}`}
+                title={`Cambiar a Tema ${key}`}
               >
-                {key === 'oro' ? '👑' : key === 'esmeralda' ? '🌲' : key === 'rose' ? '🌸' : key === 'dark' ? '🖤' : '🌿'}
+                {key === 'cashmere' ? '🕊️' : key === 'matcha' ? '🍵' : key === 'terracota' ? '🏺' : key === 'celestial' ? '☁️' : '🖤'}
               </button>
             ))}
           </div>
@@ -287,6 +309,42 @@ export default function WeddingInvitationPage() {
       <button type="button" onClick={toggleMusicaFlotante} className="fixed bottom-6 left-6 z-[150] bg-white/90 backdrop-blur-md border border-stone-200/80 p-3 rounded-full shadow-xl text-xs cursor-pointer">
         {musicaSonando ? '🎵 ⏸️' : '🔇 ▶️'}
       </button>
+
+      {/* 🛍️ MODAL ASISTENTE DE CONTRATACIÓN */}
+      {modalContratarAbierto && (
+        <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center z-[300] p-4">
+          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full border border-stone-200 shadow-2xl space-y-6 relative text-stone-800 text-left font-sans">
+            <button type="button" onClick={() => setModalContratarAbierto(false)} className="absolute top-4 right-4 text-stone-400 hover:text-stone-700 font-bold text-xs bg-stone-100 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer">✕</button>
+            <div className="space-y-1">
+              <span className="text-[10px] bg-[#eaddd7] text-[#5c4f44] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Alta Segura</span>
+              <h3 className="font-serif text-xl text-stone-950 font-medium">Configura tu Entorno</h3>
+              <p className="text-stone-400 text-xs font-light">Se exportará la paleta <strong className="text-stone-700 capitalize">{paletaActiva}</strong> y tipografía <strong className="text-stone-700 capitalize">{fuenteActiva}</strong>.</p>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex flex-col gap-2">
+                {['basicos', 'premium', 'vip'].map((p) => (
+                  <label key={p} className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${planSeleccionado === p ? 'border-[#8a7968] bg-[#fcfaf8]' : 'border-stone-100 bg-stone-50/50'}`}>
+                    <div className="flex items-center gap-3">
+                      <input type="radio" name="modal_plan" checked={planSeleccionado === p} onChange={() => setPlanSeleccionado(p)} className="accent-[#8a7968]" />
+                      <span className="text-xs font-semibold capitalize">{p === 'basicos' ? '💍 Plan Esencial' : p === 'vip' ? '👑 VIP Celestial' : '🌟 Gran Día Premium'}</span>
+                    </div>
+                    <span className="text-xs font-mono font-bold">${preciosPlanes[p]} MXN</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-stone-100 flex items-center justify-between">
+              <div>
+                <span className="text-[9px] uppercase tracking-wider text-stone-400 block font-semibold">Total:</span>
+                <span className="text-xl font-mono font-black text-stone-900">${precioTotal.toLocaleString('es-MX')} MXN</span>
+              </div>
+              <button type="button" onClick={handleProcederAlPago} className="bg-stone-950 hover:bg-[#8a7968] text-white text-xs uppercase font-bold tracking-wider px-6 py-3.5 rounded-xl shadow-md cursor-pointer">Proceder ➔</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 🚀 INYECCIÓN DE COMPONENTES */}
       {weddingData && (
@@ -336,13 +394,13 @@ export default function WeddingInvitationPage() {
           
           {weddingData.album_compartido_activo && (
             <section className="max-w-md mx-auto px-6 py-6 text-center font-sans">
-              <div className="bg-gradient-to-br from-purple-950 to-stone-950 text-white p-6 rounded-3xl shadow-xl space-y-4 text-left border border-purple-900/40">
+              <div className="bg-gradient-to-br from-[#8a7968] to-[#5c4f44] text-white p-6 rounded-3xl shadow-xl space-y-4 text-left border border-white/10">
                 <div className="space-y-1">
-                  <span className="text-[10px] bg-purple-500/30 text-purple-300 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono inline-block">Función Premium</span>
+                  <span className="text-[10px] bg-white/20 text-white font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono inline-block">Función Premium</span>
                   <h4 className="font-serif text-lg font-light">Álbum Colectivo en Vivo 📸</h4>
-                  <p className="text-xs text-purple-200/70 font-light leading-relaxed">Sube tus fotos directamente para el recuerdo de los novios.</p>
+                  <p className="text-xs text-white/70 font-light leading-relaxed">Sube tus fotos directamente para el recuerdo de los novios.</p>
                 </div>
-                <a href={`https://tugrandia.icu/${weddingData.slug}/compartir`} className="w-full bg-white text-purple-950 font-bold text-center py-3 rounded-xl block text-xs uppercase tracking-wider shadow-md hover:bg-purple-50 transition-colors">📤 Subir Fotos</a>
+                <a href={`https://tugrandia.icu/${weddingData.slug}/compartir`} className="w-full bg-white text-[#5c4f44] font-bold text-center py-3 rounded-xl block text-xs uppercase tracking-wider shadow-md hover:bg-stone-50 transition-colors">📤 Subir Fotos</a>
               </div>
             </section>
           )}
