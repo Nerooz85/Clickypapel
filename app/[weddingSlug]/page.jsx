@@ -13,23 +13,23 @@ export default function WeddingInvitationPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   
-  // Detectamos de forma automática si es una demo de tu catálogo
-  const esModoDemo = searchParams.get('demo') === 'true'; 
+  // Forzamos el modo demo activo para el catálogo comercial
+  const esModoDemo = searchParams.get('demo') === 'true' || true; 
 
   const slug = params?.weddingSlug || params?.slug;
 
   const [weddingData, setWeddingData] = useState(null);
   const [cargando, setCargando] = useState(true);
-  const [templateActivo, setTemplateActivo] = useState('romantico-clasico');
-  const [subTemaColor, setSubTemaColor] = useState('oro'); // 🎨 Controla la variante cromática de la demo
   const [menuDemosAbierto, setMenuDemosAbierto] = useState(false);
   const [musicaSonando, setMusicaSonando] = useState(false);
 
-  // 🎨 ESTADOS INTERACTIVOS EN VIVO PARA LA PALETA DE COLORES
+  // 🎨 ESTADOS DE DISEÑO INTERACTIVO EN VIVO (BARRA DE HERRAMIENTAS)
+  const [paletaActiva, setPaletaActiva] = useState('oro');       // 1 de 5 Colores
+  const [fuenteActiva, setFuenteActiva] = useState('serif');     // 1 de 5 Tipografías
   const [colorSeleccionado, setColorSeleccionado] = useState(null);
   const [mensajeCopiado, setMensajeCopiado] = useState(false);
 
-  // 🛒 ESTADOS PARA EL EMBUDO DE VENTA INTERACTIVO (MODAL)
+  // 🛒 ESTADOS PARA EL MODAL DE CONTRATACIÓN
   const [modalContratarAbierto, setModalContratarAbierto] = useState(false);
   const [planSeleccionado, setPlanSeleccionado] = useState('premium'); 
   const [agregaMusicaExtra, setAgregaMusicaExtra] = useState(false);
@@ -61,7 +61,6 @@ export default function WeddingInvitationPage() {
         setWeddingData({
           id: data.id,
           slug: data.slug,
-          templateId: data.template_id || 'romantico-clasico',
           groomName: data.groom_name,
           brideName: data.bride_name,
           eventDate: data.event_date || "2026-12-19T18:00:00", 
@@ -77,28 +76,9 @@ export default function WeddingInvitationPage() {
           musicType: data.music_type || 'default',
           musicUrl: data.music_url || '/music/1-thousand-years.mp3',
           albumCompartidoActivo: data.album_compartido_activo || false,
-          
-          // 🗓️🎨 DATA LOGÍSTICA INYECTADA DEL PASO 6 DEL DASHBOARD
-          itinerarioMisa: data.itinerario_misa,
-          itinerarioFiesta: data.itinerario_fiesta,
           codigoVestimenta: data.codigo_vestimenta,
           paletaColores: data.paleta_colores,
-
-          mesaRegalos: {
-            bankDetails: { banco: data.banco, titular: data.titular, clabe: data.clabe },
-            registries: [
-              ...(data.amazon_url ? [{ name: "Amazon", url: data.amazon_url, logo: "📦" }] : []),
-              ...(data.liverpool_url ? [{ name: "Liverpool", url: data.liverpool_url, logo: "🛍️" }] : [])
-            ]
-          }
         });
-
-        setTemplateActivo(data.template_id || 'romantico-clasico');
-        
-        // Sincronización inteligente inicial para que no rompa el color según su ID base
-        if (data.template_id === 'minimal-dark') setSubTemaColor('obsidian');
-        else if (data.template_id === 'boho-rancho') setSubTemaColor('terracota');
-        else setSubTemaColor('oro');
       }
       setCargando(false);
     }
@@ -106,19 +86,17 @@ export default function WeddingInvitationPage() {
     jalarDatosBoda();
   }, [slug, params]);
 
-  // Manejo del control del reproductor flotante seguro
   const toggleMusicaFlotante = () => {
     if (audioRef.current) {
       if (musicaSonando) {
         audioRef.current.pause();
       } else {
-        audioRef.current.play().catch(e => console.log("Se requiere interacción previa", e));
+        audioRef.current.play().catch(e => console.log("Se requiere interacción", e));
       }
       setMusicaSonando(!musicaSonando);
     }
   };
 
-  // Función interactiva para copiar el Hexadecimal del color al portapapeles
   const copiarColorHex = (hex) => {
     setColorSeleccionado(hex);
     navigator.clipboard.writeText(hex);
@@ -126,266 +104,173 @@ export default function WeddingInvitationPage() {
     setTimeout(() => setMensajeCopiado(false), 2000);
   };
 
-  // 🎨 MATRIZ DE CONFIGURACIÓN PREMIUM CON LAS 3 SUB-PALETAS POR GRUPO INYECTADAS
-  const estilosPorTemplate = {
-    'romantico-clasico': {
-      oro: { bgGlobal: 'bg-[#faf9f6] text-stone-800', colorCard: 'bg-white border-stone-200/60', nombre: '✨ Gala Oro Tradicional' },
-      esmeralda: { bgGlobal: 'bg-[#f5f6f4] text-stone-800', colorCard: 'bg-white border-emerald-900/10', nombre: '🌲 Gala Esmeralda Clásico' },
-      rose: { bgGlobal: 'bg-[#fdfbfb] text-stone-800', colorCard: 'bg-white border-rose-900/10', nombre: '🌸 Gala Romance Rose' }
-    },
-    'minimal-dark': {
-      obsidian: { bgGlobal: 'bg-zinc-950 text-zinc-100 selection:bg-zinc-800', colorCard: 'bg-zinc-900/40 border-zinc-800 text-zinc-300', nombre: '🖤 Obsidian Dark' },
-      titanium: { bgGlobal: 'bg-zinc-900 text-zinc-200', colorCard: 'bg-zinc-800/50 border-zinc-700', nombre: '🪙 Titanium Minimal' },
-      midnight: { bgGlobal: 'bg-slate-950 text-slate-100', colorCard: 'bg-slate-900/40 border-slate-800', nombre: '🌌 Midnight Navy' }
-    },
-    'boho-rancho': {
-      terracota: { bgGlobal: 'bg-[#f4efe6] text-amber-950', colorCard: 'bg-[#faf7f2] border-amber-900/10', nombre: '🌿 Terracota Orgánico' },
-      olivo: { bgGlobal: 'bg-[#edf0ec] text-stone-900', colorCard: 'bg-white border-stone-200', nombre: '🍃 Verde Olivo Silvestre' },
-      mostaza: { bgGlobal: 'bg-[#f7f3eb] text-amber-950', colorCard: 'bg-white border-amber-800/10', nombre: '🌾 Trigo / Mostaza Chic' }
-    }
+  // 🎨 MATRIX DE 5 PALETAS DE COLOR INTERACTIVAS
+  const listadoPaletas = {
+    oro: { bgGlobal: 'bg-[#faf9f6] text-stone-800', colorCard: 'bg-white border-stone-200/60', textAcento: 'text-amber-800', btn: 'bg-amber-700 hover:bg-amber-800 text-white', burbujas: [{hex:'#78350f', n:'Miel'}, {hex:'#b45309', n:'Ámbar'}, {hex:'#f59e0b', n:'Oro Satinado'}, {hex:'#fef3c7', n:'Marfil'}] },
+    esmeralda: { bgGlobal: 'bg-[#f4f6f4] text-stone-800', colorCard: 'bg-white border-emerald-900/10', textAcento: 'text-emerald-800', btn: 'bg-emerald-800 hover:bg-emerald-950 text-white', burbujas: [{hex:'#064e3b', n:'Imperial'}, {hex:'#115e59', n:'Teal'}, {hex:'#15803d', n:'Olivo'}, {hex:'#ccfbf1', n:'Menta'}] },
+    rose: { bgGlobal: 'bg-[#fdfbfb] text-stone-800', colorCard: 'bg-white border-rose-900/10', textAcento: 'text-rose-700', btn: 'bg-rose-700 hover:bg-rose-800 text-white', burbujas: [{hex:'#4c0519', n:'Vino'}, {hex:'#9d174d', n:'Rosa Viejo'}, {hex:'#fbcfe8', n:'Blush'}, {hex:'#fff1f2', n:'Rosado'}] },
+    dark: { bgGlobal: 'bg-zinc-950 text-zinc-200 selection:bg-zinc-800', colorCard: 'bg-zinc-900/40 border-zinc-800 text-zinc-300', textAcento: 'text-white', btn: 'bg-white text-zinc-950 hover:bg-zinc-200', burbujas: [{hex:'#18181b', n:'Charcoal'}, {hex:'#3f3f46', n:'Matte'}, {hex:'#71717a', n:'Smoky'}, {hex:'#a1a1aa', n:'Plata'}] },
+    boho: { bgGlobal: 'bg-[#f4efe6] text-amber-950', colorCard: 'bg-[#faf7f2] border-amber-900/10', textAcento: 'text-amber-900', btn: 'bg-amber-900 text-white hover:bg-amber-950', burbujas: [{hex:'#8c6239', n:'Terracota'}, {hex:'#bf9b7a', n:'Arena'}, {hex:'#dfd3c3', n:'Lino'}, {hex:'#7d8a7c', n:'Salvia'}] }
   };
 
-  // Evaluamos de forma dinámica el sub-tema para pintar toda la interfaz
-  const grupoActual = estilosPorTemplate[templateActivo] || estilosPorTemplate['romantico-clasico'];
-  const diseño = grupoActual[subTemaColor] || Object.values(grupoActual)[0];
-
-  // Mapeo interactivo de burbujas individuales físicas según el sub-tema de color activo
-  const paletasInteractivasBurbujas = {
-    oro: [{ hex: '#78350f', nombre: 'Miel de Otoño' }, { hex: '#b45309', nombre: 'Ambar Quemado' }, { hex: '#f59e0b', nombre: 'Oro Satinado' }, { hex: '#fef3c7', nombre: 'Crema Marfil' }, { hex: '#d97706', nombre: 'Miel Dorado' }],
-    esmeralda: [{ hex: '#064e3b', nombre: 'Verde Imperial' }, { hex: '#0f766e', nombre: 'Teal Profundo' }, { hex: '#115e59', nombre: 'Musgo Suave' }, { hex: '#ccfbf1', nombre: 'Menta Ice' }, { hex: '#047857', nombre: 'Esmeralda' }],
-    rose: [{ hex: '#4c0519', nombre: 'Vino Intenso' }, { hex: '#9d174d', nombre: 'Rosa Viejo' }, { hex: '#fbcfe8', nombre: 'Blush Satin' }, { hex: '#fff1f2', nombre: 'Crema Rosado' }, { hex: '#db2777', nombre: 'Rosa Intenso' }],
-    obsidian: [{ hex: '#18181b', nombre: 'Deep Charcoal' }, { hex: '#27272a', nombre: 'Asphalt Matte' }, { hex: '#52525b', nombre: 'Zinc Medium' }, { hex: '#71717a', nombre: 'Smoky Quartz' }, { hex: '#a1a1aa', nombre: 'Soft Silver' }],
-    titanium: [{ hex: '#0f172a', nombre: 'Slate Dark' }, { hex: '#334155', nombre: 'Acero' }, { hex: '#64748b', nombre: 'Titanio' }, { hex: '#cbd5e1', nombre: 'Gris Platino' }, { hex: '#94a3b8', nombre: 'Aluminio' }],
-    midnight: [{ hex: '#020617', nombre: 'Azul Profundo' }, { hex: '#1e3a8a', nombre: 'Navy Clásico' }, { hex: '#3b82f6', nombre: 'Zafiro' }, { hex: '#dbeafe', font: 'Lino Natural', nombre: 'Celeste Pastel' }, { hex: '#1d4ed8', nombre: 'Cobalto' }],
-    terracota: [{ hex: '#8c6239', nombre: 'Terracota rústico' }, { hex: '#bf9b7a', nombre: 'Arena cálida' }, { hex: '#dfd3c3', font: 'Lino Natural', nombre: 'Lino Natural' }, { hex: '#7d8a7c', nombre: 'Verde Olivo Silvestre' }, { hex: '#c2baa6', nombre: 'Eucalipto Seco' }],
-    olivo: [{ hex: '#14532d', nombre: 'Bosque Profundo' }, { hex: '#166534', nombre: 'Olivo Seco' }, { hex: '#4ade80', nombre: 'Pistache' }, { hex: '#dcfce7', nombre: 'Salvia claro' }, { hex: '#15803d', generic: 'Verde Prado', nombre: 'Verde Prado' }],
-    mostaza: [{ hex: '#78350f', nombre: 'Cacao' }, { hex: '#ca8a04', nombre: 'Mostaza Chic' }, { hex: '#fef08a', nombre: 'Vainilla' }, { hex: '#fefce8', nombre: 'Lino Viejo' }, { hex: '#eab308', nombre: 'Girasol' }]
+  // 🔤 MATRIX DE 5 TIPOGRAFÍAS DE ALTA GAMA
+  const listadoFuentes = {
+    serif: 'font-serif tracking-normal',             // Clásico Romance
+    sans: 'font-sans tracking-wide antialiased',     // Moderno Limpio
+    mono: 'font-mono tracking-tight text-xs',        // Avant-Garde Editorial
+    cursive: 'font-serif italic tracking-wide',      // Cursiva Elegante
+    display: 'font-sans uppercase tracking-widest'   // Minimalista Minimal
   };
 
-  const coloresMuestra = paletasInteractivasBurbujas[subTemaColor] || paletasInteractivasBurbujas['oro'];
+  const diseño = listadoPaletas[paletaActiva] || listadoPaletas.oro;
+  const claseFuente = listadoFuentes[fuenteActiva] || listadoFuentes.serif;
+  const coloresMuestra = diseño.burbujas;
 
-  // 💰 PRECIOS DE PLANES
   const preciosPlanes = { basicos: 890, premium: 1490, vip: 2490 };
-  const precioBase = preciosPlanes[planSeleccionado];
-  const precioMusicaExtra = (planSeleccionado !== 'basicos' && agregaMusicaExtra) ? 350 : 0;
-  const precioTotal = precioBase + precioMusicaExtra;
+  const precioTotal = preciosPlanes[planSeleccionado] + (planSeleccionado !== 'basicos' && agregaMusicaExtra ? 350 : 0);
 
   const handleProcederAlPago = () => {
-    const urlCheckout = `https://clickypapel.com/registro?plan=${planSeleccionado}&template=${templateActivo}&subtema=${subTemaColor}&musica=${agregaMusicaExtra ? 'custom' : 'default'}`;
-    window.location.href = urlCheckout;
+    window.location.href = `https://clickypapel.com/registro?plan=${planSeleccionado}&paleta=${paletaActiva}&fuente=${fuenteActiva}&musica=${agregaMusicaExtra ? 'custom' : 'default'}`;
   };
 
   if (cargando) {
-    return (
-      <div className="min-h-screen bg-[#faf9f6] flex items-center justify-center font-serif text-stone-500 animate-pulse text-sm tracking-widest uppercase">
-        Abriendo la experiencia... ✨
-      </div>
-    );
+    return <div className="min-h-screen bg-[#faf9f6] flex items-center justify-center font-serif text-stone-500 animate-pulse text-xs tracking-widest uppercase">Abriendo catálogo interactivo... ✨</div>;
   }
 
   if (!weddingData) {
     return (
       <div className="min-h-screen bg-[#faf9f6] flex flex-col items-center justify-center font-sans text-center p-6 space-y-4">
         <h1 className="font-serif text-2xl text-stone-800 font-light">Invitación No Encontrada</h1>
-        <a href="https://clickypapel.com" className="text-xs bg-stone-900 text-white px-5 py-2.5 rounded-full uppercase tracking-wider mt-2">Ir a Inicio</a>
+        <a href="https://clickypapel.com" className="text-xs bg-stone-900 text-white px-5 py-2.5 rounded-full uppercase tracking-wider">Ir a Inicio</a>
       </div>
     );
   }
 
   return (
-    <main className={`min-h-screen overflow-x-hidden transition-colors duration-500 relative ${diseño.bgGlobal} ${esModoDemo ? 'pt-16' : ''}`}>
+    <main className={`min-h-screen overflow-x-hidden transition-all duration-500 relative ${diseño.bgGlobal} ${claseFuente} pt-36 md:pt-20`}>
       
-      {/* 🎵 REPRODUCTOR DE AUDIO DE FONDO CONTROLADO */}
       {weddingData?.musicUrl && <audio ref={audioRef} src={weddingData.musicUrl} loop />}
 
-      {/* 🎧 BOTÓN FLOTANTE ESTILIZADO DE AUDIO */}
-      <button 
-        type="button"
-        onClick={toggleMusicaFlotante}
-        className="fixed bottom-6 left-6 z-[150] bg-white/90 backdrop-blur-md border border-stone-200/80 p-3 rounded-full shadow-xl text-base cursor-pointer hover:scale-105 transition-transform"
-        title="Música de fondo"
-      >
+      {/* 🧭 HEADER EXPANSIVO COMERCIAL: SELECCIÓN DE LAS 5 DEMOS PRINCIPALES Y LOGO NEUTRAL */}
+      <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md border-b border-stone-200/80 px-4 md:px-8 py-3 flex flex-col md:flex-row items-center justify-between gap-3 z-[200] shadow-xs">
+        <a href="https://clickypapel.com" className="flex items-center gap-1 group select-none">
+          <span className="font-serif text-base tracking-wider font-light text-stone-900 group-hover:text-amber-700 transition-colors">
+            clicky<span className="font-normal text-amber-600">papel</span>.com
+          </span>
+        </a>
+
+        {/* Enrutador central interactivo para saltar de Demo en Demo */}
+        <div className="flex flex-wrap justify-center items-center gap-1.5 bg-stone-100 p-1 rounded-xl border border-stone-200/60">
+          <a href="/bruno-y-brisa?demo=true" className={`text-[11px] px-3 py-1 rounded-lg font-medium transition-all ${slug === 'bruno-y-brisa' ? 'bg-white text-stone-950 shadow-2xs font-bold' : 'text-stone-500 hover:text-stone-900'}`}>Demo 1: Clásica</a>
+          <a href="/demo-minimal-dark?demo=true" className={`text-[11px] px-3 py-1 rounded-lg font-medium transition-all ${slug === 'demo-minimal-dark' ? 'bg-white text-stone-950 shadow-2xs font-bold' : 'text-stone-500 hover:text-stone-900'}`}>Demo 2: Dark</a>
+          <a href="/demo-xv-boho?demo=true" className={`text-[11px] px-3 py-1 rounded-lg font-medium transition-all ${slug === 'demo-xv-boho' ? 'bg-white text-stone-950 shadow-2xs font-bold' : 'text-stone-500 hover:text-stone-900'}`}>Demo 3: XV Boho</a>
+          <a href="/demo-gala-glam?demo=true" className={`text-[11px] px-3 py-1 rounded-lg font-medium transition-all ${slug === 'demo-gala-glam' ? 'bg-white text-stone-950 shadow-2xs font-bold' : 'text-stone-500 hover:text-stone-900'}`}>Demo 4: Premium</a>
+          <a href="/demo-bautizo-clean?demo=true" className={`text-[11px] px-3 py-1 rounded-lg font-medium transition-all ${slug === 'demo-bautizo-clean' ? 'bg-white text-stone-950 shadow-2xs font-bold' : 'text-stone-500 hover:text-stone-900'}`}>Demo 5: Kids</a>
+        </div>
+
+        <button type="button" onClick={() => setModalContratarAbierto(true)} className="bg-stone-950 hover:bg-amber-700 text-white text-[11px] uppercase tracking-widest font-bold px-5 py-2.5 rounded-xl transition-all shadow-md block whitespace-nowrap cursor-pointer">
+          ✨ Crear mi cuenta ➔
+        </button>
+      </header>
+
+      {/* 🔮 BARRA FLOTANTE INTERACTIVA DE ESTILOS: CAMBIO DE PALETAS (5) Y TIPOGRAFÍAS (5) EN TIEMPO REAL */}
+      <div className="fixed bottom-6 right-6 z-[100] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-stone-200/80 max-w-xs w-64 space-y-3.5 text-left text-stone-800">
+        <div>
+          <span className="text-[9px] bg-amber-100 text-amber-900 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Diseño en tiempo real</span>
+        </div>
+
+        {/* 1. Selector de las 5 Paletas de Color */}
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wide block">1. Combinación Cromática (5):</label>
+          <div className="grid grid-cols-5 gap-1.5">
+            {Object.keys(listadoPaletas).map((key) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => { setPaletaActiva(key); setColorSeleccionado(null); }}
+                className={`h-7 rounded-lg border text-[10px] uppercase font-bold transition-all cursor-pointer ${paletaActiva === key ? 'border-stone-950 ring-2 ring-stone-950/20 scale-105' : 'border-stone-200 bg-stone-50 text-stone-500'}`}
+              >
+                {key === 'oro' ? '👑' : key === 'esmeralda' ? '🌲' : key === 'rose' ? '🌸' : key === 'dark' ? '🖤' : '🌿'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 2. Selector de las 5 Tipografías Premium */}
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wide block">2. Estilo Tipográfico (5):</label>
+          <select
+            value={fuenteActiva}
+            onChange={(e) => setFuenteActiva(e.target.value)}
+            className="w-full text-xs p-2 rounded-xl border bg-white text-stone-700 font-medium focus:outline-none cursor-pointer"
+          >
+            <option value="serif">Classic Romance (Serif)</option>
+            <option value="sans">Modern Clean (Sans)</option>
+            <option value="mono">Editorial Avant-Garde (Mono)</option>
+            <option value="cursive">Romance Script (Italic)</option>
+            <option value="display">Minimal Bold (Display)</option>
+          </select>
+        </div>
+      </div>
+
+      {/* 🎧 BOTÓN REPRODUCTOR AUXILIAR */}
+      <button type="button" onClick={toggleMusicaFlotante} className="fixed bottom-6 left-6 z-[150] bg-white/90 backdrop-blur-md border border-stone-200/80 p-3 rounded-full shadow-xl text-xs cursor-pointer">
         {musicaSonando ? '🎵 ⏸️' : '🔇 ▶️'}
       </button>
 
-      {/* 🧭 HEADER PREMIUM COMERCIAL DE CLICKYPAPEL (CONECTADO EN EXCLUSIVA PARA EL MODO DEMO) */}
-      {esModoDemo && (
-        <header className="fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md border-b border-stone-200/80 px-4 md:px-8 flex items-center justify-between z-[200] shadow-xs">
-          <a href="https://clickypapel.com" className="flex items-center gap-1 group">
-            <span className="font-serif text-base tracking-wider font-light text-stone-900 group-hover:text-amber-700 transition-colors">
-              clicky<span className="font-normal text-amber-600">papel</span>.com
-            </span>
-          </a>
-
-          <div className="relative">
-            <button 
-              type="button"
-              onClick={() => setMenuDemosAbierto(!menuDemosAbierto)}
-              className="text-xs font-semibold text-stone-600 hover:text-stone-900 bg-stone-100 px-4 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              📖 Catálogo de Demos <span className="text-[10px] opacity-60">{menuDemosAbierto ? '▲' : '▼'}</span>
-            </button>
-
-            {menuDemosAbierto && (
-              <div className="absolute top-11 left-1/2 -translate-x-1/2 w-56 bg-white border border-stone-200 rounded-xl shadow-lg p-1.5 space-y-1 z-[210]">
-                <a href="/bruno-y-brisa?demo=true" className="block text-left text-xs px-3 py-2 rounded-lg hover:bg-stone-50 text-stone-700 font-medium">Demo 1: Bruno y Brisa (Clásica)</a>
-                <a href="/demo-minimal-dark?demo=true" className="block text-left text-xs px-3 py-2 rounded-lg hover:bg-stone-50 text-stone-700 font-medium">Demo 2: Damián y Elena (Dark)</a>
-                <a href="/demo-xv-boho?demo=true" className="block text-left text-xs px-3 py-2 rounded-lg hover:bg-stone-50 text-stone-700 font-medium">Demo 3: Regina (XV Boho Chic)</a>
-              </div>
-            )}
-          </div>
-
-          <div>
-            <button 
-              type="button"
-              onClick={() => setModalContratarAbierto(true)}
-              className="bg-amber-600 hover:bg-amber-700 text-white text-[11px] uppercase tracking-wider font-bold px-4 py-2.5 rounded-full transition-all shadow-md inline-block cursor-pointer"
-            >
-              ✨ Quiero esta invitación ➔
-            </button>
-          </div>
-        </header>
-      )}
-
-      {/* 🔮 INTERFAZ PANEL LATERAL FLOTANTE EXTENDIDO: CAMBIADOR DE GRUPO Y SUB-COLOR EN TIEMPO REAL */}
-      {esModoDemo && (
-        <div className="fixed bottom-6 right-6 z-[100] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-stone-200 max-w-xs space-y-3 text-left">
-          <div>
-            <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Muestrario de Demos en Vivo</span>
-          </div>
-
-          {/* Selector 1: Concepto Estructural */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-stone-400 block uppercase">1. Concepto Base:</label>
-            <select 
-              value={templateActivo} 
-              onChange={(e) => {
-                const nuevoTpl = e.target.value;
-                setTemplateActivo(nuevoTpl);
-                setSubTemaColor(nuevoTpl === 'minimal-dark' ? 'obsidian' : nuevoTpl === 'boho-rancho' ? 'terracota' : 'oro');
-              }}
-              className="w-full text-xs p-2 rounded-xl border bg-white font-medium text-stone-700 focus:outline-none"
-            >
-              <option value="romantico-clasico">💍 Romántico Clásico</option>
-              <option value="minimal-dark">🖤 Minimalista Dark</option>
-              <option value="boho-rancho">🌿 Boho Chic / Campo</option>
-            </select>
-          </div>
-
-          {/* Selector 2: Variantes Cromáticas de la Demo */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-stone-400 block uppercase">2. Variante cromática en Vivo:</label>
-            <div className="flex flex-col gap-1">
-              {Object.keys(estilosPorTemplate[templateActivo] || {}).map((key) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setSubTemaColor(key)}
-                  className={`w-full text-left text-[11px] px-3 py-1.5 rounded-lg border transition-all cursor-pointer font-medium ${
-                    subTemaColor === key 
-                      ? 'border-amber-600 bg-amber-50 text-amber-900 font-semibold' 
-                      : 'border-stone-100 bg-stone-50/50 text-stone-600 hover:bg-stone-50'
-                  }`}
-                >
-                  {estilosPorTemplate[templateActivo][key].nombre}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* 🛍️ MODAL ASISTENTE DE CONTRATACIÓN */}
       {modalContratarAbierto && (
-        <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center z-[300] p-4 animate-fadeIn">
-          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full border border-stone-200 shadow-2xl space-y-6 relative text-stone-800 text-left">
-            
-            <button type="button" onClick={() => setModalContratarAbierto(false)} className="absolute top-4 right-4 text-stone-400 hover:text-stone-700 font-bold text-sm bg-stone-100 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer">✕</button>
-
+        <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center z-[300] p-4">
+          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full border border-stone-200 shadow-2xl space-y-6 relative text-stone-800 text-left font-sans">
+            <button type="button" onClick={() => setModalContratarAbierto(false)} className="absolute top-4 right-4 text-stone-400 hover:text-stone-700 font-bold text-xs bg-stone-100 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer">✕</button>
             <div className="space-y-1">
-              <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Paso Final</span>
-              <h3 className="font-serif text-xl text-stone-950 font-medium">Personaliza tu paquete</h3>
-              <p className="text-stone-400 text-xs font-light">Elegiste el design: <strong className="text-stone-700 font-semibold">{diseño.nombre}</strong></p>
+              <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Alta Segura</span>
+              <h3 className="font-serif text-xl text-stone-950 font-medium">Configura tu Entorno</h3>
+              <p className="text-stone-400 text-xs font-light">Se exportará la paleta <strong className="text-stone-700 capitalize">{paletaActiva}</strong> y tipografía <strong className="text-stone-700 capitalize">{fuenteActiva}</strong>.</p>
             </div>
-
+            
+            {/* ... Controles de selección de plan básico, premium o vip ... */}
             <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold text-stone-400 tracking-wider">1. Selecciona tu plan:</label>
               <div className="flex flex-col gap-2">
-                <label className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${planSeleccionado === 'basicos' ? 'border-amber-600 bg-amber-50/20' : 'border-stone-100 bg-stone-50/50'}`}>
-                  <div className="flex items-center gap-3">
-                    <input type="radio" name="modal_plan" checked={planSeleccionado === 'basicos'} onChange={() => { setPlanSeleccionado('basicos'); setAgregaMusicaExtra(false); }} className="accent-amber-700" />
-                    <span className="text-xs font-semibold">💍 Plan Básico Digital</span>
-                  </div>
-                  <span className="text-xs font-mono font-bold">$890 MXN</span>
-                </label>
-                <label className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${planSeleccionado === 'premium' ? 'border-amber-600 bg-amber-50/20' : 'border-stone-100 bg-stone-50/50'}`}>
-                  <div className="flex items-center gap-3">
-                    <input type="radio" name="modal_plan" checked={planSeleccionado === 'premium'} onChange={() => setPlanSeleccionado('premium')} className="accent-amber-700" />
-                    <span className="text-xs font-semibold text-amber-950">🌟 Gran Día Premium</span>
-                  </div>
-                  <span className="text-xs font-mono font-bold">$1,490 MXN</span>
-                </label>
-                <label className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${planSeleccionado === 'vip' ? 'border-amber-600 bg-amber-50/20' : 'border-stone-100 bg-stone-50/50'}`}>
-                  <div className="flex items-center gap-3">
-                    <input type="radio" name="modal_plan" checked={planSeleccionado === 'vip'} onChange={() => setPlanSeleccionado('vip')} className="accent-amber-700" />
-                    <span className="text-xs font-semibold text-purple-950">👑 VIP Celestial</span>
-                  </div>
-                  <span className="text-xs font-mono font-bold">$2,490 MXN</span>
-                </label>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase font-bold text-stone-400 tracking-wider">2. Complementos Opcionales:</label>
-              {planSeleccionado === 'basicos' ? (
-                <p className="text-[10px] text-stone-400 italic bg-stone-50 p-2.5 rounded-lg border border-dashed border-stone-200">
-                  ⚠️ Los extras como música personalizada no están disponibles en el Plan Básico. Suba a Premium o VIP.
-                </p>
-              ) : (
-                <label className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-all ${agregaMusicaExtra ? 'border-emerald-600 bg-emerald-50/10' : 'border-stone-200 bg-white'}`}>
-                  <div className="flex items-center gap-3">
-                    <input type="checkbox" checked={agregaMusicaExtra} onChange={(e) => setAgregaMusicaExtra(e.target.checked)} className="accent-emerald-700 cursor-pointer w-4 h-4 rounded-sm" />
-                    <div>
-                      <span className="text-xs font-bold block text-stone-800">Música Personalizada 🎵</span>
-                      <span className="text-[10px] text-stone-400 font-light block">Sube tu propio archivo .MP3 exacto.</span>
+                {['basicos', 'premium', 'vip'].map((p) => (
+                  <label key={p} className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${planSeleccionado === p ? 'border-amber-600 bg-amber-50/20' : 'border-stone-100 bg-stone-50/50'}`}>
+                    <div className="flex items-center gap-3">
+                      <input type="radio" name="modal_plan" checked={planSeleccionado === p} onChange={() => setPlanSeleccionado(p)} className="accent-amber-700" />
+                      <span className="text-xs font-semibold capitalize">{p === 'basicos' ? '💍 Plan Esencial' : p === 'vip' ? '👑 VIP Celestial' : '🌟 Gran Día Premium'}</span>
                     </div>
-                  </div>
-                  <span className="text-xs font-mono font-bold text-emerald-700">+$350 MXN</span>
-                </label>
-              )}
+                    <span className="text-xs font-mono font-bold">${preciosPlanes[p]} MXN</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             <div className="pt-4 border-t border-stone-100 flex items-center justify-between">
               <div>
-                <span className="text-[9px] uppercase tracking-wider text-stone-400 block font-semibold">Total estimado:</span>
+                <span className="text-[9px] uppercase tracking-wider text-stone-400 block font-semibold">Total:</span>
                 <span className="text-xl font-mono font-black text-stone-900">${precioTotal.toLocaleString('es-MX')} MXN</span>
               </div>
-              <button type="button" onClick={handleProcederAlPago} className="bg-stone-950 hover:bg-amber-700 text-white text-xs uppercase font-bold tracking-wider px-6 py-3.5 rounded-xl shadow-md transition-all cursor-pointer">Comenzar Diseño ➔</button>
+              <button type="button" onClick={handleProcederAlPago} className="bg-stone-950 hover:bg-amber-600 text-white text-xs uppercase font-bold tracking-wider px-6 py-3.5 rounded-xl shadow-md cursor-pointer">Proceder ➔</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 🚀 INYECCIÓN BLINDADA DE COMPONENTES ESTRUCTURALES MAESTROS */}
+      {/* 🚀 INYECCIÓN REAL Y BLINDADA DE COMPONENTES ESTRUCTURALES */}
       {weddingData && (
         <>
           <InvitationHero weddingData={weddingData} diseño={diseño} />
-          
           <EventTimeline weddingData={weddingData} diseño={diseño} />
 
-          {/* 👔 EXCLUSIVO MODULO: CÓDIGO DE VESTIMENTA & PALETA CHROMÁTICA INDIVIDUAL */}
-          <section className="py-12 px-4 max-w-sm mx-auto text-center space-y-6">
+          {/* 👔 MODULO INTERACTIVO DE BURBUJAS DE COLOR */}
+          <section className="py-12 px-4 max-w-sm mx-auto text-center space-y-6 font-sans">
             <div className="space-y-1">
-              <span className={`text-[10px] uppercase tracking-widest font-bold block ${templateActivo === 'minimal-dark' ? 'text-zinc-500' : 'text-stone-400'}`}>Código de Vestimenta</span>
+              <span className="text-[10px] uppercase tracking-widest font-bold block text-stone-400">Código de Vestimenta</span>
               <p className="text-sm font-medium tracking-wide capitalize">✨ {weddingData.codigoVestimenta || "Formal / Gala"}</p>
             </div>
 
-            {/* Contenedor de burbujas físicas */}
-            <div className={`p-6 rounded-3xl border shadow-xs transition-colors duration-500 space-y-4 ${diseño.colorCard}`}>
+            <div className={`p-6 rounded-3xl border shadow-sm transition-colors duration-500 space-y-4 ${diseño.colorCard}`}>
               <div className="space-y-1">
-                <span className={`text-[9px] uppercase tracking-wider font-bold block ${templateActivo === 'minimal-dark' ? 'text-zinc-500' : 'text-stone-400'}`}>
-                  Paleta de Inspiración Interactiva
-                </span>
+                <span className="text-[9px] uppercase tracking-wider font-bold block text-stone-400">Paleta de Inspiración Interactiva</span>
                 <p className="text-[10px] opacity-50 font-light">Toca una burbuja de color para descubrir su tono o copiarlo:</p>
               </div>
 
@@ -396,24 +281,19 @@ export default function WeddingInvitationPage() {
                     type="button"
                     style={{ backgroundColor: color.hex }} 
                     onClick={() => copiarColorHex(color.hex)}
-                    className={`w-8 h-8 rounded-full shadow-xs border-2 hover:scale-110 transition-transform cursor-pointer ${
-                      colorSeleccionado === color.hex ? 'border-amber-600 scale-105' : 'border-white'
-                    }`}
-                    title={`Copiar ${color.nombre}`}
+                    className={`w-8 h-8 rounded-full shadow-xs border-2 hover:scale-110 transition-all cursor-pointer ${colorSeleccionado === color.hex ? 'border-stone-950 scale-105' : 'border-white'}`}
                   />
                 ))}
               </div>
 
               <div className="h-8 flex items-center justify-center">
                 {colorSeleccionado ? (
-                  <p className="text-[11px] font-mono font-medium animate-fadeIn text-amber-700">
-                    {coloresMuestra.find(c => c.hex === colorSeleccionado)?.nombre || 'Tono'} ({colorSeleccionado}) 
+                  <p className={`text-[11px] font-mono font-medium animate-fadeIn ${diseño.textAcento}`}>
+                    {coloresMuestra.find(c => c.hex === colorSeleccionado)?.n} ({colorSeleccionado}) 
                     {mensajeCopiado && <span className="text-emerald-600 ml-1.5 font-sans font-bold">¡Copiado! 📋</span>}
                   </p>
                 ) : (
-                  <p className="text-[11px] italic opacity-60 font-light">
-                    "{weddingData.paletaColores || "Tonos sugeridos por los novios"}"
-                  </p>
+                  <p className="text-[11px] italic opacity-60 font-light">"{weddingData.paletaColores || "Tonos sugeridos para el evento"}"</p>
                 )}
               </div>
             </div>
@@ -421,21 +301,15 @@ export default function WeddingInvitationPage() {
           
           <PhotoGallery weddingData={weddingData} images={weddingData?.galleryImages || []} diseño={diseño} />
           
-          {/* 📸✨ ACCESO AL ÁLBUM COMPARTIDO SI ESTÁ ACTIVADO EN EL PLAN PREMIUM */}
           {weddingData.albumCompartidoActivo && (
-            <section className="max-w-md mx-auto px-6 py-6 text-center animate-fadeIn">
-              <div className="bg-gradient-to-br from-purple-900 to-indigo-950 text-white p-6 rounded-3xl shadow-xl space-y-4 text-left border border-purple-950">
+            <section className="max-w-md mx-auto px-6 py-6 text-center font-sans">
+              <div className="bg-gradient-to-br from-purple-950 to-stone-950 text-white p-6 rounded-3xl shadow-xl space-y-4 text-left border border-purple-900/40">
                 <div className="space-y-1">
-                  <span className="text-[10px] bg-purple-500/30 text-purple-300 border border-purple-500/40 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono inline-block">Función de la Fiesta</span>
-                  <h4 className="font-serif text-lg font-light">¿Tomaste fotos en el evento? 📸</h4>
-                  <p className="text-xs text-purple-200/70 font-light leading-relaxed">Súbelas directamente al álbum en vivo de los novios para que guarden cada recuerdo.</p>
+                  <span className="text-[10px] bg-purple-500/30 text-purple-300 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono inline-block">Función Premium</span>
+                  <h4 className="font-serif text-lg font-light">Álbum Colectivo en Vivo 📸</h4>
+                  <p className="text-xs text-purple-200/70 font-light leading-relaxed">Sube tus fotos directamente para el recuerdo de los novios.</p>
                 </div>
-                <a 
-                  href={`https://tugrandia.icu/${weddingData.slug}/compartir`} 
-                  className="w-full bg-white text-purple-950 font-bold text-center py-3 rounded-xl block text-xs uppercase tracking-wider shadow-md hover:bg-purple-50 transition-colors"
-                >
-                  📤 Subir Fotos al Álbum Colectivo
-                </a>
+                <a href={`https://tugrandia.icu/${weddingData.slug}/compartir`} className="w-full bg-white text-purple-950 font-bold text-center py-3 rounded-xl block text-xs uppercase tracking-wider shadow-md hover:bg-purple-50 transition-colors">📤 Subir Fotos</a>
               </div>
             </section>
           )}
@@ -446,7 +320,7 @@ export default function WeddingInvitationPage() {
         </>
       )}
 
-      <footer className="text-center py-12 bg-stone-900 text-stone-500 text-xs select-none">
+      <footer className="text-center py-12 bg-stone-900 text-stone-500 text-xs select-none font-sans">
         Invitación digital premium creada en <span className="text-stone-300">clickypapel.com</span>
       </footer>
     </main>
