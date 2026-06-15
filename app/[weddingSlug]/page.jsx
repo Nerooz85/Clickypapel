@@ -13,21 +13,22 @@ export default function WeddingInvitationPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   
-  // Forzamos el modo demo activo para el catálogo comercial
   const esModoDemo = searchParams.get('demo') === 'true' || true; 
-
   const slug = params?.weddingSlug || params?.slug;
 
   const [weddingData, setWeddingData] = useState(null);
   const [cargando, setCargando] = useState(true);
-  const [categoriaAbierta, setCategoriaAbierta] = useState(null); // 📂 Controla qué dropdown de evento está desplegado
+  const [categoriaAbierta, setCategoriaAbierta] = useState(null); 
   const [musicaSonando, setMusicaSonando] = useState(false);
 
-  // 🎨 ESTADOS DE DISEÑO INTERACTIVO EN VIVO (BARRA DE HERRAMIENTAS FLOTANTE)
-  const [paletaActiva, setPaletaActiva] = useState('oro');       // Controla el fondo y paleta global (1 de 5)
-  const [fuenteActiva, setFuenteActiva] = useState('serif');     // Controla la tipografía de herencia (1 de 5)
+  // 🎨 ESTADOS DE DISEÑO INTERACTIVO (Cambia la UI de la web, NO la ropa de los invitados)
+  const [paletaActiva, setPaletaActiva] = useState('oro');       
+  const [fuenteActiva, setFuenteActiva] = useState('serif');     
   const [colorSeleccionado, setColorSeleccionado] = useState(null);
   const [mensajeCopiado, setMensajeCopiado] = useState(false);
+
+  // Burbujas fijas elegidas por los "novios/anfitriones" para su evento
+  const [burbujasEvento, setBurbujasEvento] = useState([]);
 
   // 🛒 ESTADOS PARA EL MODAL DE CONTRATACIÓN
   const [modalContratarAbierto, setModalContratarAbierto] = useState(false);
@@ -36,7 +37,6 @@ export default function WeddingInvitationPage() {
 
   const audioRef = useRef(null);
 
-  // 📋 ESTRUCTURA DE 25 DEMOS EN VIVO DISTRIBUIDAS POR BLOQUE DE EVENTO
   const catalogo25Demos = {
     'Bodas 💍': [
       { slug: 'demo-boda-tradicional', nombre: '✨ Gala Oro Tradicional' },
@@ -75,6 +75,22 @@ export default function WeddingInvitationPage() {
     ]
   };
 
+  // Función para inyectar las burbujas correctas según la vibra de la Demo cargada
+  const obtenerBurbujasPorDemo = (slugDemo, template) => {
+    if (slugDemo.includes('dark') || slugDemo.includes('neon') || slugDemo.includes('urban') || slugDemo.includes('glam')) {
+      return [{hex:'#18181b', n:'Negro'}, {hex:'#3f3f46', n:'Gris Oscuro'}, {hex:'#71717a', n:'Plata'}, {hex:'#ffffff', n:'Blanco'}];
+    } else if (slugDemo.includes('boho') || slugDemo.includes('vintage') || slugDemo.includes('safari') || slugDemo.includes('sunset')) {
+      return [{hex:'#8c6239', n:'Terracota'}, {hex:'#bf9b7a', n:'Arena'}, {hex:'#dfd3c3', n:'Lino'}, {hex:'#7d8a7c', n:'Salvia verde'}];
+    } else if (slugDemo.includes('boy') || slugDemo.includes('sky')) {
+      return [{hex:'#ccfbf1', n:'Menta'}, {hex:'#bae6fd', n:'Cielo'}, {hex:'#e0f2fe', n:'Nube'}, {hex:'#ffffff', n:'Blanco'}];
+    } else if (slugDemo.includes('girl') || slugDemo.includes('playa') || slugDemo.includes('romantica')) {
+      return [{hex:'#9d174d', n:'Rosa Viejo'}, {hex:'#fbcfe8', n:'Blush'}, {hex:'#fff1f2', n:'Rosado'}, {hex:'#fef3c7', n:'Marfil'}];
+    } else {
+      // Tradicional / Clean / Default
+      return [{hex:'#78350f', n:'Dorado Oscuro'}, {hex:'#b45309', n:'Ámbar'}, {hex:'#f59e0b', n:'Oro'}, {hex:'#fef3c7', n:'Crema'}];
+    }
+  };
+
   useEffect(() => {
     async function jalarDatosBoda() {
       if (!slug) {
@@ -98,31 +114,22 @@ export default function WeddingInvitationPage() {
         setWeddingData(null);
       } else {
         setWeddingData({
-          id: data.id,
-          slug: data.slug,
-          groomName: data.groom_name,
-          brideName: data.bride_name,
+          ...data,
           eventDate: data.event_date || "2026-12-19T18:00:00", 
           coverImage: data.cover_image || "https://images.unsplash.com/photo-1519741497674-611481863552", 
           galleryImages: data.gallery_images || [],
-          welcomePhrase: data.welcome_phrase,
-          ceremoniaHora: data.ceremonia_hora,
-          ceremoniaLugar: data.ceremonia_lugar,
-          ceremoniaMapsUrl: data.ceremonia_maps_url,
-          recepcionHora: data.recepcion_hora,
-          recepcionLugar: data.recepcion_lugar,
-          recepcionMapsUrl: data.recepcion_maps_url,
-          musicType: data.music_type || 'default',
           musicUrl: data.music_url || '/music/1-thousand-years.mp3',
-          albumCompartidoActivo: data.album_compartido_activo || false,
           codigoVestimenta: data.codigo_vestimenta,
           paletaColores: data.paleta_colores,
         });
 
-        // Sincronización lógica inteligente inicial para la paleta base de la Demo activa
+        // 1. Asignamos la paleta de UI inicial según el diseño base
         if (data.template_id === 'minimal-dark') setPaletaActiva('dark');
         else if (data.template_id === 'boho-rancho') setPaletaActiva('boho');
         else setPaletaActiva('oro');
+
+        // 2. Asignamos las burbujas de vestimenta (Estas se quedan fijas)
+        setBurbujasEvento(obtenerBurbujasPorDemo(slugLimpio, data.template_id));
       }
       setCargando(false);
     }
@@ -132,11 +139,8 @@ export default function WeddingInvitationPage() {
 
   const toggleMusicaFlotante = () => {
     if (audioRef.current) {
-      if (musicaSonando) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play().catch(e => console.log("Se requiere interacción", e));
-      }
+      if (musicaSonando) audioRef.current.pause();
+      else audioRef.current.play().catch(e => console.log(e));
       setMusicaSonando(!musicaSonando);
     }
   };
@@ -148,57 +152,25 @@ export default function WeddingInvitationPage() {
     setTimeout(() => setMensajeCopiado(false), 2000);
   };
 
-  // 🎨 CONFIGURACIÓN MAESTRA DE LAS 5 PALETAS DE COLOR (FONDOS, TARJETAS Y ACENTOS DEFINIDOS)
+  // 🎨 CONFIGURACIÓN MAESTRA DEL TEMA DE INTERFAZ (SÓLO CAMBIA FONDOS Y TEXTOS)
   const listadoPaletas = {
-    oro: { 
-      bgGlobal: 'bg-[#faf9f6] text-stone-800 selection:bg-amber-100', 
-      colorCard: 'bg-white border-stone-200/70 shadow-2xs', 
-      textAcento: 'text-amber-800 font-semibold', 
-      btn: 'bg-amber-700 hover:bg-amber-800 text-white shadow-sm transition-all', 
-      burbujas: [{hex:'#78350f', n:'Miel'}, {hex:'#b45309', n:'Ámbar'}, {hex:'#f59e0b', n:'Oro Satinado'}, {hex:'#fef3c7', n:'Marfil'}] 
-    },
-    esmeralda: { 
-      bgGlobal: 'bg-[#f4f6f4] text-stone-800 selection:bg-emerald-100', 
-      colorCard: 'bg-white border-emerald-900/10 shadow-2xs', 
-      textAcento: 'text-emerald-800 font-semibold', 
-      btn: 'bg-emerald-800 hover:bg-emerald-950 text-white shadow-sm transition-all', 
-      burbujas: [{hex:'#064e3b', n:'Imperial'}, {hex:'#115e59', n:'Teal'}, {hex:'#15803d', n:'Olivo'}, {hex:'#ccfbf1', n:'Menta'}] 
-    },
-    rose: { 
-      bgGlobal: 'bg-[#fdfbfb] text-stone-800 selection:bg-rose-100', 
-      colorCard: 'bg-white border-rose-900/10 shadow-2xs', 
-      textAcento: 'text-rose-700 font-semibold', 
-      btn: 'bg-rose-700 hover:bg-rose-800 text-white shadow-sm transition-all', 
-      burbujas: [{hex:'#4c0519', n:'Vino'}, {hex:'#9d174d', n:'Rosa Viejo'}, {hex:'#fbcfe8', n:'Blush'}, {hex:'#fff1f2', n:'Rosado'}] 
-    },
-    dark: { 
-      bgGlobal: 'bg-zinc-950 text-zinc-100 selection:bg-zinc-800', 
-      colorCard: 'bg-zinc-900/40 border-zinc-800/80 backdrop-blur-xs text-zinc-300', 
-      textAcento: 'text-white font-bold tracking-wider', 
-      btn: 'bg-white text-zinc-950 hover:bg-zinc-200 shadow-sm transition-all', 
-      burbujas: [{hex:'#18181b', n:'Charcoal'}, {hex:'#3f3f46', n:'Matte'}, {hex:'#71717a', n:'Smoky'}, {hex:'#a1a1aa', n:'Plata'}] 
-    },
-    boho: { 
-      bgGlobal: 'bg-[#f4efe6] text-amber-950 selection:bg-amber-900/10', 
-      colorCard: 'bg-[#faf7f2] border-amber-900/15 shadow-2xs', 
-      textAcento: 'text-amber-900 font-semibold', 
-      btn: 'bg-amber-900 text-white hover:bg-amber-950 shadow-sm transition-all', 
-      burbujas: [{hex:'#8c6239', n:'Terracota'}, {hex:'#bf9b7a', n:'Arena'}, {hex:'#dfd3c3', n:'Lino'}, {hex:'#7d8a7c', n:'Salvia'}] 
-    }
+    oro: { bgGlobal: 'bg-[#faf9f6] text-stone-800 selection:bg-amber-100', colorCard: 'bg-white border-stone-200/70 shadow-2xs', textAcento: 'text-amber-800 font-semibold', btn: 'bg-amber-700 hover:bg-amber-800 text-white shadow-sm transition-all' },
+    esmeralda: { bgGlobal: 'bg-[#f4f6f4] text-stone-800 selection:bg-emerald-100', colorCard: 'bg-white border-emerald-900/10 shadow-2xs', textAcento: 'text-emerald-800 font-semibold', btn: 'bg-emerald-800 hover:bg-emerald-950 text-white shadow-sm transition-all' },
+    rose: { bgGlobal: 'bg-[#fdfbfb] text-stone-800 selection:bg-rose-100', colorCard: 'bg-white border-rose-900/10 shadow-2xs', textAcento: 'text-rose-700 font-semibold', btn: 'bg-rose-700 hover:bg-rose-800 text-white shadow-sm transition-all' },
+    dark: { bgGlobal: 'bg-zinc-950 text-zinc-100 selection:bg-zinc-800', colorCard: 'bg-zinc-900/40 border-zinc-800/80 backdrop-blur-xs text-zinc-300', textAcento: 'text-white font-bold tracking-wider', btn: 'bg-white text-zinc-950 hover:bg-zinc-200 shadow-sm transition-all' },
+    boho: { bgGlobal: 'bg-[#f4efe6] text-amber-950 selection:bg-amber-900/10', colorCard: 'bg-[#faf7f2] border-amber-900/15 shadow-2xs', textAcento: 'text-amber-900 font-semibold', btn: 'bg-amber-900 text-white hover:bg-amber-950 shadow-sm transition-all' }
   };
 
-  // 🔤 CONFIGURACIÓN MAESTRA DE LAS 5 TIPOGRAFÍAS DE ALTA GAMA DEFINIDAS
   const listadoFuentes = {
-    serif: 'font-serif tracking-normal antialiased leading-relaxed',               // Classic Romance (Gala Editorial)
-    sans: 'font-sans tracking-wide antialiased font-light leading-normal',         // Modern Clean (Minimalista Técnico)
-    mono: 'font-mono tracking-tight text-xs antialiased font-medium',              // Avant-Garde (Contemporáneo Industrial)
-    cursive: 'font-serif italic tracking-wide antialiased font-light',             // Romance Script (Poético / Elegante)
-    display: 'font-sans uppercase tracking-widest antialiased font-light text-sm'  // Minimal Bold (Alta Moda / Pasarela)
+    serif: 'font-serif tracking-normal antialiased leading-relaxed',               
+    sans: 'font-sans tracking-wide antialiased font-light leading-normal',         
+    mono: 'font-mono tracking-tight text-xs antialiased font-medium',              
+    cursive: 'font-serif italic tracking-wide antialiased font-light',             
+    display: 'font-sans uppercase tracking-widest antialiased font-light text-sm'  
   };
 
   const diseño = listadoPaletas[paletaActiva] || listadoPaletas.oro;
   const claseFuente = listadoFuentes[fuenteActiva] || listadoFuentes.serif;
-  const coloresMuestra = diseño.burbujas;
 
   const preciosPlanes = { basicos: 890, premium: 1490, vip: 2490 };
   const precioTotal = preciosPlanes[planSeleccionado] + (planSeleccionado !== 'basicos' && agregaMusicaExtra ? 350 : 0);
@@ -225,18 +197,16 @@ export default function WeddingInvitationPage() {
       
       {weddingData?.musicUrl && <audio ref={audioRef} src={weddingData.musicUrl} loop />}
 
-      {/* 🧭 HEADER PREMIUM: BLOQUES INDEPENDIENTES DESPLEGABLES POR TIPO DE EVENTO */}
+      {/* HEADER PREMIUM COMERCIAL (Intacto) */}
       {esModoDemo && (
         <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md border-b border-stone-200/80 px-4 md:px-8 py-3 flex flex-col lg:flex-row items-center justify-between gap-4 z-[200] shadow-xs font-sans">
           
-          {/* LOGO NEUTRAL COMERCIAL */}
           <a href="https://clickypapel.com" className="flex items-center gap-1 group select-none shrink-0">
             <span className="font-serif text-base tracking-wider font-light text-stone-900 group-hover:text-amber-700 transition-colors">
               clicky<span className="font-normal text-amber-600">papel</span>.com
             </span>
           </a>
 
-          {/* MENÚ CENTRAL CON BLOQUES SEPARADOS POR CATEGORÍA DE EVENTO */}
           <nav className="flex items-center gap-1 overflow-x-auto max-w-full no-scrollbar py-1 shrink-0 px-2">
             {Object.keys(catalogo25Demos).map((categoria) => {
               const estaAbierto = categoriaAbierta === categoria;
@@ -245,27 +215,18 @@ export default function WeddingInvitationPage() {
                   <button
                     type="button"
                     onClick={() => setCategoriaAbierta(estaAbierto ? null : categoria)}
-                    className={`text-[11px] font-black tracking-wider uppercase px-3 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1 select-none ${
-                      estaAbierto 
-                        ? 'bg-stone-950 text-white shadow-xs' 
-                        : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
-                    }`}
+                    className={`text-[11px] font-black tracking-wider uppercase px-3 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1 select-none ${estaAbierto ? 'bg-stone-950 text-white shadow-xs' : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'}`}
                   >
                     {categoria} <span className="text-[9px] opacity-40">{estaAbierto ? '▲' : '▼'}</span>
                   </button>
 
-                  {/* Dropdown flotante específico de la categoría seleccionada */}
                   {estaAbierto && (
                     <div className="absolute top-11 left-1/2 -translate-x-1/2 w-48 bg-white border border-stone-200/90 rounded-2xl shadow-xl p-1.5 space-y-0.5 z-[210] animate-fadeIn">
                       {catalogo25Demos[categoria].map((demo) => (
                         <a 
                           key={demo.slug}
                           href={`/${demo.slug}?demo=true`} 
-                          className={`block text-left text-[11px] px-3 py-2 rounded-xl font-semibold transition-all ${
-                            slug === demo.slug 
-                              ? 'bg-amber-50 text-amber-900 font-bold border-l-2 border-amber-600' 
-                              : 'text-stone-600 hover:bg-stone-50 hover:text-stone-950'
-                          }`}
+                          className={`block text-left text-[11px] px-3 py-2 rounded-xl font-semibold transition-all ${slug === demo.slug ? 'bg-amber-50 text-amber-900 font-bold border-l-2 border-amber-600' : 'text-stone-600 hover:bg-stone-50 hover:text-stone-950'}`}
                           onClick={() => setCategoriaAbierta(null)}
                         >
                           {demo.nombre}
@@ -278,29 +239,28 @@ export default function WeddingInvitationPage() {
             })}
           </nav>
 
-          {/* BOTÓN CONTRATACIÓN ADAPTATIVO */}
           <button type="button" onClick={() => setModalContratarAbierto(true)} className="bg-stone-950 hover:bg-amber-700 text-white text-[11px] uppercase tracking-widest font-bold px-5 py-2.5 rounded-xl transition-all shadow-md shrink-0 cursor-pointer">
             ✨ Quiero esta invitación ➔
           </button>
         </header>
       )}
 
-      {/* 🔮 BARRA FLOTANTE INTERACTIVA DE ESTILOS: CAMBIO DE PALETAS (5) Y TIPOGRAFÍAS (5) EN TIEMPO REAL */}
+      {/* 🔮 BARRA FLOTANTE INTERACTIVA DE TEMA (Cambia cascarón web, no ropa) */}
       <div className="fixed bottom-6 right-6 z-[100] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-stone-200/80 max-w-xs w-64 space-y-3.5 text-left text-stone-800 font-sans">
         <div>
-          <span className="text-[9px] bg-amber-100 text-amber-900 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Diseño en tiempo real</span>
+          <span className="text-[9px] bg-amber-100 text-amber-900 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Diseño de la App</span>
         </div>
 
-        {/* 1. Selector de las 5 Paletas de Color */}
         <div className="space-y-1">
-          <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wide block">1. Combinación Cromática (5):</label>
+          <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wide block">1. Color de Fondo y Tema:</label>
           <div className="grid grid-cols-5 gap-1.5">
             {Object.keys(listadoPaletas).map((key) => (
               <button
                 key={key}
                 type="button"
-                onClick={() => { setPaletaActiva(key); setColorSeleccionado(null); }}
+                onClick={() => setPaletaActiva(key)}
                 className={`h-7 rounded-lg border text-[10px] uppercase font-bold transition-all cursor-pointer ${paletaActiva === key ? 'border-stone-950 ring-2 ring-stone-950/20 scale-105' : 'border-stone-200 bg-stone-50 text-stone-500'}`}
+                title={`Cambiar fondo a ${key}`}
               >
                 {key === 'oro' ? '👑' : key === 'esmeralda' ? '🌲' : key === 'rose' ? '🌸' : key === 'dark' ? '🖤' : '🌿'}
               </button>
@@ -308,9 +268,8 @@ export default function WeddingInvitationPage() {
           </div>
         </div>
 
-        {/* 2. Selector de las 5 Tipografías Premium */}
         <div className="space-y-1">
-          <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wide block">2. Estilo Tipográfico (5):</label>
+          <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wide block">2. Estilo de Textos:</label>
           <select
             value={fuenteActiva}
             onChange={(e) => setFuenteActiva(e.target.value)}
@@ -325,54 +284,17 @@ export default function WeddingInvitationPage() {
         </div>
       </div>
 
-      {/* 🎧 BOTÓN REPRODUCTOR AUXILIAR */}
       <button type="button" onClick={toggleMusicaFlotante} className="fixed bottom-6 left-6 z-[150] bg-white/90 backdrop-blur-md border border-stone-200/80 p-3 rounded-full shadow-xl text-xs cursor-pointer">
         {musicaSonando ? '🎵 ⏸️' : '🔇 ▶️'}
       </button>
 
-      {/* 🛍️ MODAL ASISTENTE DE CONTRATACIÓN */}
-      {modalContratarAbierto && (
-        <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center z-[300] p-4">
-          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full border border-stone-200 shadow-2xl space-y-6 relative text-stone-800 text-left font-sans">
-            <button type="button" onClick={() => setModalContratarAbierto(false)} className="absolute top-4 right-4 text-stone-400 hover:text-stone-700 font-bold text-xs bg-stone-100 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer">✕</button>
-            <div className="space-y-1">
-              <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Alta Segura</span>
-              <h3 className="font-serif text-xl text-stone-950 font-medium">Configura tu Entorno</h3>
-              <p className="text-stone-400 text-xs font-light">Se exportará la paleta <strong className="text-stone-700 capitalize">{paletaActiva}</strong> y tipografía <strong className="text-stone-700 capitalize">{fuenteActiva}</strong>.</p>
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex flex-col gap-2">
-                {['basicos', 'premium', 'vip'].map((p) => (
-                  <label key={p} className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${planSeleccionado === p ? 'border-amber-600 bg-amber-50/20' : 'border-stone-100 bg-stone-50/50'}`}>
-                    <div className="flex items-center gap-3">
-                      <input type="radio" name="modal_plan" checked={planSeleccionado === p} onChange={() => setPlanSeleccionado(p)} className="accent-amber-700" />
-                      <span className="text-xs font-semibold capitalize">{p === 'basicos' ? '💍 Plan Esencial' : p === 'vip' ? '👑 VIP Celestial' : '🌟 Gran Día Premium'}</span>
-                    </div>
-                    <span className="text-xs font-mono font-bold">${preciosPlanes[p]} MXN</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-stone-100 flex items-center justify-between">
-              <div>
-                <span className="text-[9px] uppercase tracking-wider text-stone-400 block font-semibold">Total:</span>
-                <span className="text-xl font-mono font-black text-stone-900">${precioTotal.toLocaleString('es-MX')} MXN</span>
-              </div>
-              <button type="button" onClick={handleProceederAlPago} className="bg-stone-950 hover:bg-amber-700 text-white text-xs uppercase font-bold tracking-wider px-6 py-3.5 rounded-xl shadow-md cursor-pointer">Proceder ➔</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 🚀 INYECCIÓN REAL Y BLINDADA DE COMPONENTES ESTRUCTURALES */}
+      {/* 🚀 INYECCIÓN DE COMPONENTES */}
       {weddingData && (
         <>
           <InvitationHero weddingData={weddingData} diseño={diseño} />
           <EventTimeline weddingData={weddingData} diseño={diseño} />
 
-          {/* 👔 MODULO INTERACTIVO DE BURBUJAS DE COLOR */}
+          {/* 👔 MODULO CÓDIGO DE VESTIMENTA (BURBUJAS FIJAS DE LOS NOVIOS) */}
           <section className="py-12 px-4 max-w-sm mx-auto text-center space-y-6 font-sans">
             <div className="space-y-1">
               <span className="text-[10px] uppercase tracking-widest font-bold block text-stone-400">Código de Vestimenta</span>
@@ -381,12 +303,12 @@ export default function WeddingInvitationPage() {
 
             <div className={`p-6 rounded-3xl border shadow-sm transition-colors duration-500 space-y-4 ${diseño.colorCard}`}>
               <div className="space-y-1">
-                <span className="text-[9px] uppercase tracking-wider font-bold block text-stone-400">Paleta de Inspiración Interactiva</span>
-                <p className="text-[10px] opacity-50 font-light">Toca una burbuja de color para descubrir su tono o copiarlo:</p>
+                <span className="text-[9px] uppercase tracking-wider font-bold block text-stone-400">Paleta Sugerida (Elección de los anfitriones)</span>
+                <p className="text-[10px] opacity-50 font-light">Toca un color de ropa para descubrir su tono o copiarlo:</p>
               </div>
 
               <div className="flex justify-center items-center gap-2">
-                {coloresMuestra.map((color, i) => (
+                {burbujasEvento.map((color, i) => (
                   <button 
                     key={i} 
                     type="button"
@@ -400,7 +322,7 @@ export default function WeddingInvitationPage() {
               <div className="h-8 flex items-center justify-center">
                 {colorSeleccionado ? (
                   <p className={`text-[11px] font-mono font-medium animate-fadeIn ${diseño.textAcento}`}>
-                    {coloresMuestra.find(c => c.hex === colorSeleccionado)?.n} ({colorSeleccionado}) 
+                    {burbujasEvento.find(c => c.hex === colorSeleccionado)?.n} ({colorSeleccionado}) 
                     {mensajeCopiado && <span className="text-emerald-600 ml-1.5 font-sans font-bold">¡Copiado! 📋</span>}
                   </p>
                 ) : (
@@ -412,7 +334,7 @@ export default function WeddingInvitationPage() {
           
           <PhotoGallery weddingData={weddingData} images={weddingData?.galleryImages || []} diseño={diseño} />
           
-          {weddingData.albumCompartidoActivo && (
+          {weddingData.album_compartido_activo && (
             <section className="max-w-md mx-auto px-6 py-6 text-center font-sans">
               <div className="bg-gradient-to-br from-purple-950 to-stone-950 text-white p-6 rounded-3xl shadow-xl space-y-4 text-left border border-purple-900/40">
                 <div className="space-y-1">
