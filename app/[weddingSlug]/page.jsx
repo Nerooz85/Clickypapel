@@ -24,8 +24,8 @@ export default function WeddingInvitationPage() {
   const [musicaSonando, setMusicaSonando] = useState(false);
 
   // 🎨 ESTADOS DE DISEÑO INTERACTIVO EN VIVO (BARRA DE HERRAMIENTAS)
-  const [paletaActiva, setPaletaActiva] = useState('oro');       // 1 de 5 Colores
-  const [fuenteActiva, setFuenteActiva] = useState('serif');     // 1 de 5 Tipografías
+  const [paletaActiva, setPaletaActiva] = useState('oro');       
+  const [fuenteActiva, setFuenteActiva] = useState('serif');     
   const [colorSeleccionado, setColorSeleccionado] = useState(null);
   const [mensajeCopiado, setMensajeCopiado] = useState(false);
 
@@ -36,42 +36,42 @@ export default function WeddingInvitationPage() {
 
   const audioRef = useRef(null);
 
-  // 📋 MATRIZ ESTRUCTURAL DE LAS 25 DEMOS EN VIVO CATEGORIZADAS
+  // 📋 EL NUEVO MAPA DE 25 DEMOS: 1 DISEÑO POR CATEGORÍA EXPUESTO EN SUS 5 COLORES REALES
   const catalogo25Demos = {
     'Bodas 💍': [
-      { slug: 'demo-boda-tradicional', nombre: 'Clásica Tradicional' },
-      { slug: 'demo-boda-industrial', nombre: 'Industrial Loft (Dark)' },
-      { slug: 'demo-boda-boho', nombre: 'Boho Chic Hacienda' },
-      { slug: 'demo-boda-playa', nombre: 'Playa Sunset Resort' },
-      { slug: 'demo-boda-vintage', nombre: 'Bosque Vintage Rústico' }
+      { slug: 'demo-boda-tradicional', nombre: '✨ Gala Oro Tradicional' },
+      { slug: 'demo-boda-industrial', nombre: '🖤 Obsidian Dark' },
+      { slug: 'demo-boda-boho', nombre: '🌿 Terracota Orgánico' },
+      { slug: 'demo-boda-playa', nombre: '🌸 Romance Rose' },
+      { slug: 'demo-boda-vintage', nombre: '🌾 Mostaza / Trigo Chic' }
     ],
     'XV Años 👑': [
-      { slug: 'demo-xv-romantica', nombre: 'Cuento de Hadas' },
-      { slug: 'demo-xv-neon', nombre: 'Neon Club / Antro Night' },
-      { slug: 'demo-xv-boho', nombre: 'Boho Chic / Jardín' },
-      { slug: 'demo-xv-glam', nombre: 'Glam Editorial' },
-      { slug: 'demo-xv-glitter', nombre: 'Glitter & Oro Luxury' }
+      { slug: 'demo-xv-glitter', nombre: '✨ Gala Oro Tradicional' },
+      { slug: 'demo-xv-glam', nombre: '🪙 Titanium Minimal' },
+      { slug: 'demo-xv-boho', nombre: '🍃 Verde Olivo Silvestre' },
+      { slug: 'demo-xv-romantica', nombre: '🌸 Romance Rose' },
+      { slug: 'demo-xv-neon', nombre: '🌌 Midnight Navy' }
     ],
     'Boda Civil 🥂': [
-      { slug: 'demo-civil-minimal', nombre: 'Minimalista Urbano' },
-      { slug: 'demo-civil-garden', nombre: 'Garden Wine Íntimo' },
-      { slug: 'demo-civil-brunch', nombre: 'Mimosa Brunch' },
-      { slug: 'demo-civil-sunset', nombre: 'Sunset Toast Terraza' },
-      { slug: 'demo-civil-urban', nombre: 'Nocturna Rooftop Cóctel' }
+      { slug: 'demo-civil-brunch', nombre: '✨ Gala Oro Tradicional' },
+      { slug: 'demo-civil-minimal', nombre: '🪙 Titanium Minimal' },
+      { slug: 'demo-civil-garden', node: 'olivo', nombre: '🍃 Verde Olivo Silvestre' },
+      { slug: 'demo-civil-sunset', nombre: '🌿 Terracota Orgánico' },
+      { slug: 'demo-civil-urban', nombre: '🌌 Midnight Navy' }
     ],
     'Baby Shower 🍼': [
-      { slug: 'demo-baby-boy', nombre: 'Baby Boy Menta Pastel' },
-      { slug: 'demo-baby-girl', nombre: 'Baby Girl Blush Rose' },
-      { slug: 'demo-baby-neutral', nombre: 'Lino Neutral Minimal' },
-      { slug: 'demo-baby-safari', nombre: 'Safari Silvestre' },
-      { slug: 'demo-baby-reveal', nombre: 'Gender Reveal Party' }
+      { slug: 'demo-baby-neutral', nombre: '🌾 Mostaza / Trigo Chic' },
+      { slug: 'demo-baby-boy', nombre: '🌲 Gala Esmeralda (Menta)' },
+      { slug: 'demo-baby-girl', nombre: '🌸 Romance Rose' },
+      { slug: 'demo-baby-safari', nombre: '🌿 Terracota Orgánico' },
+      { slug: 'demo-baby-reveal', nombre: '🌌 Midnight Navy' }
     ],
     'Bautizos 🕊️': [
-      { slug: 'demo-bautizo-clean', nombre: 'Clean Blanco Tradicional' },
-      { slug: 'demo-bautizo-botanico', nombre: 'Botánico Salvia Jardín' },
-      { slug: 'demo-bautizo-sky', nombre: 'Sky Celestial Moderno' },
-      { slug: 'demo-bautizo-vintage', nombre: 'Vintage Shabby Chic' },
-      { slug: 'demo-bautizo-moderno', nombre: 'Minimal Slate Box' }
+      { slug: 'demo-bautizo-clean', nombre: '✨ Gala Oro Tradicional' },
+      { slug: 'demo-bautizo-moderno', nombre: '🪙 Titanium Minimal' },
+      { slug: 'demo-bautizo-botanico', nombre: '🍃 Verde Olivo Silvestre' },
+      { slug: 'demo-bautizo-vintage', nombre: '🌾 Mostaza / Trigo Chic' },
+      { slug: 'demo-bautizo-sky', nombre: '🌲 Gala Esmeralda (Menta)' }
     ]
   };
 
@@ -119,7 +119,7 @@ export default function WeddingInvitationPage() {
           paletaColores: data.paleta_colores,
         });
 
-        // Autodetectar paleta inicial lógica según el layout asignado en la base de datos
+        // Autodetectar paleta en caliente al cargar el registro para hacer match inmediato
         if (data.template_id === 'minimal-dark') setPaletaActiva('dark');
         else if (data.template_id === 'boho-rancho') setPaletaActiva('boho');
         else setPaletaActiva('oro');
@@ -148,7 +148,7 @@ export default function WeddingInvitationPage() {
     setTimeout(() => setMensajeCopiado(false), 2000);
   };
 
-  // 🎨 MATRIX DE 5 PALETAS DE COLOR INTERACTIVAS
+  // 🎨 CONFIGURACIÓN DE LAS 5 PALETAS DE COLOR DE LA BARRA FLOTANTE
   const listadoPaletas = {
     oro: { bgGlobal: 'bg-[#faf9f6] text-stone-800', colorCard: 'bg-white border-stone-200/60', textAcento: 'text-amber-800', btn: 'bg-amber-700 hover:bg-amber-800 text-white', burbujas: [{hex:'#78350f', n:'Miel'}, {hex:'#b45309', n:'Ámbar'}, {hex:'#f59e0b', n:'Oro Satinado'}, {hex:'#fef3c7', n:'Marfil'}] },
     esmeralda: { bgGlobal: 'bg-[#f4f6f4] text-stone-800', colorCard: 'bg-white border-emerald-900/10', textAcento: 'text-emerald-800', btn: 'bg-emerald-800 hover:bg-emerald-950 text-white', burbujas: [{hex:'#064e3b', n:'Imperial'}, {hex:'#115e59', n:'Teal'}, {hex:'#15803d', n:'Olivo'}, {hex:'#ccfbf1', n:'Menta'}] },
@@ -157,7 +157,7 @@ export default function WeddingInvitationPage() {
     boho: { bgGlobal: 'bg-[#f4efe6] text-amber-950', colorCard: 'bg-[#faf7f2] border-amber-900/10', textAcento: 'text-amber-900', btn: 'bg-amber-900 text-white hover:bg-amber-950', burbujas: [{hex:'#8c6239', n:'Terracota'}, {hex:'#bf9b7a', n:'Arena'}, {hex:'#dfd3c3', n:'Lino'}, {hex:'#7d8a7c', n:'Salvia'}] }
   };
 
-  // 🔤 MATRIX DE 5 TIPOGRAFÍAS DE ALTA GAMA
+  // 🔤 CONFIGURACIÓN DE LAS 5 TIPOGRAFÍAS DE LA BARRA FLOTANTE
   const listadoFuentes = {
     serif: 'font-serif tracking-normal',             
     sans: 'font-sans tracking-wide antialiased',     
@@ -195,7 +195,7 @@ export default function WeddingInvitationPage() {
       
       {weddingData?.musicUrl && <audio ref={audioRef} src={weddingData.musicUrl} loop />}
 
-      {/* 🧭 HEADER EXPANSIVO COMERCIAL: CONEXIÓN DE LAS 25 DEMOS EN MENÚ DESPLEGABLE */}
+      {/* 🧭 HEADER EXPANSIVO: UN MUESTRARIO MASIVO, ESPACIADO Y ORGANIZADO POR COLORES */}
       {esModoDemo && (
         <header className="fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md border-b border-stone-200/80 px-4 md:px-8 flex items-center justify-between z-[200] shadow-xs font-sans">
           <a href="https://clickypapel.com" className="flex items-center gap-1 group select-none">
@@ -204,32 +204,32 @@ export default function WeddingInvitationPage() {
             </span>
           </a>
 
-          {/* Selector Desplegable Multievento para las 25 Demos */}
+          {/* 📖 El Muestrario de Demos "Más Separado" y Redefinido */}
           <div className="relative">
             <button 
               type="button"
               onClick={() => setMenuDemosAbierto(!menuDemosAbierto)}
               className="text-xs font-bold text-stone-700 hover:text-stone-950 bg-stone-100 px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-2xs border border-stone-200/40"
             >
-              📖 Ver Muestrario Catálogo <span className="text-[10px] opacity-60">{menuDemosAbierto ? '▲' : '▼'}</span>
+              📖 Catálogo de Muestras <span className="text-[10px] opacity-60">{menuDemosAbierto ? '▲' : '▼'}</span>
             </button>
 
             {menuDemosAbierto && (
-              <div className="absolute top-12 left-1/2 -translate-x-1/2 w-[90vw] max-w-[580px] bg-white border border-stone-200 rounded-2xl shadow-2xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-4 z-[210] max-h-[420px] overflow-y-auto animate-fadeIn">
+              <div className="absolute top-13 left-1/2 -translate-x-1/2 w-[92vw] md:w-[840px] bg-white border border-stone-200/90 rounded-3xl shadow-2xl p-6 md:p-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 z-[210] max-h-[520px] overflow-y-auto animate-fadeIn">
                 {Object.keys(catalogo25Demos).map((categoria) => (
-                  <div key={categoria} className="space-y-1.5">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 block border-b pb-0.5 border-stone-100 select-none">
+                  <div key={categoria} className="space-y-3.5 bg-stone-50/40 p-4 rounded-2xl border border-stone-100">
+                    <span className="text-[11px] font-black uppercase tracking-widest text-amber-700 block border-b pb-1.5 border-stone-200/60 select-none">
                       {categoria}
                     </span>
-                    <div className="space-y-0.5">
+                    <div className="space-y-1">
                       {catalogo25Demos[categoria].map((demo) => (
                         <a 
                           key={demo.slug}
                           href={`/${demo.slug}?demo=true`} 
-                          className={`block text-left text-[11px] px-2 py-1.5 rounded-lg font-medium transition-all ${
+                          className={`block text-left text-[11px] px-2.5 py-2 rounded-xl font-medium transition-all ${
                             slug === demo.slug 
-                              ? 'bg-amber-50 text-amber-900 font-bold border-l-2 border-amber-600' 
-                              : 'text-stone-600 hover:bg-stone-50 hover:text-stone-900'
+                              ? 'bg-stone-950 text-white font-bold shadow-sm' 
+                              : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
                           }`}
                         >
                           {demo.nombre}
@@ -248,7 +248,7 @@ export default function WeddingInvitationPage() {
         </header>
       )}
 
-      {/* 🔮 BARRA FLOTANTE INTERACTIVA DE ESTILOS: CAMBIO DE PALETAS (5) Y TIPOGRAFÍAS (5) EN TIEMPO REAL */}
+      {/* 🔮 BARRA FLOTANTE INTERACTIVA DE ESTILOS */}
       <div className="fixed bottom-6 right-6 z-[100] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-stone-200/80 max-w-xs w-64 space-y-3.5 text-left text-stone-800 font-sans">
         <div>
           <span className="text-[9px] bg-amber-100 text-amber-900 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Diseño en tiempo real</span>
@@ -323,7 +323,7 @@ export default function WeddingInvitationPage() {
                 <span className="text-[9px] uppercase tracking-wider text-stone-400 block font-semibold">Total:</span>
                 <span className="text-xl font-mono font-black text-stone-900">${precioTotal.toLocaleString('es-MX')} MXN</span>
               </div>
-              <button type="button" onClick={handleProcederAlPago} className="bg-stone-950 hover:bg-amber-600 text-white text-xs uppercase font-bold tracking-wider px-6 py-3.5 rounded-xl shadow-md cursor-pointer">Proceder ➔</button>
+              <button type="button" onClick={handleProcederAlPago} className="bg-stone-950 hover:bg-amber-700 text-white text-xs uppercase font-bold tracking-wider px-6 py-3.5 rounded-xl shadow-md cursor-pointer">Proceder ➔</button>
             </div>
           </div>
         </div>
@@ -345,7 +345,7 @@ export default function WeddingInvitationPage() {
             <div className={`p-6 rounded-3xl border shadow-sm transition-colors duration-500 space-y-4 ${diseño.colorCard}`}>
               <div className="space-y-1">
                 <span className="text-[9px] uppercase tracking-wider font-bold block text-stone-400">Paleta de Inspiración Interactiva</span>
-                <p className="text-[10px] opacity-50 font-light">Toca una barra de color para descubrir su tono o copiarlo:</p>
+                <p className="text-[10px] opacity-50 font-light">Toca una burbuja de color para descubrir su tono o copiarlo:</p>
               </div>
 
               <div className="flex justify-center items-center gap-2">
