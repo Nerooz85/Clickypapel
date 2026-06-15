@@ -95,7 +95,7 @@ export default function WeddingInvitationPage() {
 
         setTemplateActivo(data.template_id || 'romantico-clasico');
         
-        // Inicialización inteligente del sub-color para que coincida con su estructura por defecto
+        // Sincronización inteligente inicial para que no rompa el color según su ID base
         if (data.template_id === 'minimal-dark') setSubTemaColor('obsidian');
         else if (data.template_id === 'boho-rancho') setSubTemaColor('terracota');
         else setSubTemaColor('oro');
@@ -126,7 +126,7 @@ export default function WeddingInvitationPage() {
     setTimeout(() => setMensajeCopiado(false), 2000);
   };
 
-  // 🎨 MATRIZ DE CONFIGURACIÓN PREMIUM: MAPEO DE TEMPLATES Y SUS 3 SUB-PALETAS DE COLOR EN VIVO
+  // 🎨 MATRIZ DE CONFIGURACIÓN PREMIUM CON LAS 3 SUB-PALETAS POR GRUPO INYECTADAS
   const estilosPorTemplate = {
     'romantico-clasico': {
       oro: { bgGlobal: 'bg-[#faf9f6] text-stone-800', colorCard: 'bg-white border-stone-200/60', nombre: '✨ Gala Oro Tradicional' },
@@ -152,13 +152,13 @@ export default function WeddingInvitationPage() {
   // Mapeo interactivo de burbujas individuales físicas según el sub-tema de color activo
   const paletasInteractivasBurbujas = {
     oro: [{ hex: '#78350f', nombre: 'Miel de Otoño' }, { hex: '#b45309', nombre: 'Ambar Quemado' }, { hex: '#f59e0b', nombre: 'Oro Satinado' }, { hex: '#fef3c7', nombre: 'Crema Marfil' }, { hex: '#d97706', nombre: 'Miel Dorado' }],
-    esmeralda: [{ hex: '#064e3b', nombre: 'Verde Imperial' }, { hex: '#0f766e', nombre: 'Teal Profundo' }, { hex: '#115e59', nombre: 'Musgo Suave' }, { hex: '#ccfbf1', font: 'Menta Ice', nombre: 'Menta Ice' }, { hex: '#047857', nombre: 'Esmeralda' }],
+    esmeralda: [{ hex: '#064e3b', nombre: 'Verde Imperial' }, { hex: '#0f766e', nombre: 'Teal Profundo' }, { hex: '#115e59', nombre: 'Musgo Suave' }, { hex: '#ccfbf1', nombre: 'Menta Ice' }, { hex: '#047857', nombre: 'Esmeralda' }],
     rose: [{ hex: '#4c0519', nombre: 'Vino Intenso' }, { hex: '#9d174d', nombre: 'Rosa Viejo' }, { hex: '#fbcfe8', nombre: 'Blush Satin' }, { hex: '#fff1f2', nombre: 'Crema Rosado' }, { hex: '#db2777', nombre: 'Rosa Intenso' }],
     obsidian: [{ hex: '#18181b', nombre: 'Deep Charcoal' }, { hex: '#27272a', nombre: 'Asphalt Matte' }, { hex: '#52525b', nombre: 'Zinc Medium' }, { hex: '#71717a', nombre: 'Smoky Quartz' }, { hex: '#a1a1aa', nombre: 'Soft Silver' }],
     titanium: [{ hex: '#0f172a', nombre: 'Slate Dark' }, { hex: '#334155', nombre: 'Acero' }, { hex: '#64748b', nombre: 'Titanio' }, { hex: '#cbd5e1', nombre: 'Gris Platino' }, { hex: '#94a3b8', nombre: 'Aluminio' }],
-    midnight: [{ hex: '#020617', nombre: 'Azul Profundo' }, { hex: '#1e3a8a', nombre: 'Navy Clásico' }, { hex: '#3b82f6', nombre: 'Zafiro' }, { hex: '#dbeafe', nombre: 'Celeste Pastel' }, { hex: '#1d4ed8', nombre: 'Cobalto' }],
+    midnight: [{ hex: '#020617', nombre: 'Azul Profundo' }, { hex: '#1e3a8a', nombre: 'Navy Clásico' }, { hex: '#3b82f6', nombre: 'Zafiro' }, { hex: '#dbeafe', font: 'Lino Natural', nombre: 'Celeste Pastel' }, { hex: '#1d4ed8', nombre: 'Cobalto' }],
     terracota: [{ hex: '#8c6239', nombre: 'Terracota rústico' }, { hex: '#bf9b7a', nombre: 'Arena cálida' }, { hex: '#dfd3c3', font: 'Lino Natural', nombre: 'Lino Natural' }, { hex: '#7d8a7c', nombre: 'Verde Olivo Silvestre' }, { hex: '#c2baa6', nombre: 'Eucalipto Seco' }],
-    olivo: [{ hex: '#14532d', nombre: 'Bosque Profundo' }, { hex: '#166534', nombre: 'Olivo Seco' }, { hex: '#4ade80', nombre: 'Pistache' }, { hex: '#dcfce7', nombre: 'Salvia claro' }, { hex: '#15803d', nombre: 'Verde Prado' }],
+    olivo: [{ hex: '#14532d', nombre: 'Bosque Profundo' }, { hex: '#166534', nombre: 'Olivo Seco' }, { hex: '#4ade80', nombre: 'Pistache' }, { hex: '#dcfce7', nombre: 'Salvia claro' }, { hex: '#15803d', generic: 'Verde Prado', nombre: 'Verde Prado' }],
     mostaza: [{ hex: '#78350f', nombre: 'Cacao' }, { hex: '#ca8a04', nombre: 'Mostaza Chic' }, { hex: '#fef08a', nombre: 'Vainilla' }, { hex: '#fefce8', nombre: 'Lino Viejo' }, { hex: '#eab308', nombre: 'Girasol' }]
   };
 
@@ -247,7 +247,7 @@ export default function WeddingInvitationPage() {
         </header>
       )}
 
-      {/* 🔮 INTERFAZ PANEL LATERAL FLOTANTE PARA EL CAMBIO DE TEMPLATE EN CALIENTE */}
+      {/* 🔮 INTERFAZ PANEL LATERAL FLOTANTE EXTENDIDO: CAMBIADOR DE GRUPO Y SUB-COLOR EN TIEMPO REAL */}
       {esModoDemo && (
         <div className="fixed bottom-6 right-6 z-[100] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-stone-200 max-w-xs space-y-3 text-left">
           <div>
@@ -272,7 +272,7 @@ export default function WeddingInvitationPage() {
             </select>
           </div>
 
-          {/* Selector 2: Las 3 Demos de Color Dinámicas */}
+          {/* Selector 2: Variantes Cromáticas de la Demo */}
           <div className="space-y-1">
             <label className="text-[10px] font-bold text-stone-400 block uppercase">2. Variante cromática en Vivo:</label>
             <div className="flex flex-col gap-1">
