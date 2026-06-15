@@ -54,7 +54,7 @@ export default function WeddingInvitationPage() {
 
   // 🎨 ESTADOS DE DISEÑO INTERACTIVO 
   const [paletaActiva, setPaletaActiva] = useState('cashmere');       
-  const [fuenteActiva, setFuenteActiva] = useState('serif');     
+  const [fuenteActiva, setFuenteActiva] = useState('clasica');     
 
   // 🛒 ESTADOS PARA EL MODAL DE CONTRATACIÓN
   const [modalContratarAbierto, setModalContratarAbierto] = useState(false);
@@ -163,7 +163,7 @@ export default function WeddingInvitationPage() {
     }
   };
 
-  // 🎨 CONFIGURACIÓN DE LAS 5 TENDENCIAS 2026
+  // 🎨 MATRIZ DE COLORES
   const listadoPaletas = {
     cashmere: { 
       bgGlobal: 'bg-[#f5f0ea] text-[#4a3f35] selection:bg-[#e3d5c8]', 
@@ -197,16 +197,17 @@ export default function WeddingInvitationPage() {
     }
   };
 
+  // 🔤 MATRIZ DE TIPOGRAFÍAS DE ALTA GAMA (Integradas con CSS personalizado)
   const listadoFuentes = {
-    serif: 'font-serif tracking-normal antialiased leading-relaxed',               
-    sans: 'font-sans tracking-wide antialiased font-light leading-normal',         
-    mono: 'font-mono tracking-tight text-xs antialiased font-medium',              
-    cursive: 'font-serif italic tracking-wide antialiased font-light',             
-    display: 'font-sans uppercase tracking-widest antialiased font-light text-sm'  
+    clasica: 'font-clasica leading-relaxed antialiased',               
+    cursiva: 'font-cursiva leading-loose text-[1.25em] antialiased tracking-wide',         
+    editorial: 'font-editorial leading-loose antialiased',              
+    minimalista: 'font-minimalista leading-relaxed antialiased',             
+    boho: 'font-boho leading-loose text-[1.1em] antialiased'  
   };
 
   const diseño = listadoPaletas[paletaActiva] || listadoPaletas.cashmere;
-  const claseFuente = listadoFuentes[fuenteActiva] || listadoFuentes.serif;
+  const claseFuente = listadoFuentes[fuenteActiva] || listadoFuentes.clasica;
 
   const preciosPlanes = { basicos: 890, premium: 1490, vip: 2490 };
   const precioTotal = preciosPlanes[planSeleccionado] + (planSeleccionado !== 'basicos' && agregaMusicaExtra ? 350 : 0);
@@ -231,6 +232,17 @@ export default function WeddingInvitationPage() {
   return (
     <main className={`min-h-screen overflow-x-hidden transition-all duration-500 relative ${diseño.bgGlobal} ${claseFuente} pt-32 md:pt-20`}>
       
+      {/* 🚀 MOTOR DE FUENTES PREMIUM GOOGLE FONTS INYECTADO */}
+      <style dangerouslySetInnerHTML={{__html: `
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Great+Vibes&family=Jost:wght@300;400;500&family=Lora:ital,wght@0,400;1,400&display=swap');
+        
+        .font-clasica { font-family: 'Cormorant Garamond', serif; }
+        .font-cursiva { font-family: 'Great Vibes', cursive; }
+        .font-editorial { font-family: 'Cinzel', serif; letter-spacing: 0.15em; text-transform: uppercase; }
+        .font-minimalista { font-family: 'Jost', sans-serif; font-weight: 300; letter-spacing: 0.05em; }
+        .font-boho { font-family: 'Lora', serif; font-style: italic; }
+      `}} />
+
       {weddingData?.musicUrl && <audio ref={audioRef} src={weddingData.musicUrl} loop />}
 
       {/* HEADER PREMIUM COMERCIAL */}
@@ -281,7 +293,7 @@ export default function WeddingInvitationPage() {
         </header>
       )}
 
-      {/* 🔮 BARRA FLOTANTE INTERACTIVA DE TEMA */}
+      {/* 🔮 BARRA FLOTANTE INTERACTIVA DE TEMA Y TIPOGRAFÍA */}
       <div className="fixed bottom-6 right-6 z-[100] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-stone-200/80 max-w-xs w-64 space-y-3.5 text-left text-stone-800 font-sans">
         <div>
           <span className="text-[9px] bg-[#e3d5c8] text-[#4a3f35] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Diseño de la App</span>
@@ -304,6 +316,7 @@ export default function WeddingInvitationPage() {
           </div>
         </div>
 
+        {/* 🔤 SELECTOR DE TIPOGRAFÍAS DE ALTA GAMA */}
         <div className="space-y-1">
           <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wide block">2. Estilo de Textos:</label>
           <select
@@ -311,11 +324,11 @@ export default function WeddingInvitationPage() {
             onChange={(e) => setFuenteActiva(e.target.value)}
             className="w-full text-xs p-2 rounded-xl border bg-white text-stone-700 font-medium focus:outline-none cursor-pointer"
           >
-            <option value="serif">Classic Romance (Serif)</option>
-            <option value="sans">Modern Clean (Sans)</option>
-            <option value="mono">Editorial Avant-Garde (Mono)</option>
-            <option value="cursive">Romance Script (Italic)</option>
-            <option value="display">Minimal Bold (Display)</option>
+            <option value="clasica">Clásica Atemporal (Serif)</option>
+            <option value="cursiva">Cursiva Elegante (Script)</option>
+            <option value="editorial">Alta Costura (Editorial)</option>
+            <option value="minimalista">Minimalista Moderna (Sans)</option>
+            <option value="boho">Boho Chic Orgánica (Italic)</option>
           </select>
         </div>
       </div>
@@ -360,7 +373,7 @@ export default function WeddingInvitationPage() {
         </div>
       )}
 
-      {/* 🚀 INYECCIÓN DE COMPONENTES (AHORA SÍ, SIN DUPLICADOS Y CON SCROLL ANIMADO) */}
+      {/* 🚀 INYECCIÓN DE COMPONENTES CON ANIMACIÓN SCROLL REVEAL */}
       {weddingData && (
         <div className="space-y-12 pb-16">
           <ScrollReveal>
