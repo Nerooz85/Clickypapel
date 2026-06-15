@@ -9,6 +9,37 @@ import GiftRegistry from '@/components/GiftRegistry';
 import QuoteBanner from '@/components/QuoteBanner'; 
 import RsvpModule from '@/components/RsvpModule';
 
+// ✨ COMPONENTE DE ANIMACIÓN PREMIUM: Hace que todo aparezca suavemente al scrollear
+const ScrollReveal = ({ children }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(entry.target); // Dejar de observar una vez que ya apareció
+        }
+      },
+      { threshold: 0.15 } // Se activa cuando el 15% del elemento es visible
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className={`transition-all duration-[1200ms] ease-out transform ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'
+      }`}
+    >
+      {children}
+    </div>
+  );
+};
+
 export default function WeddingInvitationPage() {
   const params = useParams();
   const searchParams = useSearchParams();
@@ -24,6 +55,11 @@ export default function WeddingInvitationPage() {
   // 🎨 ESTADOS DE DISEÑO INTERACTIVO (Las 5 Tendencias Potenciadas)
   const [paletaActiva, setPaletaActiva] = useState('cashmere');       
   const [fuenteActiva, setFuenteActiva] = useState('serif');     
+  const [colorSeleccionado, setColorSeleccionado] = useState(null);
+  const [mensajeCopiado, setMensajeCopiado] = useState(false);
+
+  // Burbujas de ropa fijas
+  const [burbujasEvento, setBurbujasEvento] = useState([]);
 
   // 🛒 ESTADOS PARA EL MODAL DE CONTRATACIÓN
   const [modalContratarAbierto, setModalContratarAbierto] = useState(false);
@@ -70,6 +106,20 @@ export default function WeddingInvitationPage() {
     ]
   };
 
+  const obtenerBurbujasPorDemo = (slugDemo, template) => {
+    if (slugDemo.includes('dark') || slugDemo.includes('neon') || slugDemo.includes('urban') || slugDemo.includes('glam')) {
+      return [{hex:'#18181b', n:'Negro'}, {hex:'#3f3f46', n:'Gris Oscuro'}, {hex:'#71717a', n:'Plata'}, {hex:'#ffffff', n:'Blanco'}];
+    } else if (slugDemo.includes('boho') || slugDemo.includes('vintage') || slugDemo.includes('safari') || slugDemo.includes('sunset')) {
+      return [{hex:'#8c6239', n:'Terracota'}, {hex:'#bf9b7a', n:'Arena'}, {hex:'#dfd3c3', n:'Lino'}, {hex:'#7d8a7c', n:'Salvia verde'}];
+    } else if (slugDemo.includes('boy') || slugDemo.includes('sky')) {
+      return [{hex:'#ccfbf1', n:'Menta'}, {hex:'#bae6fd', n:'Cielo'}, {hex:'#e0f2fe', n:'Nube'}, {hex:'#ffffff', n:'Blanco'}];
+    } else if (slugDemo.includes('girl') || slugDemo.includes('playa') || slugDemo.includes('romantica')) {
+      return [{hex:'#9d174d', n:'Rosa Viejo'}, {hex:'#fbcfe8', n:'Blush'}, {hex:'#fff1f2', n:'Rosado'}, {hex:'#fef3c7', n:'Marfil'}];
+    } else {
+      return [{hex:'#78350f', n:'Dorado Oscuro'}, {hex:'#b45309', n:'Ámbar'}, {hex:'#f59e0b', n:'Oro'}, {hex:'#fef3c7', n:'Crema'}];
+    }
+  };
+
   useEffect(() => {
     async function jalarDatosBoda() {
       if (!slug) {
@@ -92,7 +142,6 @@ export default function WeddingInvitationPage() {
       } else if (!data) {
         setWeddingData(null);
       } else {
-        // 🚀 AQUI ESTABA EL ERROR: Restauramos el mapeo exacto a camelCase para los componentes
         setWeddingData({
           id: data.id,
           slug: data.slug,
@@ -115,10 +164,11 @@ export default function WeddingInvitationPage() {
           paletaColores: data.paleta_colores,
         });
 
-        // Autodetectar el tema tendencia al cargar
         if (data.template_id === 'minimal-dark') setPaletaActiva('obsidian');
         else if (data.template_id === 'boho-rancho') setPaletaActiva('terracota');
         else setPaletaActiva('cashmere');
+
+        setBurbujasEvento(obtenerBurbujasPorDemo(slugLimpio, data.template_id));
       }
       setCargando(false);
     }
@@ -134,7 +184,14 @@ export default function WeddingInvitationPage() {
     }
   };
 
-  // 🎨 CONFIGURACIÓN DE LAS 5 TENDENCIAS 2026 (MÁS NOTORIAS Y RICAS EN CONTRASTE)
+  const copiarColorHex = (hex) => {
+    setColorSeleccionado(hex);
+    navigator.clipboard.writeText(hex);
+    setMensajeCopiado(true);
+    setTimeout(() => setMensajeCopiado(false), 2000);
+  };
+
+  // 🎨 CONFIGURACIÓN DE LAS 5 TENDENCIAS 2026
   const listadoPaletas = {
     cashmere: { 
       bgGlobal: 'bg-[#f5f0ea] text-[#4a3f35] selection:bg-[#e3d5c8]', 
@@ -331,30 +388,83 @@ export default function WeddingInvitationPage() {
         </div>
       )}
 
-      {/* 🚀 INYECCIÓN DE COMPONENTES */}
+      {/* 🚀 INYECCIÓN DE COMPONENTES CON ANIMACIÓN SCROLL REVEAL */}
       {weddingData && (
-        <>
-          <InvitationHero weddingData={weddingData} diseño={diseño} />
-          <EventTimeline weddingData={weddingData} diseño={diseño} />
-          <PhotoGallery weddingData={weddingData} images={weddingData?.galleryImages || []} diseño={diseño} />
-          
-          {weddingData.albumCompartidoActivo && (
-            <section className="max-w-md mx-auto px-6 py-6 text-center font-sans">
-              <div className="bg-gradient-to-br from-[#9a7b5c] to-[#7a5c43] text-white p-6 rounded-3xl shadow-xl space-y-4 text-left border border-white/10">
+        <div className="space-y-12 pb-16">
+          <ScrollReveal>
+            <InvitationHero weddingData={weddingData} diseño={diseño} />
+          </ScrollReveal>
+
+          <ScrollReveal>
+            <EventTimeline weddingData={weddingData} diseño={diseño} />
+          </ScrollReveal>
+
+          <ScrollReveal>
+            {/* 👔 MODULO DE PALETA SUGERIDA (BURBUJAS FIJAS DE LOS NOVIOS) */}
+            <section className="py-8 px-4 max-w-sm mx-auto text-center font-sans">
+              <div className={`p-6 rounded-3xl border shadow-sm transition-colors duration-500 space-y-4 ${diseño.colorCard}`}>
                 <div className="space-y-1">
-                  <span className="text-[10px] bg-white/20 text-white font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono inline-block">Función Premium</span>
-                  <h4 className="font-serif text-lg font-light">Álbum Colectivo en Vivo 📸</h4>
-                  <p className="text-xs text-white/80 font-light leading-relaxed">Sube tus fotos directamente para el recuerdo de los novios.</p>
+                  <span className="text-[10px] uppercase tracking-wider font-bold block text-stone-400">Paleta Sugerida para Invitados</span>
+                  <p className="text-[10px] opacity-50 font-light">Toca un color para descubrir el tono exacto o copiarlo:</p>
                 </div>
-                <a href={`https://tugrandia.icu/${weddingData.slug}/compartir`} className="w-full bg-white text-[#4a3f35] font-bold text-center py-3 rounded-xl block text-xs uppercase tracking-wider shadow-md hover:bg-stone-50 transition-colors">📤 Subir Fotos</a>
+
+                <div className="flex justify-center items-center gap-2">
+                  {burbujasEvento.map((color, i) => (
+                    <button 
+                      key={i} 
+                      type="button"
+                      style={{ backgroundColor: color.hex }} 
+                      onClick={() => copiarColorHex(color.hex)}
+                      className={`w-8 h-8 rounded-full shadow-xs border-2 hover:scale-110 transition-all cursor-pointer ${colorSeleccionado === color.hex ? 'border-stone-950 scale-105' : 'border-white'}`}
+                    />
+                  ))}
+                </div>
+
+                <div className="h-8 flex items-center justify-center">
+                  {colorSeleccionado ? (
+                    <p className={`text-[11px] font-mono font-medium animate-fadeIn ${diseño.textAcento}`}>
+                      {burbujasEvento.find(c => c.hex === colorSeleccionado)?.n} ({colorSeleccionado}) 
+                      {mensajeCopiado && <span className="text-emerald-600 ml-1.5 font-sans font-bold">¡Copiado! 📋</span>}
+                    </p>
+                  ) : (
+                    <p className="text-[11px] italic opacity-60 font-light">"{weddingData.paletaColores || "Tonos sugeridos para el evento"}"</p>
+                  )}
+                </div>
               </div>
             </section>
-          )}
+          </ScrollReveal>
+          
+          <ScrollReveal>
+            <PhotoGallery weddingData={weddingData} images={weddingData?.galleryImages || []} diseño={diseño} />
+          </ScrollReveal>
+          
+          <ScrollReveal>
+            {weddingData.album_compartido_activo && (
+              <section className="max-w-md mx-auto px-6 py-6 text-center font-sans">
+                <div className="bg-gradient-to-br from-[#9a7b5c] to-[#7a5c43] text-white p-6 rounded-3xl shadow-xl space-y-4 text-left border border-white/10">
+                  <div className="space-y-1">
+                    <span className="text-[10px] bg-white/20 text-white font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono inline-block">Función Premium</span>
+                    <h4 className="font-serif text-lg font-light">Álbum Colectivo en Vivo 📸</h4>
+                    <p className="text-xs text-white/80 font-light leading-relaxed">Sube tus fotos directamente para el recuerdo de los novios.</p>
+                  </div>
+                  <a href={`https://tugrandia.icu/${weddingData.slug}/compartir`} className="w-full bg-white text-[#4a3f35] font-bold text-center py-3 rounded-xl block text-xs uppercase tracking-wider shadow-md hover:bg-stone-50 transition-colors">📤 Subir Fotos</a>
+                </div>
+              </section>
+            )}
+          </ScrollReveal>
 
-          <GiftRegistry weddingData={weddingData} diseño={diseño} />
-          <QuoteBanner weddingData={weddingData} diseño={diseño} />
-          <RsvpModule weddingId={weddingData.id} weddingSlug={weddingData.slug} diseño={diseño} />
-        </>
+          <ScrollReveal>
+            <GiftRegistry weddingData={weddingData} diseño={diseño} />
+          </ScrollReveal>
+
+          <ScrollReveal>
+            <QuoteBanner weddingData={weddingData} diseño={diseño} />
+          </ScrollReveal>
+
+          <ScrollReveal>
+            <RsvpModule weddingId={weddingData.id} weddingSlug={weddingData.slug} diseño={diseño} />
+          </ScrollReveal>
+        </div>
       )}
 
       <footer className="text-center py-12 bg-[#121214] text-zinc-500 text-xs select-none font-sans">
