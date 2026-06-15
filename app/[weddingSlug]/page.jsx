@@ -20,10 +20,10 @@ export default function WeddingInvitationPage() {
 
   const [weddingData, setWeddingData] = useState(null);
   const [cargando, setCargando] = useState(true);
-  const [menuDemosAbierto, setMenuDemosAbierto] = useState(false);
+  const [categoriaAbierta, setCategoriaAbierta] = useState(null); // 📂 Controla qué dropdown de evento está desplegado
   const [musicaSonando, setMusicaSonando] = useState(false);
 
-  // 🎨 ESTADOS DE DISEÑO INTERACTIVO EN VIVO (BARRA DE HERRAMIENTAS)
+  // 🎨 ESTADOS DE DISEÑO INTERACTIVO EN VIVO (BARRA DE HERRAMIENTAS FLOTANTE)
   const [paletaActiva, setPaletaActiva] = useState('oro');       
   const [fuenteActiva, setFuenteActiva] = useState('serif');     
   const [colorSeleccionado, setColorSeleccionado] = useState(null);
@@ -36,7 +36,7 @@ export default function WeddingInvitationPage() {
 
   const audioRef = useRef(null);
 
-  // 📋 EL NUEVO MAPA DE 25 DEMOS: 1 DISEÑO POR CATEGORÍA EXPUESTO EN SUS 5 COLORES REALES
+  // 📋 ESTRUCTURA DE 25 DEMOS EN VIVO DISTRIBUIDAS POR BLOQUE DE COLOR
   const catalogo25Demos = {
     'Bodas 💍': [
       { slug: 'demo-boda-tradicional', nombre: '✨ Gala Oro Tradicional' },
@@ -55,7 +55,7 @@ export default function WeddingInvitationPage() {
     'Boda Civil 🥂': [
       { slug: 'demo-civil-brunch', nombre: '✨ Gala Oro Tradicional' },
       { slug: 'demo-civil-minimal', nombre: '🪙 Titanium Minimal' },
-      { slug: 'demo-civil-garden', node: 'olivo', nombre: '🍃 Verde Olivo Silvestre' },
+      { slug: 'demo-civil-garden', nombre: '🍃 Verde Olivo Silvestre' },
       { slug: 'demo-civil-sunset', nombre: '🌿 Terracota Orgánico' },
       { slug: 'demo-civil-urban', nombre: '🌌 Midnight Navy' }
     ],
@@ -119,7 +119,6 @@ export default function WeddingInvitationPage() {
           paletaColores: data.paleta_colores,
         });
 
-        // Autodetectar paleta en caliente al cargar el registro para hacer match inmediato
         if (data.template_id === 'minimal-dark') setPaletaActiva('dark');
         else if (data.template_id === 'boho-rancho') setPaletaActiva('boho');
         else setPaletaActiva('oro');
@@ -191,59 +190,66 @@ export default function WeddingInvitationPage() {
   }
 
   return (
-    <main className={`min-h-screen overflow-x-hidden transition-all duration-500 relative ${diseño.bgGlobal} ${claseFuente} pt-20`}>
+    <main className={`min-h-screen overflow-x-hidden transition-all duration-500 relative ${diseño.bgGlobal} ${claseFuente} pt-32 md:pt-20`}>
       
       {weddingData?.musicUrl && <audio ref={audioRef} src={weddingData.musicUrl} loop />}
 
-      {/* 🧭 HEADER EXPANSIVO: UN MUESTRARIO MASIVO, ESPACIADO Y ORGANIZADO POR COLORES */}
+      {/* 🧭 HEADER PREMIUM: BLOQUES INDEPENDIENTES DESPLEGABLES POR TIPO DE EVENTO */}
       {esModoDemo && (
-        <header className="fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-md border-b border-stone-200/80 px-4 md:px-8 flex items-center justify-between z-[200] shadow-xs font-sans">
-          <a href="https://clickypapel.com" className="flex items-center gap-1 group select-none">
+        <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md border-b border-stone-200/80 px-4 md:px-8 py-3 flex flex-col lg:flex-row items-center justify-between gap-4 z-[200] shadow-xs font-sans">
+          
+          {/* LOGO NEUTRAL */}
+          <a href="https://clickypapel.com" className="flex items-center gap-1 group select-none shrink-0">
             <span className="font-serif text-base tracking-wider font-light text-stone-900 group-hover:text-amber-700 transition-colors">
               clicky<span className="font-normal text-amber-600">papel</span>.com
             </span>
           </a>
 
-          {/* 📖 El Muestrario de Demos "Más Separado" y Redefinido */}
-          <div className="relative">
-            <button 
-              type="button"
-              onClick={() => setMenuDemosAbierto(!menuDemosAbierto)}
-              className="text-xs font-bold text-stone-700 hover:text-stone-950 bg-stone-100 px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-2xs border border-stone-200/40"
-            >
-              📖 Catálogo de Muestras <span className="text-[10px] opacity-60">{menuDemosAbierto ? '▲' : '▼'}</span>
-            </button>
+          {/* MENÚ CENTRAL CON BLOQUES SEPARADOS POR CATEGORÍA */}
+          <nav className="flex items-center gap-1 overflow-x-auto max-w-full no-scrollbar py-1 shrink-0 px-2">
+            {Object.keys(catalogo25Demos).map((categoria) => {
+              const estaAbierto = categoriaAbierta === categoria;
+              return (
+                <div key={categoria} className="relative shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setCategoriaAbierta(estaAbierto ? null : categoria)}
+                    className={`text-[11px] font-black tracking-wider uppercase px-3 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1 select-none ${
+                      estaAbierto 
+                        ? 'bg-stone-950 text-white shadow-xs' 
+                        : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
+                    }`}
+                  >
+                    {categoria} <span className="text-[9px] opacity-40">{estaAbierto ? '▲' : '▼'}</span>
+                  </button>
 
-            {menuDemosAbierto && (
-              <div className="absolute top-13 left-1/2 -translate-x-1/2 w-[92vw] md:w-[840px] bg-white border border-stone-200/90 rounded-3xl shadow-2xl p-6 md:p-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 z-[210] max-h-[520px] overflow-y-auto animate-fadeIn">
-                {Object.keys(catalogo25Demos).map((categoria) => (
-                  <div key={categoria} className="space-y-3.5 bg-stone-50/40 p-4 rounded-2xl border border-stone-100">
-                    <span className="text-[11px] font-black uppercase tracking-widest text-amber-700 block border-b pb-1.5 border-stone-200/60 select-none">
-                      {categoria}
-                    </span>
-                    <div className="space-y-1">
+                  {/* Dropdown específico de este bloque de evento */}
+                  {estaAbierto && (
+                    <div className="absolute top-11 left-1/2 -translate-x-1/2 w-48 bg-white border border-stone-200/90 rounded-2xl shadow-xl p-1.5 space-y-0.5 z-[210] animate-fadeIn">
                       {catalogo25Demos[categoria].map((demo) => (
                         <a 
                           key={demo.slug}
                           href={`/${demo.slug}?demo=true`} 
-                          className={`block text-left text-[11px] px-2.5 py-2 rounded-xl font-medium transition-all ${
+                          className={`block text-left text-[11px] px-3 py-2 rounded-xl font-semibold transition-all ${
                             slug === demo.slug 
-                              ? 'bg-stone-950 text-white font-bold shadow-sm' 
-                              : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
+                              ? 'bg-amber-50 text-amber-900 font-bold border-l-2 border-amber-600' 
+                              : 'text-stone-600 hover:bg-stone-50 hover:text-stone-950'
                           }`}
+                          onClick={() => setCategoriaAbierta(null)}
                         >
                           {demo.nombre}
                         </a>
                       ))}
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  )}
+                </div>
+              );
+            })}
+          </nav>
 
-          <button type="button" onClick={() => setModalContratarAbierto(true)} className="bg-stone-950 hover:bg-amber-700 text-white text-[11px] uppercase tracking-widest font-bold px-5 py-2.5 rounded-xl transition-all shadow-md block whitespace-nowrap cursor-pointer">
-            ✨ Crear mi cuenta ➔
+          {/* BOTÓN CONTRATACIÓN */}
+          <button type="button" onClick={() => setModalContratarAbierto(true)} className="bg-stone-950 hover:bg-amber-700 text-white text-[11px] uppercase tracking-widest font-bold px-5 py-2.5 rounded-xl transition-all shadow-md shrink-0 cursor-pointer">
+            ✨ Quiero esta invitación ➔
           </button>
         </header>
       )}
