@@ -24,8 +24,8 @@ export default function WeddingInvitationPage() {
   const [musicaSonando, setMusicaSonando] = useState(false);
 
   // 🎨 ESTADOS DE DISEÑO INTERACTIVO EN VIVO (BARRA DE HERRAMIENTAS FLOTANTE)
-  const [paletaActiva, setPaletaActiva] = useState('oro');       
-  const [fuenteActiva, setFuenteActiva] = useState('serif');     
+  const [paletaActiva, setPaletaActiva] = useState('oro');       // Controla el fondo y paleta global (1 de 5)
+  const [fuenteActiva, setFuenteActiva] = useState('serif');     // Controla la tipografía de herencia (1 de 5)
   const [colorSeleccionado, setColorSeleccionado] = useState(null);
   const [mensajeCopiado, setMensajeCopiado] = useState(false);
 
@@ -36,7 +36,7 @@ export default function WeddingInvitationPage() {
 
   const audioRef = useRef(null);
 
-  // 📋 ESTRUCTURA DE 25 DEMOS EN VIVO DISTRIBUIDAS POR BLOQUE DE COLOR
+  // 📋 ESTRUCTURA DE 25 DEMOS EN VIVO DISTRIBUIDAS POR BLOQUE DE EVENTO
   const catalogo25Demos = {
     'Bodas 💍': [
       { slug: 'demo-boda-tradicional', nombre: '✨ Gala Oro Tradicional' },
@@ -119,6 +119,7 @@ export default function WeddingInvitationPage() {
           paletaColores: data.paleta_colores,
         });
 
+        // Sincronización lógica inteligente inicial para la paleta base de la Demo activa
         if (data.template_id === 'minimal-dark') setPaletaActiva('dark');
         else if (data.template_id === 'boho-rancho') setPaletaActiva('boho');
         else setPaletaActiva('oro');
@@ -147,22 +148,52 @@ export default function WeddingInvitationPage() {
     setTimeout(() => setMensajeCopiado(false), 2000);
   };
 
-  // 🎨 CONFIGURACIÓN DE LAS 5 PALETAS DE COLOR DE LA BARRA FLOTANTE
+  // 🎨 CONFIGURACIÓN MAESTRA DE LAS 5 PALETAS DE COLOR (FONDOS, TARJETAS Y ACENTOS DEFINIDOS)
   const listadoPaletas = {
-    oro: { bgGlobal: 'bg-[#faf9f6] text-stone-800', colorCard: 'bg-white border-stone-200/60', textAcento: 'text-amber-800', btn: 'bg-amber-700 hover:bg-amber-800 text-white', burbujas: [{hex:'#78350f', n:'Miel'}, {hex:'#b45309', n:'Ámbar'}, {hex:'#f59e0b', n:'Oro Satinado'}, {hex:'#fef3c7', n:'Marfil'}] },
-    esmeralda: { bgGlobal: 'bg-[#f4f6f4] text-stone-800', colorCard: 'bg-white border-emerald-900/10', textAcento: 'text-emerald-800', btn: 'bg-emerald-800 hover:bg-emerald-950 text-white', burbujas: [{hex:'#064e3b', n:'Imperial'}, {hex:'#115e59', n:'Teal'}, {hex:'#15803d', n:'Olivo'}, {hex:'#ccfbf1', n:'Menta'}] },
-    rose: { bgGlobal: 'bg-[#fdfbfb] text-stone-800', colorCard: 'bg-white border-rose-900/10', textAcento: 'text-rose-700', btn: 'bg-rose-700 hover:bg-rose-800 text-white', burbujas: [{hex:'#4c0519', n:'Vino'}, {hex:'#9d174d', n:'Rosa Viejo'}, {hex:'#fbcfe8', n:'Blush'}, {hex:'#fff1f2', n:'Rosado'}] },
-    dark: { bgGlobal: 'bg-zinc-950 text-zinc-200 selection:bg-zinc-800', colorCard: 'bg-zinc-900/40 border-zinc-800 text-zinc-300', textAcento: 'text-white', btn: 'bg-white text-zinc-950 hover:bg-zinc-200', burbujas: [{hex:'#18181b', n:'Charcoal'}, {hex:'#3f3f46', n:'Matte'}, {hex:'#71717a', n:'Smoky'}, {hex:'#a1a1aa', n:'Plata'}] },
-    boho: { bgGlobal: 'bg-[#f4efe6] text-amber-950', colorCard: 'bg-[#faf7f2] border-amber-900/10', textAcento: 'text-amber-900', btn: 'bg-amber-900 text-white hover:bg-amber-950', burbujas: [{hex:'#8c6239', n:'Terracota'}, {hex:'#bf9b7a', n:'Arena'}, {hex:'#dfd3c3', n:'Lino'}, {hex:'#7d8a7c', n:'Salvia'}] }
+    oro: { 
+      bgGlobal: 'bg-[#faf9f6] text-stone-800 selection:bg-amber-100', 
+      colorCard: 'bg-white border-stone-200/70 shadow-2xs', 
+      textAcento: 'text-amber-800 font-semibold', 
+      btn: 'bg-amber-700 hover:bg-amber-800 text-white shadow-sm transition-all', 
+      burbujas: [{hex:'#78350f', n:'Miel'}, {hex:'#b45309', n:'Ámbar'}, {hex:'#f59e0b', n:'Oro Satinado'}, {hex:'#fef3c7', n:'Marfil'}] 
+    },
+    esmeralda: { 
+      bgGlobal: 'bg-[#f4f6f4] text-stone-800 selection:bg-emerald-100', 
+      colorCard: 'bg-white border-emerald-900/10 shadow-2xs', 
+      textAcento: 'text-emerald-800 font-semibold', 
+      btn: 'bg-emerald-800 hover:bg-emerald-950 text-white shadow-sm transition-all', 
+      burbujas: [{hex:'#064e3b', n:'Imperial'}, {hex:'#115e59', n:'Teal'}, {hex:'#15803d', n:'Olivo'}, {hex:'#ccfbf1', n:'Menta'}] 
+    },
+    rose: { 
+      bgGlobal: 'bg-[#fdfbfb] text-stone-800 selection:bg-rose-100', 
+      colorCard: 'bg-white border-rose-900/10 shadow-2xs', 
+      textAcento: 'text-rose-700 font-semibold', 
+      btn: 'bg-rose-700 hover:bg-rose-800 text-white shadow-sm transition-all', 
+      burbujas: [{hex:'#4c0519', n:'Vino'}, {hex:'#9d174d', n:'Rosa Viejo'}, {hex:'#fbcfe8', n:'Blush'}, {hex:'#fff1f2', n:'Rosado'}] 
+    },
+    dark: { 
+      bgGlobal: 'bg-zinc-950 text-zinc-100 selection:bg-zinc-800', 
+      colorCard: 'bg-zinc-900/40 border-zinc-800/80 backdrop-blur-xs text-zinc-300', 
+      textAcento: 'text-white font-bold tracking-wider', 
+      btn: 'bg-white text-zinc-950 hover:bg-zinc-200 shadow-sm transition-all', 
+      burbujas: [{hex:'#18181b', n:'Charcoal'}, {hex:'#3f3f46', n:'Matte'}, {hex:'#71717a', n:'Smoky'}, {hex:'#a1a1aa', n:'Plata'}] 
+    },
+    boho: { 
+      bgGlobal: 'bg-[#f4efe6] text-amber-950 selection:bg-amber-900/10', 
+      colorCard: 'bg-[#faf7f2] border-amber-900/15 shadow-2xs', 
+      textAcento: 'text-amber-900 font-semibold', 
+      btn: 'bg-amber-900 text-white hover:bg-amber-950 shadow-sm transition-all', 
+      burbujas: [{hex:'#8c6239', n:'Terracota'}, {hex:'#bf9b7a', n:'Arena'}, {hex:'#dfd3c3', n:'Lino'}, {hex:'#7d8a7c', n:'Salvia'}] 
+    }
   };
 
-  // 🔤 CONFIGURACIÓN DE LAS 5 TIPOGRAFÍAS DE LA BARRA FLOTANTE
+  // 🔤 CONFIGURACIÓN MAESTRA DE LAS 5 TIPOGRAFÍAS DE ALTA GAMA DEFINIDAS
   const listadoFuentes = {
-    serif: 'font-serif tracking-normal',             
-    sans: 'font-sans tracking-wide antialiased',     
-    mono: 'font-mono tracking-tight text-xs',        
-    cursive: 'font-serif italic tracking-wide',      
-    display: 'font-sans uppercase tracking-widest'   
+    serif: 'font-serif tracking-normal antialiased leading-relaxed',               // Classic Romance (Gala Editorial)
+    sans: 'font-sans tracking-wide antialiased font-light leading-normal',         // Modern Clean (Minimalista Técnico)
+    mono: 'font-mono tracking-tight text-xs antialiased font-medium',              // Avant-Garde (Contemporáneo Industrial)
+    cursive: 'font-serif italic tracking-wide antialiased font-light',             // Romance Script (Poético / Elegante)
+    display: 'font-sans uppercase tracking-widest antialiased font-light text-sm'  // Minimal Bold (Alta Moda / Pasarela)
   };
 
   const diseño = listadoPaletas[paletaActiva] || listadoPaletas.oro;
@@ -198,14 +229,14 @@ export default function WeddingInvitationPage() {
       {esModoDemo && (
         <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md border-b border-stone-200/80 px-4 md:px-8 py-3 flex flex-col lg:flex-row items-center justify-between gap-4 z-[200] shadow-xs font-sans">
           
-          {/* LOGO NEUTRAL */}
+          {/* LOGO NEUTRAL COMERCIAL */}
           <a href="https://clickypapel.com" className="flex items-center gap-1 group select-none shrink-0">
             <span className="font-serif text-base tracking-wider font-light text-stone-900 group-hover:text-amber-700 transition-colors">
               clicky<span className="font-normal text-amber-600">papel</span>.com
             </span>
           </a>
 
-          {/* MENÚ CENTRAL CON BLOQUES SEPARADOS POR CATEGORÍA */}
+          {/* MENÚ CENTRAL CON BLOQUES SEPARADOS POR CATEGORÍA DE EVENTO */}
           <nav className="flex items-center gap-1 overflow-x-auto max-w-full no-scrollbar py-1 shrink-0 px-2">
             {Object.keys(catalogo25Demos).map((categoria) => {
               const estaAbierto = categoriaAbierta === categoria;
@@ -223,7 +254,7 @@ export default function WeddingInvitationPage() {
                     {categoria} <span className="text-[9px] opacity-40">{estaAbierto ? '▲' : '▼'}</span>
                   </button>
 
-                  {/* Dropdown específico de este bloque de evento */}
+                  {/* Dropdown flotante específico de la categoría seleccionada */}
                   {estaAbierto && (
                     <div className="absolute top-11 left-1/2 -translate-x-1/2 w-48 bg-white border border-stone-200/90 rounded-2xl shadow-xl p-1.5 space-y-0.5 z-[210] animate-fadeIn">
                       {catalogo25Demos[categoria].map((demo) => (
@@ -247,14 +278,14 @@ export default function WeddingInvitationPage() {
             })}
           </nav>
 
-          {/* BOTÓN CONTRATACIÓN */}
+          {/* BOTÓN CONTRATACIÓN ADAPTATIVO */}
           <button type="button" onClick={() => setModalContratarAbierto(true)} className="bg-stone-950 hover:bg-amber-700 text-white text-[11px] uppercase tracking-widest font-bold px-5 py-2.5 rounded-xl transition-all shadow-md shrink-0 cursor-pointer">
             ✨ Quiero esta invitación ➔
           </button>
         </header>
       )}
 
-      {/* 🔮 BARRA FLOTANTE INTERACTIVA DE ESTILOS */}
+      {/* 🔮 BARRA FLOTANTE INTERACTIVA DE ESTILOS: CAMBIO DE PALETAS (5) Y TIPOGRAFÍAS (5) EN TIEMPO REAL */}
       <div className="fixed bottom-6 right-6 z-[100] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-stone-200/80 max-w-xs w-64 space-y-3.5 text-left text-stone-800 font-sans">
         <div>
           <span className="text-[9px] bg-amber-100 text-amber-900 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Diseño en tiempo real</span>
@@ -329,7 +360,7 @@ export default function WeddingInvitationPage() {
                 <span className="text-[9px] uppercase tracking-wider text-stone-400 block font-semibold">Total:</span>
                 <span className="text-xl font-mono font-black text-stone-900">${precioTotal.toLocaleString('es-MX')} MXN</span>
               </div>
-              <button type="button" onClick={handleProcederAlPago} className="bg-stone-950 hover:bg-amber-700 text-white text-xs uppercase font-bold tracking-wider px-6 py-3.5 rounded-xl shadow-md cursor-pointer">Proceder ➔</button>
+              <button type="button" onClick={handleProceederAlPago} className="bg-stone-950 hover:bg-amber-700 text-white text-xs uppercase font-bold tracking-wider px-6 py-3.5 rounded-xl shadow-md cursor-pointer">Proceder ➔</button>
             </div>
           </div>
         </div>
