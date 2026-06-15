@@ -21,7 +21,7 @@ export default function WeddingInvitationPage() {
   const [categoriaAbierta, setCategoriaAbierta] = useState(null); 
   const [musicaSonando, setMusicaSonando] = useState(false);
 
-  // 🎨 ESTADOS DE DISEÑO INTERACTIVO (Cambia la UI de la web)
+  // 🎨 ESTADOS DE DISEÑO INTERACTIVO (Las 5 Tendencias Potenciadas)
   const [paletaActiva, setPaletaActiva] = useState('cashmere');       
   const [fuenteActiva, setFuenteActiva] = useState('serif');     
 
@@ -102,7 +102,6 @@ export default function WeddingInvitationPage() {
           paletaColores: data.paleta_colores,
         });
 
-        // Autodetectar el tema tendencia al cargar
         if (data.template_id === 'minimal-dark') setPaletaActiva('obsidian');
         else if (data.template_id === 'boho-rancho') setPaletaActiva('terracota');
         else setPaletaActiva('cashmere');
@@ -121,37 +120,37 @@ export default function WeddingInvitationPage() {
     }
   };
 
-  // 🎨 CONFIGURACIÓN DE LAS 5 TENDENCIAS DE INTERFAZ 2026
+  // 🎨 CONFIGURACIÓN DE LAS 5 TENDENCIAS 2026 (MÁS NOTORIAS Y RICAS EN CONTRASTE)
   const listadoPaletas = {
     cashmere: { 
-      bgGlobal: 'bg-[#fcfaf8] text-[#3d3733] selection:bg-[#eaddd7]', 
-      colorCard: 'bg-white border-stone-200/50 shadow-sm', 
-      textAcento: 'text-[#8a7968] font-bold tracking-wide', 
-      btn: 'bg-[#8a7968] hover:bg-[#736456] text-white shadow-sm transition-all' 
+      bgGlobal: 'bg-[#f5f0ea] text-[#4a3f35] selection:bg-[#e3d5c8]', 
+      colorCard: 'bg-white/90 border-[#e3d5c8] shadow-md', 
+      textAcento: 'text-[#9a7b5c] font-bold tracking-wide', 
+      btn: 'bg-[#9a7b5c] hover:bg-[#7a5c43] text-white shadow-md transition-all' 
     },
     matcha: { 
-      bgGlobal: 'bg-[#f4f6f0] text-[#2c3d30] selection:bg-[#dbe4d4]', 
-      colorCard: 'bg-white border-[#cbd5c0]/50 shadow-sm', 
-      textAcento: 'text-[#4a6b4e] font-bold tracking-wide', 
-      btn: 'bg-[#4a6b4e] hover:bg-[#365039] text-white shadow-sm transition-all' 
+      bgGlobal: 'bg-[#eef2eb] text-[#1f3022] selection:bg-[#c9d6c3]', 
+      colorCard: 'bg-white/90 border-[#c9d6c3] shadow-md', 
+      textAcento: 'text-[#3f6345] font-bold tracking-wide', 
+      btn: 'bg-[#3f6345] hover:bg-[#2c4731] text-white shadow-md transition-all' 
     },
     terracota: { 
-      bgGlobal: 'bg-[#fdf8f5] text-[#5c3a21] selection:bg-[#f6e1d5]', 
-      colorCard: 'bg-white border-[#f0ddd1]/70 shadow-sm', 
-      textAcento: 'text-[#d97757] font-bold tracking-wide', 
-      btn: 'bg-[#d97757] hover:bg-[#bd6345] text-white shadow-sm transition-all' 
+      bgGlobal: 'bg-[#fbf1ea] text-[#5c2a1a] selection:bg-[#f0d4c3]', 
+      colorCard: 'bg-white/90 border-[#f0d4c3] shadow-md', 
+      textAcento: 'text-[#c85a3a] font-bold tracking-wide', 
+      btn: 'bg-[#c85a3a] hover:bg-[#a14328] text-white shadow-md transition-all' 
     },
     celestial: { 
-      bgGlobal: 'bg-[#f5f7fa] text-[#2c3e50] selection:bg-[#dce3ea]', 
-      colorCard: 'bg-white border-[#dbe1e8]/70 shadow-sm', 
-      textAcento: 'text-[#5d7b9d] font-bold tracking-wide', 
-      btn: 'bg-[#5d7b9d] hover:bg-[#4a6583] text-white shadow-sm transition-all' 
+      bgGlobal: 'bg-[#eef2f6] text-[#1e3246] selection:bg-[#c6d4e1]', 
+      colorCard: 'bg-white/90 border-[#c6d4e1] shadow-md', 
+      textAcento: 'text-[#466a8e] font-bold tracking-wide', 
+      btn: 'bg-[#466a8e] hover:bg-[#324f6e] text-white shadow-md transition-all' 
     },
     obsidian: { 
-      bgGlobal: 'bg-zinc-950 text-zinc-200 selection:bg-zinc-800', 
-      colorCard: 'bg-zinc-900/60 border-zinc-700/50 backdrop-blur-md', 
-      textAcento: 'text-zinc-300 font-bold tracking-wider', 
-      btn: 'bg-zinc-200 hover:bg-white text-zinc-950 shadow-sm transition-all' 
+      bgGlobal: 'bg-[#121214] text-[#f4f4f5] selection:bg-[#3f3f46]', 
+      colorCard: 'bg-[#1e1e20] border-[#3f3f46] shadow-md', 
+      textAcento: 'text-[#d4d4d8] font-bold tracking-wider', 
+      btn: 'bg-[#f4f4f5] hover:bg-[#a1a1aa] text-[#121214] shadow-md transition-all' 
     }
   };
 
@@ -196,8 +195,8 @@ export default function WeddingInvitationPage() {
         <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md border-b border-stone-200/80 px-4 md:px-8 py-3 flex flex-col lg:flex-row items-center justify-between gap-4 z-[200] shadow-xs font-sans">
           
           <a href="https://clickypapel.com" className="flex items-center gap-1 group select-none shrink-0">
-            <span className="font-serif text-base tracking-wider font-light text-stone-900 group-hover:text-[#8a7968] transition-colors">
-              clicky<span className="font-normal text-[#8a7968]">papel</span>.com
+            <span className="font-serif text-base tracking-wider font-light text-stone-900 group-hover:text-[#9a7b5c] transition-colors">
+              clicky<span className="font-normal text-[#9a7b5c]">papel</span>.com
             </span>
           </a>
 
@@ -220,7 +219,7 @@ export default function WeddingInvitationPage() {
                         <a 
                           key={demo.slug}
                           href={`/${demo.slug}?demo=true`} 
-                          className={`block text-left text-[11px] px-3 py-2 rounded-xl font-semibold transition-all ${slug === demo.slug ? 'bg-stone-50 text-[#8a7968] font-bold border-l-2 border-[#8a7968]' : 'text-stone-600 hover:bg-stone-50 hover:text-stone-950'}`}
+                          className={`block text-left text-[11px] px-3 py-2 rounded-xl font-semibold transition-all ${slug === demo.slug ? 'bg-stone-50 text-[#9a7b5c] font-bold border-l-2 border-[#9a7b5c]' : 'text-stone-600 hover:bg-stone-50 hover:text-stone-950'}`}
                           onClick={() => setCategoriaAbierta(null)}
                         >
                           {demo.nombre}
@@ -233,7 +232,7 @@ export default function WeddingInvitationPage() {
             })}
           </nav>
 
-          <button type="button" onClick={() => setModalContratarAbierto(true)} className="bg-stone-950 hover:bg-[#8a7968] text-white text-[11px] uppercase tracking-widest font-bold px-5 py-2.5 rounded-xl transition-all shadow-md shrink-0 cursor-pointer">
+          <button type="button" onClick={() => setModalContratarAbierto(true)} className="bg-stone-950 hover:bg-[#9a7b5c] text-white text-[11px] uppercase tracking-widest font-bold px-5 py-2.5 rounded-xl transition-all shadow-md shrink-0 cursor-pointer">
             ✨ Quiero esta invitación ➔
           </button>
         </header>
@@ -242,7 +241,7 @@ export default function WeddingInvitationPage() {
       {/* 🔮 BARRA FLOTANTE INTERACTIVA DE TEMA */}
       <div className="fixed bottom-6 right-6 z-[100] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-stone-200/80 max-w-xs w-64 space-y-3.5 text-left text-stone-800 font-sans">
         <div>
-          <span className="text-[9px] bg-[#eaddd7] text-[#5c4f44] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Diseño de la App</span>
+          <span className="text-[9px] bg-[#e3d5c8] text-[#4a3f35] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Diseño de la App</span>
         </div>
 
         <div className="space-y-1">
@@ -288,7 +287,7 @@ export default function WeddingInvitationPage() {
           <div className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full border border-stone-200 shadow-2xl space-y-6 relative text-stone-800 text-left font-sans">
             <button type="button" onClick={() => setModalContratarAbierto(false)} className="absolute top-4 right-4 text-stone-400 hover:text-stone-700 font-bold text-xs bg-stone-100 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer">✕</button>
             <div className="space-y-1">
-              <span className="text-[10px] bg-[#eaddd7] text-[#5c4f44] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Alta Segura</span>
+              <span className="text-[10px] bg-[#e3d5c8] text-[#4a3f35] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Alta Segura</span>
               <h3 className="font-serif text-xl text-stone-950 font-medium">Configura tu Entorno</h3>
               <p className="text-stone-400 text-xs font-light">Se exportará la paleta <strong className="text-stone-700 capitalize">{paletaActiva}</strong> y tipografía <strong className="text-stone-700 capitalize">{fuenteActiva}</strong>.</p>
             </div>
@@ -296,9 +295,9 @@ export default function WeddingInvitationPage() {
             <div className="space-y-2">
               <div className="flex flex-col gap-2">
                 {['basicos', 'premium', 'vip'].map((p) => (
-                  <label key={p} className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${planSeleccionado === p ? 'border-[#8a7968] bg-[#fcfaf8]' : 'border-stone-100 bg-stone-50/50'}`}>
+                  <label key={p} className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${planSeleccionado === p ? 'border-[#9a7b5c] bg-[#f5f0ea]' : 'border-stone-100 bg-stone-50/50'}`}>
                     <div className="flex items-center gap-3">
-                      <input type="radio" name="modal_plan" checked={planSeleccionado === p} onChange={() => setPlanSeleccionado(p)} className="accent-[#8a7968]" />
+                      <input type="radio" name="modal_plan" checked={planSeleccionado === p} onChange={() => setPlanSeleccionado(p)} className="accent-[#9a7b5c]" />
                       <span className="text-xs font-semibold capitalize">{p === 'basicos' ? '💍 Plan Esencial' : p === 'vip' ? '👑 VIP Celestial' : '🌟 Gran Día Premium'}</span>
                     </div>
                     <span className="text-xs font-mono font-bold">${preciosPlanes[p]} MXN</span>
@@ -312,7 +311,7 @@ export default function WeddingInvitationPage() {
                 <span className="text-[9px] uppercase tracking-wider text-stone-400 block font-semibold">Total:</span>
                 <span className="text-xl font-mono font-black text-stone-900">${precioTotal.toLocaleString('es-MX')} MXN</span>
               </div>
-              <button type="button" onClick={handleProcederAlPago} className="bg-stone-950 hover:bg-[#8a7968] text-white text-xs uppercase font-bold tracking-wider px-6 py-3.5 rounded-xl shadow-md cursor-pointer">Proceder ➔</button>
+              <button type="button" onClick={handleProcederAlPago} className="bg-stone-950 hover:bg-[#9a7b5c] text-white text-xs uppercase font-bold tracking-wider px-6 py-3.5 rounded-xl shadow-md cursor-pointer">Proceder ➔</button>
             </div>
           </div>
         </div>
@@ -327,13 +326,13 @@ export default function WeddingInvitationPage() {
           
           {weddingData.album_compartido_activo && (
             <section className="max-w-md mx-auto px-6 py-6 text-center font-sans">
-              <div className="bg-gradient-to-br from-[#8a7968] to-[#5c4f44] text-white p-6 rounded-3xl shadow-xl space-y-4 text-left border border-white/10">
+              <div className="bg-gradient-to-br from-[#9a7b5c] to-[#7a5c43] text-white p-6 rounded-3xl shadow-xl space-y-4 text-left border border-white/10">
                 <div className="space-y-1">
                   <span className="text-[10px] bg-white/20 text-white font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono inline-block">Función Premium</span>
                   <h4 className="font-serif text-lg font-light">Álbum Colectivo en Vivo 📸</h4>
-                  <p className="text-xs text-white/70 font-light leading-relaxed">Sube tus fotos directamente para el recuerdo de los novios.</p>
+                  <p className="text-xs text-white/80 font-light leading-relaxed">Sube tus fotos directamente para el recuerdo de los novios.</p>
                 </div>
-                <a href={`https://tugrandia.icu/${weddingData.slug}/compartir`} className="w-full bg-white text-[#5c4f44] font-bold text-center py-3 rounded-xl block text-xs uppercase tracking-wider shadow-md hover:bg-stone-50 transition-colors">📤 Subir Fotos</a>
+                <a href={`https://tugrandia.icu/${weddingData.slug}/compartir`} className="w-full bg-white text-[#4a3f35] font-bold text-center py-3 rounded-xl block text-xs uppercase tracking-wider shadow-md hover:bg-stone-50 transition-colors">📤 Subir Fotos</a>
               </div>
             </section>
           )}
@@ -344,8 +343,8 @@ export default function WeddingInvitationPage() {
         </>
       )}
 
-      <footer className="text-center py-12 bg-stone-900 text-stone-500 text-xs select-none font-sans">
-        Invitación digital premium creada en <span className="text-stone-300">clickypapel.com</span>
+      <footer className="text-center py-12 bg-[#121214] text-zinc-500 text-xs select-none font-sans">
+        Invitación digital premium creada en <span className="text-zinc-300">clickypapel.com</span>
       </footer>
     </main>
   );
