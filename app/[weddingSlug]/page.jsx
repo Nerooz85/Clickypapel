@@ -27,7 +27,7 @@ export default function WeddingInvitationPage() {
   const [colorSeleccionado, setColorSeleccionado] = useState(null);
   const [mensajeCopiado, setMensajeCopiado] = useState(false);
 
-  // Burbujas de ropa fijas (Elección de los novios, esto no cambia con la interfaz)
+  // Burbujas de ropa fijas (Elección de los novios)
   const [burbujasEvento, setBurbujasEvento] = useState([]);
 
   // 🛒 ESTADOS PARA EL MODAL DE CONTRATACIÓN
@@ -267,7 +267,7 @@ export default function WeddingInvitationPage() {
         </header>
       )}
 
-      {/* 🔮 BARRA FLOTANTE INTERACTIVA DE TEMA (Con Nombres e Iconos Actualizados) */}
+      {/* 🔮 BARRA FLOTANTE INTERACTIVA DE TEMA */}
       <div className="fixed bottom-6 right-6 z-[100] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-stone-200/80 max-w-xs w-64 space-y-3.5 text-left text-stone-800 font-sans">
         <div>
           <span className="text-[9px] bg-[#eaddd7] text-[#5c4f44] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Diseño de la App</span>
@@ -352,17 +352,12 @@ export default function WeddingInvitationPage() {
           <InvitationHero weddingData={weddingData} diseño={diseño} />
           <EventTimeline weddingData={weddingData} diseño={diseño} />
 
-          {/* 👔 MODULO CÓDIGO DE VESTIMENTA (BURBUJAS FIJAS DE LOS NOVIOS) */}
-          <section className="py-12 px-4 max-w-sm mx-auto text-center space-y-6 font-sans">
-            <div className="space-y-1">
-              <span className="text-[10px] uppercase tracking-widest font-bold block text-stone-400">Código de Vestimenta</span>
-              <p className="text-sm font-medium tracking-wide capitalize">✨ {weddingData.codigoVestimenta || "Formal / Gala"}</p>
-            </div>
-
+          {/* 👔 MODULO DE PALETA SUGERIDA (BURBUJAS FIJAS DE LOS NOVIOS) */}
+          <section className="py-8 px-4 max-w-sm mx-auto text-center font-sans">
             <div className={`p-6 rounded-3xl border shadow-sm transition-colors duration-500 space-y-4 ${diseño.colorCard}`}>
               <div className="space-y-1">
-                <span className="text-[9px] uppercase tracking-wider font-bold block text-stone-400">Paleta Sugerida (Elección de los anfitriones)</span>
-                <p className="text-[10px] opacity-50 font-light">Toca un color de ropa para descubrir su tono o copiarlo:</p>
+                <span className="text-[10px] uppercase tracking-wider font-bold block text-stone-400">Paleta Sugerida para Invitados</span>
+                <p className="text-[10px] opacity-50 font-light">Toca un color para descubrir el tono exacto o copiarlo:</p>
               </div>
 
               <div className="flex justify-center items-center gap-2">
