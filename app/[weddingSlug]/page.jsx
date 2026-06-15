@@ -92,16 +92,30 @@ export default function WeddingInvitationPage() {
       } else if (!data) {
         setWeddingData(null);
       } else {
+        // 🚀 AQUI ESTABA EL ERROR: Restauramos el mapeo exacto a camelCase para los componentes
         setWeddingData({
-          ...data,
+          id: data.id,
+          slug: data.slug,
+          groomName: data.groom_name,
+          brideName: data.bride_name,
           eventDate: data.event_date || "2026-12-19T18:00:00", 
           coverImage: data.cover_image || "https://images.unsplash.com/photo-1519741497674-611481863552", 
           galleryImages: data.gallery_images || [],
+          welcomePhrase: data.welcome_phrase,
+          ceremoniaHora: data.ceremonia_hora,
+          ceremoniaLugar: data.ceremonia_lugar,
+          ceremoniaMapsUrl: data.ceremonia_maps_url,
+          recepcionHora: data.recepcion_hora,
+          recepcionLugar: data.recepcion_lugar,
+          recepcionMapsUrl: data.recepcion_maps_url,
+          musicType: data.music_type || 'default',
           musicUrl: data.music_url || '/music/1-thousand-years.mp3',
+          albumCompartidoActivo: data.album_compartido_activo || false,
           codigoVestimenta: data.codigo_vestimenta,
           paletaColores: data.paleta_colores,
         });
 
+        // Autodetectar el tema tendencia al cargar
         if (data.template_id === 'minimal-dark') setPaletaActiva('obsidian');
         else if (data.template_id === 'boho-rancho') setPaletaActiva('terracota');
         else setPaletaActiva('cashmere');
@@ -324,7 +338,7 @@ export default function WeddingInvitationPage() {
           <EventTimeline weddingData={weddingData} diseño={diseño} />
           <PhotoGallery weddingData={weddingData} images={weddingData?.galleryImages || []} diseño={diseño} />
           
-          {weddingData.album_compartido_activo && (
+          {weddingData.albumCompartidoActivo && (
             <section className="max-w-md mx-auto px-6 py-6 text-center font-sans">
               <div className="bg-gradient-to-br from-[#9a7b5c] to-[#7a5c43] text-white p-6 rounded-3xl shadow-xl space-y-4 text-left border border-white/10">
                 <div className="space-y-1">
