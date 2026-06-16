@@ -1,6 +1,7 @@
 "use client";
 import { useState, Suspense } from 'react'; 
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link'; // ⬅️ Importamos Link para la navegación
 import { supabase } from '@/lib/supabase';
 
 function RegistroForm() {
@@ -12,7 +13,7 @@ function RegistroForm() {
   const template = searchParams.get('template') || 'v2'; 
   const musicaExtra = searchParams.get('musica') === 'custom';
 
-  // 🎭 ESTADO DINÁMICO DEL EVENTO (El secreto para vender a todos los nichos)
+  // 🎭 ESTADO DINÁMICO DEL EVENTO
   const [tipoEvento, setTipoEvento] = useState('boda');
 
   // 📝 Estados del Formulario
@@ -20,7 +21,6 @@ function RegistroForm() {
   const [password, setPassword] = useState('');
   const [slugDeseado, setSlugDeseado] = useState('');
   
-  // Usamos nombres genéricos en el estado para adaptarnos a cualquier evento
   const [nombrePrincipal, setNombrePrincipal] = useState('');
   const [nombreSecundario, setNombreSecundario] = useState('');
   const [registrando, setRegistrando] = useState(false);
@@ -31,7 +31,7 @@ function RegistroForm() {
   const precioMusica = musicaExtra ? 350 : 0;
   const precioTotal = precioBase + precioMusica;
 
-  // 📖 DICCIONARIO VISUAL: Cambia fotos y textos según el evento elegido
+  // 📖 DICCIONARIO VISUAL MULTI-NICHO ACTUALIZADO
   const configuracionEvento = {
     boda: {
       titulo: "Configura tu Boda",
@@ -64,6 +64,14 @@ function RegistroForm() {
       labels: ["Nombre del Festejado/a"],
       placeholders: ["Ej. Mateo"],
       slugEjemplo: "bautizo-mateo"
+    },
+    despedida: {
+      titulo: "Despedida de Soltera",
+      subtitulo: "El último gran festejo antes del 'Sí, acepto'.",
+      foto: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=1000&auto=format&fit=crop",
+      labels: ["Nombre de la Novia"],
+      placeholders: ["Ej. Mariana"],
+      slugEjemplo: "despedida-mariana"
     }
   };
 
@@ -91,8 +99,6 @@ function RegistroForm() {
         return alert(`⚠️ El enlace 'tugrandia.icu/${slugDeseado}' ya está ocupado. Por favor, intenta con otra combinación.`);
       }
 
-      // 🧠 TRUCO DE SAAS: Guardamos en las columnas existentes (bride_name/groom_name) 
-      // sin importar si es boda, XV o bautizo, para no romper la base de datos.
       const { error: errorBoda } = await supabase
         .from('bodas')
         .insert([{
@@ -101,8 +107,8 @@ function RegistroForm() {
           paleta_colores: paletaUrl,
           plan_tipo: plan,
           musica_extra: musicaExtra,
-          bride_name: nombrePrincipal.trim(), // Aquí entra la Novia, la Quinceañera o el Bebé
-          groom_name: nombreSecundario.trim(), // Aquí entra el Novio, los Padres, o queda vacío
+          bride_name: nombrePrincipal.trim(), 
+          groom_name: nombreSecundario.trim(), 
           music_url: musicaExtra ? '' : '/music/1-thousand-years.mp3'
         }]);
 
@@ -119,7 +125,7 @@ function RegistroForm() {
   };
 
   return (
-    <div className="min-h-screen flex w-full font-sans bg-white">
+    <div className="min-h-screen flex w-full font-sans bg-white relative">
       
       {/* 🖼️ LADO IZQUIERDO: EL LUJO VISUAL QUE CAMBIA SEGÚN EL EVENTO */}
       <div className="hidden lg:flex lg:w-5/12 relative bg-stone-900 items-center justify-center overflow-hidden transition-all duration-1000">
@@ -150,7 +156,18 @@ function RegistroForm() {
       </div>
 
       {/* 📝 LADO DERECHO: FORMULARIO MUTANTE */}
-      <div className="w-full lg:w-7/12 flex items-center justify-center p-6 md:p-12 overflow-y-auto">
+      <div className="w-full lg:w-7/12 flex flex-col items-center p-6 md:p-12 overflow-y-auto relative">
+        
+        {/* 🚪 BARRA DE NAVEGACIÓN "ESCAPE" SUTIL */}
+        <div className="w-full max-w-xl flex justify-end gap-4 mb-8 text-[10px] uppercase tracking-widest font-bold">
+          <Link href="/" className="text-stone-400 hover:text-stone-900 transition-colors py-2">
+            ← Volver al Inicio
+          </Link>
+          <Link href="/demo-boda-tradicional?demo=true" className="bg-[#f5f0ea] text-[#9a7b5c] hover:bg-[#e3d5c8] hover:text-[#7a5c43] px-4 py-2 rounded-full transition-colors">
+            Ver Catálogo
+          </Link>
+        </div>
+
         <div className="w-full max-w-xl space-y-8">
           
           <div className="space-y-2 text-center lg:text-left">
@@ -164,25 +181,26 @@ function RegistroForm() {
           {/* ✍️ FORMULARIO DE CAPTURA */}
           <form onSubmit={handleCrearCuentaYOrden} className="space-y-6">
             
-            {/* 1. SELECTOR DE EVENTO INTELIGENTE */}
+            {/* 1. SELECTOR DE EVENTO INTELIGENTE (Ahora con 5 opciones) */}
             <div className="space-y-2">
               <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">¿Qué vamos a celebrar?</label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              <div className="flex flex-wrap gap-2">
                 {[
                   { id: 'boda', icono: '💍', texto: 'Boda' },
                   { id: 'xvanos', icono: '👑', texto: 'XV Años' },
                   { id: 'baby', icono: '🍼', texto: 'Baby Shower' },
-                  { id: 'bautizo', icono: '🕊️', texto: 'Bautizo' }
+                  { id: 'bautizo', icono: '🕊️', texto: 'Bautizo' },
+                  { id: 'despedida', icono: '🥂', texto: 'Despedida' }
                 ].map((item) => (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => {
                       setTipoEvento(item.id);
-                      setNombrePrincipal(''); // Limpiamos campos al cambiar
+                      setNombrePrincipal(''); 
                       setNombreSecundario('');
                     }}
-                    className={`py-2.5 px-2 rounded-xl text-[11px] uppercase tracking-wider font-bold transition-all border cursor-pointer flex flex-col items-center gap-1 ${
+                    className={`flex-1 min-w-[90px] py-2.5 px-2 rounded-xl text-[10px] md:text-[11px] uppercase tracking-wider font-bold transition-all border cursor-pointer flex flex-col items-center gap-1 ${
                       tipoEvento === item.id ? 'bg-stone-900 text-white border-stone-900 shadow-md' : 'bg-white text-stone-500 border-stone-200 hover:bg-stone-50'
                     }`}
                   >
@@ -231,7 +249,7 @@ function RegistroForm() {
               </div>
             </div>
 
-            {/* 🧾 TARJETA RESUMEN (Pegada al botón de pago) */}
+            {/* 🧾 TARJETA RESUMEN */}
             <div className="bg-stone-50 p-5 rounded-2xl border border-stone-200/60 shadow-sm flex flex-row items-center justify-between gap-4 mt-8">
               <div className="space-y-1">
                 <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Plan Elegido</p>
