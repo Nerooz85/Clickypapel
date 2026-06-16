@@ -4,19 +4,20 @@ import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function NoviosDashboard() {
-  const weddingSlug = 'bruno-y-brisa'; // En producción, esto vendrá de la sesión o URL
+  const weddingSlug = 'bruno-y-brisa'; // En producción vendrá de la sesión
 
   // 🎛️ Estados de Control
   const [pasoActivo, setPasoActivo] = useState(2); 
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [subiendoIndex, setSubiendoIndex] = useState(null);
+  const [subiendoMusica, setSubiendoMusica] = useState(false);
 
-  // 🪙 Información de Compra
+  // 🪙 Información de Compra (Planes y Add-ons)
   const [planContratado, setPlanContratado] = useState('premium'); 
   const [tieneMusicaPersonalizada, setTieneMusicaPersonalizada] = useState(false); 
 
-  // 📸✨ ESTADOS ÁLBUM
+  // 📸✨ ESTADOS ÁLBUM COLECTIVO
   const [albumActivado, setAlbumActivado] = useState(false);
   const [codigoMesaUrl, setCodigoMesaUrl] = useState('');
   const [fotosDelEvento, setFotosDelEvento] = useState([]); 
@@ -41,11 +42,8 @@ export default function NoviosDashboard() {
   const [coverImage, setCoverImage] = useState(''); 
   const [musicUrl, setMusicUrl] = useState('/music/1-thousand-years.mp3');
   const [galeriaFotos, setGaleriaFotos] = useState(['', '', '', '', '', '']); 
-  
-  // 📍 ESTADOS CONDICIONALES PLANTILLA V2
   const [ceremoniaFoto, setCeremoniaFoto] = useState('');
   const [recepcionFoto, setRecepcionFoto] = useState('');
-
   const [cancionSonando, setCancionSonando] = useState(null);
   const audioPrevioRef = useRef(null);
 
@@ -70,7 +68,36 @@ export default function NoviosDashboard() {
     { id: '5', titulo: "Hasta Mi Final - Il Divo (Voz)", url: "/music/5-hasta-mi-final.mp3", bpm: "65 BPM" }
   ];
 
-  // ================= LÓGICA DE BASE DE DATOS =================
+  // ================= LÓGICA DE MULTIMEDIA Y UPGRADES =================
+
+  const manejarUpgrade = (tipo) => {
+    // Aquí conectarás con Stripe para cobrar el extra
+    const precio = tipo === 'musica' ? '$299 MXN' : '$599 MXN';
+    const producto = tipo === 'musica' ? 'Canción Personalizada' : 'Álbum Colectivo Premium';
+    alert(`🚀 Redirigiendo a pasarela de pago segura para agregar [${producto}] por ${precio}. Al pagar, la función se desbloqueará de inmediato.`);
+  };
+
+  const handleSubirMusica = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setSubiendoMusica(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${weddingSlug}-custom-music-${Date.now()}.${fileExt}`;
+      const filePath = `${weddingSlug}/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage.from('invitaciones-media').upload(filePath, file, { cacheControl: '3600', upsert: true });
+      if (uploadError) throw uploadError;
+      
+      const { data: { publicUrl } } = supabase.storage.from('invitaciones-media').getPublicUrl(filePath);
+      setMusicUrl(publicUrl);
+      alert("🎵 ¡Tu canción se ha subido y procesado con éxito!");
+    } catch (err) { 
+      alert("Error al cargar el archivo de audio."); 
+    } finally { 
+      setSubiendoMusica(false); 
+    }
+  };
 
   const escucharCancion = (url) => {
     if (audioPrevioRef.current) {
@@ -87,14 +114,14 @@ export default function NoviosDashboard() {
 
   const handleFotoChange = (index, value) => {
     const copias = [...galeriaFotos];
-    while(copias.length <= index) copias.push(''); // Asegura que el arreglo crezca si es plan VIP
+    while(copias.length <= index) copias.push(''); 
     copias[index] = value;
     setGaleriaFotos(copias);
   };
 
   const cargarFotosDelAlbumCompartido = async () => {
     try {
-      const { data, error } = await supabase.storage.from('invitaciones-media').list(`${weddingSlug}/album-fiesta/`, { limit: 20, order: { column: 'created_at', ascending: false } });
+      const { data, error } = await supabase.storage.from('invitaciones-media').list(`${weddingSlug}/album-fiesta/`, { limit: 50, order: { column: 'created_at', ascending: false } });
       if (data && !error) {
         const urlsPublicas = data.map(file => supabase.storage.from('invitaciones-media').getPublicUrl(`${weddingSlug}/album-fiesta/${file.name}`).data.publicUrl);
         setFotosDelEvento(urlsPublicas);
@@ -138,16 +165,19 @@ export default function NoviosDashboard() {
         setRecepcionLugar(bodaData.recepcion_lugar || ''); setRecepcionMaps(bodaData.recepcion_maps_url || '');
         setTemplateId(bodaData.template_id || 'v2'); setCoverImage(bodaData.cover_image || '');
         setMusicUrl(bodaData.music_url || '/music/1-thousand-years.mp3');
-        setPlanContratado(bodaData.plan_tipo || 'premium'); setTieneMusicaPersonalizada(bodaData.musica_extra || false);
+        setPlanContratado(bodaData.plan_tipo || 'premium'); 
+        setTieneMusicaPersonalizada(bodaData.musica_extra || false);
         setBanco(bodaData.banco || ''); setTitular(bodaData.titular || ''); setClabe(bodaData.clabe || '');
         setAmazonUrl(bodaData.amazon_url || ''); setLiverpoolUrl(bodaData.liverpool_url || '');
         setItinerarioMisa(bodaData.itinerario_misa || ''); setItinerarioFiesta(bodaData.itinerario_fiesta || '');
         setCodigoVestimentaText(bodaData.codigo_vestimenta || 'formal'); setPaletaColores(bodaData.paleta_colores || '');
+        
+        // 🔒 BLINDAJE DE URL PARA EL QR
+        setCodigoMesaUrl(`https://tugrandia.icu/${slugLimpio}/compartir`);
         setAlbumActivado(bodaData.album_compartido_activo || false);
         
         setCeremoniaFoto(bodaData.ceremonia_foto || '');
         setRecepcionFoto(bodaData.recepcion_foto || '');
-        setCodigoMesaUrl(`https://tugrandia.icu/${slugLimpio}/compartir`);
 
         if (bodaData.gallery_images) {
           const limite = bodaData.plan_tipo === 'basicos' ? 3 : bodaData.plan_tipo === 'vip' ? 12 : 6;
@@ -165,26 +195,19 @@ export default function NoviosDashboard() {
   useEffect(() => { cargarTodoElDashboard(); }, []);
 
   const toggleAlbumCompartido = async () => {
-    const nuevoEstado = !albumActivado; setAlbumActivado(nuevoEstado);
+    const nuevoEstado = !albumActivado; 
+    setAlbumActivado(nuevoEstado);
     try { await supabase.from('bodas').update({ album_compartido_activo: nuevoEstado }).eq('slug', weddingSlug); } catch (e) { console.error(e); }
   };
 
   const handleGuardarYContinuar = async () => {
     setGuardando(true);
-    try {
-      await supabase.from('bodas').update({ bride_name: brideName, groom_name: groomName, event_date: eventDate ? `${eventDate}T18:00:00` : null, ceremonia_lugar: ceremoniaLugar, ceremonia_maps_url: ceremoniaMaps, recepcion_lugar: recepcionLugar, recepcion_maps_url: recepcionMaps, template_id: templateId }).eq('slug', weddingSlug);
-      setPasoActivo(3); 
-    } catch (err) { alert("Error"); } finally { setGuardando(false); }
+    try { await supabase.from('bodas').update({ bride_name: brideName, groom_name: groomName, event_date: eventDate ? `${eventDate}T18:00:00` : null, ceremonia_lugar: ceremoniaLugar, ceremonia_maps_url: ceremoniaMaps, recepcion_lugar: recepcionLugar, recepcion_maps_url: recepcionMaps, template_id: templateId }).eq('slug', weddingSlug); setPasoActivo(3); } catch (err) { alert("Error"); } finally { setGuardando(false); }
   };
 
   const handleAgregarInvitado = async (e) => {
     e.preventDefault(); if (!nuevoNombre.trim()) return; setGuardando(true);
-    try {
-      await supabase.from('invitados').insert([{ boda_slug: weddingSlug, nombre_invitado: nuevoNombre.trim(), pases_totales: nuevosPases, pases_confirmados: 0, estado: 'pendiente' }]);
-      setNuevoNombre(''); setNuevosPases(2);
-      const { data } = await supabase.from('invitados').select('*').eq('boda_slug', weddingSlug).order('nombre_invitado', { ascending: true });
-      if (data) setInvitados(data);
-    } catch (err) { alert("Error"); } finally { setGuardando(false); }
+    try { await supabase.from('invitados').insert([{ boda_slug: weddingSlug, nombre_invitado: nuevoNombre.trim(), pases_totales: nuevosPases, pases_confirmados: 0, estado: 'pendiente' }]); setNuevoNombre(''); setNuevosPases(2); const { data } = await supabase.from('invitados').select('*').eq('boda_slug', weddingSlug).order('nombre_invitado', { ascending: true }); if (data) setInvitados(data); } catch (err) { alert("Error"); } finally { setGuardando(false); }
   };
 
   const handleEliminarInvitado = async (id) => {
@@ -209,18 +232,12 @@ export default function NoviosDashboard() {
 
   const handleGuardarPaso5 = async () => {
     setGuardando(true);
-    try {
-      await supabase.from('bodas').update({ banco: banco.trim(), titular: titular.trim(), clabe: clabe.trim(), amazon_url: amazonUrl.trim(), liverpool_url: liverpoolUrl.trim() }).eq('slug', weddingSlug);
-      setPasoActivo(6); 
-    } catch (err) { alert("Error"); } finally { setGuardando(false); }
+    try { await supabase.from('bodas').update({ banco: banco.trim(), titular: titular.trim(), clabe: clabe.trim(), amazon_url: amazonUrl.trim(), liverpool_url: liverpoolUrl.trim() }).eq('slug', weddingSlug); setPasoActivo(6); } catch (err) { alert("Error"); } finally { setGuardando(false); }
   };
 
   const handleGuardarPaso6 = async () => {
     setGuardando(true);
-    try {
-      await supabase.from('bodas').update({ itinerario_misa: itinerarioMisa.trim(), itinerario_fiesta: itinerarioFiesta.trim(), codigo_vestimenta: codigoVestimentaText, paleta_colores: paletaColores.trim() }).eq('slug', weddingSlug);
-      alert("✅ Configuración guardada y en línea.");
-    } catch (err) { alert("Error al guardar."); } finally { setGuardando(false); }
+    try { await supabase.from('bodas').update({ itinerario_misa: itinerarioMisa.trim(), itinerario_fiesta: itinerarioFiesta.trim(), codigo_vestimenta: codigoVestimentaText, paleta_colores: paletaColores.trim() }).eq('slug', weddingSlug); alert("✅ Configuración guardada y en línea."); } catch (err) { alert("Error al guardar."); } finally { setGuardando(false); }
   };
 
   // Cálculos dinámicos
@@ -229,7 +246,6 @@ export default function NoviosDashboard() {
   const totalConfirmados = invitados.reduce((acc, curr) => acc + (curr.pases_confirmados || 0), 0);
   const pendientes = invitados.filter(inv => inv.estado === 'pendiente').length;
 
-  // Lógica de Capacidad de Fotos según el Plan
   const maxFotosPermitidas = planContratado === 'basicos' ? 3 : planContratado === 'vip' ? 12 : 6;
   const fotosSubidasCount = galeriaFotos.filter(f => f && f.trim() !== '').length;
 
@@ -314,7 +330,7 @@ export default function NoviosDashboard() {
             <div className="flex items-center gap-2">
               <span className="text-[10px] uppercase font-bold tracking-widest text-stone-400">Plan actual:</span>
               <span className="text-[10px] bg-[#e3d5c8] text-[#7a5c43] px-3 py-1 rounded-full font-bold uppercase tracking-wider border border-[#d4c3b3]">
-                {planContratado}
+                {planContratado === 'basicos' ? '💍 Esencial' : planContratado === 'premium' ? '🌟 Premium' : '👑 VIP'}
               </span>
             </div>
           </div>
@@ -346,9 +362,7 @@ export default function NoviosDashboard() {
                       </select>
                     </div>
                   </div>
-
                   <hr className="border-stone-100" />
-                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Nombre de la Ceremonia</label>
@@ -367,7 +381,6 @@ export default function NoviosDashboard() {
                       <input type="text" value={recepcionMaps} onChange={(e) => setRecepcionMaps(e.target.value)} className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 font-mono text-stone-500 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
                     </div>
                   </div>
-
                   <div className="flex justify-end pt-4">
                     <button type="button" disabled={guardando} onClick={handleGuardarYContinuar} className="bg-stone-900 hover:bg-[#9a7b5c] text-white px-8 py-3.5 rounded-xl text-xs uppercase tracking-widest font-bold transition-all shadow-md cursor-pointer">
                       {guardando ? 'Guardando...' : 'Guardar y Continuar ➔'}
@@ -455,36 +468,57 @@ export default function NoviosDashboard() {
                 /* ---------------- PASO 4: MULTIMEDIA & AUDIO STUDIO ---------------- */
                 <div className="space-y-8">
                   
-                  {/* Álbum Premium */}
+                  {/* ✨ ÁLBUM PREMIUM BLINDADO Y UPSELL ✨ */}
                   <div className="bg-stone-950 text-white rounded-[2rem] p-8 border border-stone-800 shadow-2xl relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-[#9a7b5c]/20 blur-3xl rounded-full pointer-events-none transform translate-x-1/2 -translate-y-1/2"></div>
                     
-                    <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                      <div className="space-y-2 max-w-xl">
-                        <span className="text-[9px] bg-[#9a7b5c]/20 text-[#e3d5c8] border border-[#9a7b5c]/40 font-bold px-3 py-1 rounded-full uppercase tracking-widest font-mono">Alta Costura Funcional</span>
-                        <h3 className="font-serif text-3xl font-light">Álbum Colectivo en Vivo</h3>
-                        <p className="text-sm text-stone-400 font-light leading-relaxed">Coloca este código QR en las mesas de tu evento. Tus invitados escanearán y subirán sus fotos directamente a este carrete digital que quedará para la historia.</p>
+                    {planContratado === 'basicos' ? (
+                      // UPSELL PARA PLAN BÁSICO
+                      <div className="relative z-10 flex flex-col md:flex-row items-center text-center md:text-left gap-6">
+                        <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center text-4xl shrink-0">🔒</div>
+                        <div className="space-y-3">
+                          <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold px-3 py-1 rounded-full uppercase tracking-widest font-mono">Función Premium</span>
+                          <h3 className="font-serif text-3xl font-light">Álbum Colectivo Bloqueado</h3>
+                          <p className="text-sm text-stone-400 font-light leading-relaxed max-w-lg">
+                            Tu plan actual (Esencial) no incluye la cámara en vivo para tus invitados. Desbloquea esta función y permite que todos suban fotos de tu fiesta escaneando un QR.
+                          </p>
+                          <button type="button" onClick={() => manejarUpgrade('album')} className="mt-2 bg-amber-600 hover:bg-amber-500 text-white px-6 py-3 rounded-xl text-xs uppercase tracking-widest font-bold transition-all shadow-lg cursor-pointer">
+                            Desbloquear por $599 MXN
+                          </button>
+                        </div>
                       </div>
-                      <button type="button" onClick={toggleAlbumCompartido} className={`shrink-0 px-6 py-3 rounded-xl text-xs uppercase tracking-widest font-bold transition-all shadow-lg cursor-pointer border ${albumActivado ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-white text-stone-900 border-white hover:bg-stone-200'}`}>
-                        {albumActivado ? '✅ Función Activada' : 'Desbloquear Función'}
-                      </button>
-                    </div>
+                    ) : (
+                      // FUNCIONALIDAD ACTIVA PARA PREMIUM / VIP
+                      <div className="relative z-10">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                          <div className="space-y-2 max-w-xl">
+                            <span className="text-[9px] bg-[#9a7b5c]/20 text-[#e3d5c8] border border-[#9a7b5c]/40 font-bold px-3 py-1 rounded-full uppercase tracking-widest font-mono">Alta Costura Funcional</span>
+                            <h3 className="font-serif text-3xl font-light">Álbum Colectivo en Vivo</h3>
+                            <p className="text-sm text-stone-400 font-light leading-relaxed">Coloca este código QR en las mesas de tu evento. Tus invitados escanearán y subirán sus fotos directamente a este carrete digital que quedará para la historia.</p>
+                          </div>
+                          <button type="button" onClick={toggleAlbumCompartido} className={`shrink-0 px-6 py-3 rounded-xl text-xs uppercase tracking-widest font-bold transition-all shadow-lg cursor-pointer border ${albumActivado ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-white text-stone-900 border-white hover:bg-stone-200'}`}>
+                            {albumActivado ? '✅ Función Activada' : 'Activar Carrete'}
+                          </button>
+                        </div>
 
-                    {albumActivado && (
-                      <div className="mt-8 pt-8 border-t border-stone-800 flex flex-col md:flex-row gap-8 items-center md:items-start">
-                        <div className="bg-white p-3 rounded-2xl shadow-xl w-32 h-32 shrink-0">
-                           <img src={`https://chart.googleapis.com/chart?cht=qr&chs=120x120&chl=${codigoMesaUrl}`} alt="QR Mesas" className="w-full h-full" />
-                        </div>
-                        <div className="w-full">
-                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-4">Capturas del Evento ({fotosDelEvento.length})</h4>
-                          {fotosDelEvento.length === 0 ? (
-                            <div className="w-full h-24 border border-dashed border-stone-800 rounded-xl flex items-center justify-center text-xs text-stone-500 font-light">Esperando la primera foto de tus invitados...</div>
-                          ) : (
-                            <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
-                              {fotosDelEvento.map((url, i) => <div key={i} className="w-20 h-20 shrink-0 bg-stone-800 rounded-xl overflow-hidden border border-stone-700"><img src={url} className="w-full h-full object-cover" /></div>)}
+                        {albumActivado && (
+                          <div className="mt-8 pt-8 border-t border-stone-800 flex flex-col md:flex-row gap-8 items-center md:items-start">
+                            <div className="bg-white p-3 rounded-2xl shadow-xl w-32 h-32 shrink-0">
+                               {/* 🛡️ QR BLINDADO: Usamos encodeURIComponent para evitar que se rompa con caracteres raros */}
+                               <img src={`https://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=${encodeURIComponent(codigoMesaUrl)}`} alt="QR Mesas" className="w-full h-full" />
                             </div>
-                          )}
-                        </div>
+                            <div className="w-full">
+                              <h4 className="text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-4">Capturas del Evento ({fotosDelEvento.length})</h4>
+                              {fotosDelEvento.length === 0 ? (
+                                <div className="w-full h-24 border border-dashed border-stone-800 rounded-xl flex items-center justify-center text-xs text-stone-500 font-light">Esperando la primera foto de tus invitados...</div>
+                              ) : (
+                                <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
+                                  {fotosDelEvento.map((url, i) => <div key={i} className="w-20 h-20 shrink-0 bg-stone-800 rounded-xl overflow-hidden border border-stone-700"><img src={url} className="w-full h-full object-cover" /></div>)}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -531,11 +565,11 @@ export default function NoviosDashboard() {
                   )}
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Audio Studio */}
+                    {/* ✨ AUDIO STUDIO CON UPSELL DE MÚSICA ✨ */}
                     <div className="bg-white rounded-[2rem] p-8 border border-stone-100 shadow-sm space-y-6">
                       <div className="space-y-1">
                         <h3 className="font-serif text-2xl font-light text-stone-900">Diseño Sonoro</h3>
-                        <p className="text-xs font-light text-stone-500">Selecciona la pista de audio (Masterizada en Alta Resolución) que acompañará la lectura de tu invitación.</p>
+                        <p className="text-xs font-light text-stone-500">Selecciona la pista de audio que acompañará la lectura de tu invitación.</p>
                       </div>
                       
                       <div className="space-y-3">
@@ -553,6 +587,28 @@ export default function NoviosDashboard() {
                             <input type="radio" name="audioTrack" checked={musicUrl === track.url} onChange={() => setMusicUrl(track.url)} className="w-4 h-4 accent-[#9a7b5c] cursor-pointer" />
                           </div>
                         ))}
+                      </div>
+
+                      {/* ZONA DE CANCIÓN PERSONALIZADA ($299) */}
+                      <div className="mt-6 pt-6 border-t border-stone-100">
+                        {tieneMusicaPersonalizada ? (
+                          <div className="space-y-3">
+                            <label className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 block">✨ Tu Canción MP3 Personalizada</label>
+                            <label className="flex items-center justify-center w-full p-4 border-2 border-dashed border-[#9a7b5c] rounded-xl cursor-pointer hover:bg-[#faf9f6] transition-colors">
+                              <span className="text-xs font-bold text-[#9a7b5c] uppercase tracking-widest">
+                                {subiendoMusica ? 'Subiendo audio...' : '📤 Cargar archivo .mp3'}
+                              </span>
+                              <input type="file" accept="audio/mp3,audio/mpeg" onChange={handleSubirMusica} className="hidden" />
+                            </label>
+                          </div>
+                        ) : (
+                          <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 text-center space-y-3">
+                            <p className="text-xs text-stone-500 font-medium">¿Tienes una canción especial que significa mucho para ustedes?</p>
+                            <button type="button" onClick={() => manejarUpgrade('musica')} className="bg-stone-900 text-white px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-[#9a7b5c] transition-colors cursor-pointer shadow-md">
+                              Subir mi propia canción (+$299 MXN)
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -572,7 +628,7 @@ export default function NoviosDashboard() {
                       </div>
                     </div>
                     
-                    {/* ✨ GALERÍA DE FOTOS DINÁMICA RESTAURADA ✨ */}
+                    {/* GALERÍA DINÁMICA */}
                     <div className="lg:col-span-2 bg-white rounded-[2rem] p-8 border border-stone-100 shadow-sm space-y-6">
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
                         <div className="space-y-1">
@@ -731,7 +787,7 @@ export default function NoviosDashboard() {
               <div className="bg-[#fcfbfa] border border-stone-200 rounded-2xl p-6 space-y-5 shadow-inner">
                 <h5 className="font-serif text-lg text-[#9a7b5c]">{brideName || 'Evento'} & {groomName}</h5>
                 <div className="w-40 h-40 mx-auto bg-white p-3 rounded-2xl border shadow-sm flex items-center justify-center">
-                  <img src={`https://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=https://tugrandia.icu/${weddingSlug}/rsvp?id=${invitadoSeleccionado.id}`} alt="QR Pase" className="w-full h-full" />
+                  <img src={`https://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=${encodeURIComponent(`https://tugrandia.icu/${weddingSlug}/rsvp?id=${invitadoSeleccionado.id}`)}`} alt="QR Pase" className="w-full h-full" />
                 </div>
                 <div>
                   <p className="text-sm font-bold text-stone-800">{invitadoSeleccionado.nombre_invitado}</p>
