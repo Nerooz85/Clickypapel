@@ -42,7 +42,7 @@ export default function NoviosDashboard() {
   const [musicUrl, setMusicUrl] = useState('/music/1-thousand-years.mp3');
   const [galeriaFotos, setGaleriaFotos] = useState(['', '', '', '', '', '']); 
   
-  // 📍 NUEVOS ESTADOS EXCLUSIVOS PARA LA PLANTILLA V2
+  // 📍 ESTADOS CONDICIONALES PLANTILLA V2
   const [ceremoniaFoto, setCeremoniaFoto] = useState('');
   const [recepcionFoto, setRecepcionFoto] = useState('');
 
@@ -70,7 +70,7 @@ export default function NoviosDashboard() {
     { id: '5', titulo: "Hasta Mi Final - Il Divo (Voz)", url: "/music/5-hasta-mi-final.mp3", bpm: "65 BPM" }
   ];
 
-  // ================= LOGICA DE BASE DE DATOS =================
+  // ================= LÓGICA DE BASE DE DATOS =================
 
   const escucharCancion = (url) => {
     if (audioPrevioRef.current) {
@@ -87,6 +87,7 @@ export default function NoviosDashboard() {
 
   const handleFotoChange = (index, value) => {
     const copias = [...galeriaFotos];
+    while(copias.length <= index) copias.push(''); // Asegura que el arreglo crezca si es plan VIP
     copias[index] = value;
     setGaleriaFotos(copias);
   };
@@ -101,7 +102,6 @@ export default function NoviosDashboard() {
     } catch (e) { console.error(e); }
   };
 
-  // ✨ UPLOADER INTELIGENTE (Detecta si subes portada, galería, ceremonia o recepción)
   const handleSubirArchivo = async (e, index, tipoDoc = 'galeria') => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -145,15 +145,14 @@ export default function NoviosDashboard() {
         setCodigoVestimentaText(bodaData.codigo_vestimenta || 'formal'); setPaletaColores(bodaData.paleta_colores || '');
         setAlbumActivado(bodaData.album_compartido_activo || false);
         
-        // Cargar fotos de locaciones si existen
         setCeremoniaFoto(bodaData.ceremonia_foto || '');
         setRecepcionFoto(bodaData.recepcion_foto || '');
-
         setCodigoMesaUrl(`https://tugrandia.icu/${slugLimpio}/compartir`);
 
         if (bodaData.gallery_images) {
-          const nuevasFotos = ['', '', '', '', '', ''];
-          bodaData.gallery_images.forEach((img, i) => { if(i < 6) nuevasFotos[i] = img; });
+          const limite = bodaData.plan_tipo === 'basicos' ? 3 : bodaData.plan_tipo === 'vip' ? 12 : 6;
+          const nuevasFotos = Array(limite).fill('');
+          bodaData.gallery_images.forEach((img, i) => { if(i < limite) nuevasFotos[i] = img; });
           setGaleriaFotos(nuevasFotos);
         }
       }
@@ -224,11 +223,15 @@ export default function NoviosDashboard() {
     } catch (err) { alert("Error al guardar."); } finally { setGuardando(false); }
   };
 
-  // Cálculos
+  // Cálculos dinámicos
   const totalInvitados = invitados.length;
   const totalPasesAsignados = invitados.reduce((acc, curr) => acc + (curr.pases_totales || 0), 0);
   const totalConfirmados = invitados.reduce((acc, curr) => acc + (curr.pases_confirmados || 0), 0);
   const pendientes = invitados.filter(inv => inv.estado === 'pendiente').length;
+
+  // Lógica de Capacidad de Fotos según el Plan
+  const maxFotosPermitidas = planContratado === 'basicos' ? 3 : planContratado === 'vip' ? 12 : 6;
+  const fotosSubidasCount = galeriaFotos.filter(f => f && f.trim() !== '').length;
 
   if (cargando) return (
     <div className="min-h-screen bg-[#fcfbfa] flex flex-col items-center justify-center space-y-4">
@@ -374,7 +377,7 @@ export default function NoviosDashboard() {
               )}
 
               {pasoActivo === 3 && (
-                /* ---------------- PASO 3: INVITADOS (Mismo código de antes) ---------------- */
+                /* ---------------- PASO 3: INVITADOS ---------------- */
                 <div className="space-y-8">
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
@@ -486,7 +489,7 @@ export default function NoviosDashboard() {
                     )}
                   </div>
 
-                  {/* LÓGICA CONDICIONAL: Solo mostrar fotos de locaciones si la plantilla es V2 */}
+                  {/* LÓGICA CONDICIONAL V2 */}
                   {templateId === 'v2' && (
                     <div className="bg-white rounded-[2rem] p-8 border border-[#9a7b5c]/30 shadow-sm space-y-6 bg-gradient-to-br from-white to-[#f5f0ea]/30">
                       <div className="space-y-1">
@@ -567,14 +570,52 @@ export default function NoviosDashboard() {
                           <input type="file" accept="image/*" onChange={(e) => handleSubirArchivo(e, null, 'portada')} className="hidden" />
                         </label>
                       </div>
-                      
-                      <div className="pt-4 flex justify-end">
-                        <button type="button" disabled={guardando} onClick={handleGuardarPaso4} className="bg-stone-900 hover:bg-[#9a7b5c] text-white px-8 py-3.5 rounded-xl text-xs uppercase tracking-widest font-bold transition-all shadow-md cursor-pointer">
-                           Guardar y Avanzar ➔
-                        </button>
+                    </div>
+                    
+                    {/* ✨ GALERÍA DE FOTOS DINÁMICA RESTAURADA ✨ */}
+                    <div className="lg:col-span-2 bg-white rounded-[2rem] p-8 border border-stone-100 shadow-sm space-y-6">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
+                        <div className="space-y-1">
+                          <h3 className="font-serif text-2xl font-light text-stone-900">Galería Fotográfica Base</h3>
+                          <p className="text-xs font-light text-stone-500">Estas fotos aparecerán en la cuadrícula de tu invitación.</p>
+                        </div>
+                        <span className="text-[10px] bg-stone-100 text-stone-500 px-3 py-1.5 rounded-full font-bold uppercase tracking-widest shrink-0">
+                          {fotosSubidasCount} de {maxFotosPermitidas} Fotos
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {Array.from({ length: maxFotosPermitidas }).map((_, index) => (
+                          <div key={index} className="relative aspect-[4/5] bg-stone-50 rounded-xl overflow-hidden border border-stone-200 group flex flex-col items-center justify-center">
+                            {galeriaFotos[index] ? (
+                              <>
+                                <img src={galeriaFotos[index]} alt={`Galeria ${index + 1}`} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                                <label className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm text-stone-900 text-[9px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full shadow-lg cursor-pointer hover:bg-white transition-colors">
+                                  {subiendoIndex === index ? '...' : 'Editar'}
+                                  <input type="file" accept="image/*" onChange={(e) => handleSubirArchivo(e, index, 'galeria')} className="hidden" />
+                                </label>
+                              </>
+                            ) : (
+                              <label className="flex flex-col items-center justify-center w-full h-full cursor-pointer hover:bg-stone-100 transition-colors">
+                                <span className="text-2xl mb-2 opacity-20">📷</span>
+                                <span className="text-[9px] uppercase font-bold text-stone-400 tracking-widest">
+                                  {subiendoIndex === index ? 'Subiendo...' : 'Agregar Foto'}
+                                </span>
+                                <input type="file" accept="image/*" onChange={(e) => handleSubirArchivo(e, index, 'galeria')} className="hidden" />
+                              </label>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
+
+                  <div className="flex justify-end pt-4">
+                    <button type="button" disabled={guardando} onClick={handleGuardarPaso4} className="bg-stone-900 hover:bg-[#9a7b5c] text-white px-8 py-3.5 rounded-xl text-xs uppercase tracking-widest font-bold transition-all shadow-md cursor-pointer">
+                       Guardar y Avanzar ➔
+                    </button>
+                  </div>
+
                 </div>
               )}
 
