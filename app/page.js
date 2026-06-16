@@ -11,7 +11,7 @@ export default function ClickyPapelHome() {
 
   // 🎨 Estados interactivos
   const [pestanaEsencia, setPestanaEsencia] = useState('mision');
-  const [eventoSeleccionado, setEventoSeleccionado] = useState('bodas'); // Control de nichos de mercado
+  const [eventoSeleccionado, setEventoSeleccionado] = useState('bodas'); 
 
   const handleOpenExperience = () => {
     setShowIntro(false);
@@ -114,7 +114,6 @@ export default function ClickyPapelHome() {
     }
   };
 
-  // 🎯 NUEVO DICCIONARIO PARA EXPLOTAR EL MERCADO MULTI-EVENTO
   const nichosMercado = {
     bodas: {
       title: "💍 Bodas & Enlace Civil",
@@ -237,7 +236,7 @@ export default function ClickyPapelHome() {
         </motion.div>
       </header>
 
-      {/* SECCIÓN EL CONCEPTO (CON INTENTOS DE MARCA EXTRA) */}
+      {/* SECCIÓN EL CONCEPTO */}
       <section id="concept" className="py-24 px-6 bg-white border-t border-stone-100 relative z-10">
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
           <motion.div initial={{ opacity: 0, x: -40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="space-y-6">
@@ -260,12 +259,12 @@ export default function ClickyPapelHome() {
             </div>
           </motion.div>
           <div className="relative h-[400px] md:h-[500px] bg-stone-100 rounded-3xl overflow-hidden shadow-xl border border-stone-200/40">
-            <Image src="https://images.unsplash.com/photo-1607190074257-dd4b7af0309f" alt="Papelería fina" fill className="object-cover opacity-90" />
+            <img src="https://images.unsplash.com/photo-1607190074257-dd4b7af0309f" alt="Papelería fina" className="w-full h-full object-cover opacity-90" />
           </div>
         </div>
       </section>
 
-      {/* 🚀 NUEVA SECCIÓN DE EXPANSIÓN DE MERCADO: SELECTOR DE CELEBRACIONES */}
+      {/* SECCIÓN DE EXPANSIÓN DE MERCADO: SELECTOR DE CELEBRACIONES */}
       <section id="mercado" className="py-24 px-6 bg-stone-50 border-t border-stone-200/30 relative z-10">
         <div className="max-w-5xl mx-auto space-y-12">
           <div className="text-center space-y-2">
@@ -274,7 +273,6 @@ export default function ClickyPapelHome() {
             <p className="text-stone-500 font-light text-xs md:text-sm max-w-sm mx-auto">Selecciona tu tipo de evento y descubre cómo ClickyPapel lo transforma por completo.</p>
           </div>
 
-          {/* Menú de Botones de Eventos */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
             {Object.keys(nichosMercado).map((key) => (
               <button
@@ -292,7 +290,6 @@ export default function ClickyPapelHome() {
             ))}
           </div>
 
-          {/* Tarjeta de Exhibición Dinámica de Mercado */}
           <div className="bg-white rounded-3xl border border-stone-200/60 shadow-xl overflow-hidden min-h-[320px] flex flex-col md:flex-row items-stretch">
             <div className="p-8 md:p-12 flex-1 flex flex-col justify-center space-y-4 text-left">
               <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-3 py-1 rounded-full uppercase tracking-wider font-mono self-start">Plataforma Lista</span>
@@ -320,7 +317,7 @@ export default function ClickyPapelHome() {
         </div>
       </section>
 
-      {/* SECCIÓN SOBRE NOSOTROS (ESENCIA) */}
+      {/* SECCIÓN SOBRE NOSOTROS */}
       <section id="esencia" className="py-24 px-6 bg-white border-t border-stone-100/80 relative z-10">
         <div className="max-w-4xl mx-auto text-center space-y-12">
           <div className="space-y-2">
