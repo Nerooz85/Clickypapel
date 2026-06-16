@@ -362,7 +362,9 @@ export default function NoviosDashboard() {
                       </select>
                     </div>
                   </div>
+
                   <hr className="border-stone-100" />
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Nombre de la Ceremonia</label>
@@ -381,6 +383,7 @@ export default function NoviosDashboard() {
                       <input type="text" value={recepcionMaps} onChange={(e) => setRecepcionMaps(e.target.value)} className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 font-mono text-stone-500 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
                     </div>
                   </div>
+
                   <div className="flex justify-end pt-4">
                     <button type="button" disabled={guardando} onClick={handleGuardarYContinuar} className="bg-stone-900 hover:bg-[#9a7b5c] text-white px-8 py-3.5 rounded-xl text-xs uppercase tracking-widest font-bold transition-all shadow-md cursor-pointer">
                       {guardando ? 'Guardando...' : 'Guardar y Continuar ➔'}
@@ -504,8 +507,12 @@ export default function NoviosDashboard() {
                         {albumActivado && (
                           <div className="mt-8 pt-8 border-t border-stone-800 flex flex-col md:flex-row gap-8 items-center md:items-start">
                             <div className="bg-white p-3 rounded-2xl shadow-xl w-32 h-32 shrink-0">
-                               {/* 🛡️ QR BLINDADO: Usamos encodeURIComponent para evitar que se rompa con caracteres raros */}
-                               <img src={`https://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=${encodeURIComponent(codigoMesaUrl)}`} alt="QR Mesas" className="w-full h-full" />
+                               {/* 🛡️ CÓDIGO QR MESA ACTUALIZADO */}
+                               <img 
+                                 src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(codigoMesaUrl)}&margin=10`} 
+                                 alt="QR Mesas" 
+                                 className="w-full h-full object-contain mix-blend-multiply" 
+                               />
                             </div>
                             <div className="w-full">
                               <h4 className="text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-4">Capturas del Evento ({fotosDelEvento.length})</h4>
@@ -787,7 +794,12 @@ export default function NoviosDashboard() {
               <div className="bg-[#fcfbfa] border border-stone-200 rounded-2xl p-6 space-y-5 shadow-inner">
                 <h5 className="font-serif text-lg text-[#9a7b5c]">{brideName || 'Evento'} & {groomName}</h5>
                 <div className="w-40 h-40 mx-auto bg-white p-3 rounded-2xl border shadow-sm flex items-center justify-center">
-                  <img src={`https://chart.googleapis.com/chart?cht=qr&chs=150x150&chl=${encodeURIComponent(`https://tugrandia.icu/${weddingSlug}/rsvp?id=${invitadoSeleccionado.id}`)}`} alt="QR Pase" className="w-full h-full" />
+                  {/* 🛡️ CÓDIGO QR PASE INVITADO ACTUALIZADO */}
+                  <img 
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`https://tugrandia.icu/${weddingSlug}/rsvp?id=${invitadoSeleccionado.id}`)}&margin=10`} 
+                    alt="QR Pase" 
+                    className="w-full h-full object-contain mix-blend-multiply" 
+                  />
                 </div>
                 <div>
                   <p className="text-sm font-bold text-stone-800">{invitadoSeleccionado.nombre_invitado}</p>
