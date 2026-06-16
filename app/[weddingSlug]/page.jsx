@@ -2,8 +2,15 @@
 import { useParams, useSearchParams } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase'; 
+
+// 🧩 IMPORTACIÓN COMPONENTES V1 (Clásicos)
 import InvitationHero from '@/components/InvitationHero';
 import EventTimeline from '@/components/EventTimeline';
+
+// 💎 IMPORTACIÓN COMPONENTES V2 (Editorial Tipo Invitio) - Asegúrate de tener estos archivos en tu carpeta components
+import InvitationHeroV2 from '@/components/InvitationHeroV2';
+import EventTimelineV2 from '@/components/EventTimelineV2';
+
 import PhotoGallery from '@/components/PhotoGallery';
 import GiftRegistry from '@/components/GiftRegistry';
 import QuoteBanner from '@/components/QuoteBanner'; 
@@ -52,7 +59,8 @@ export default function WeddingInvitationPage() {
   const [categoriaAbierta, setCategoriaAbierta] = useState(null); 
   const [musicaSonando, setMusicaSonando] = useState(false);
 
-  // 🎨 ESTADOS DE DISEÑO INTERACTIVO 
+  // 🎨 ESTADOS DE DISEÑO INTERACTIVO (SWITCH MAESTRO)
+  const [plantillaActiva, setPlantillaActiva] = useState('v1'); // ⬅️ Este es el switch para cambiar entre demos visuales
   const [paletaActiva, setPaletaActiva] = useState('cashmere');       
   const [fuenteActiva, setFuenteActiva] = useState('clasica');     
 
@@ -145,6 +153,10 @@ export default function WeddingInvitationPage() {
           paletaColores: data.paleta_colores,
         });
 
+        // 🧠 Auto-detección: Si en BD dice v2, activa la plantilla v2. Si no, la v1.
+        if (data.template_id === 'v2') setPlantillaActiva('v2');
+        else setPlantillaActiva('v1');
+
         if (data.template_id === 'minimal-dark') setPaletaActiva('obsidian');
         else if (data.template_id === 'boho-rancho') setPaletaActiva('terracota');
         else setPaletaActiva('cashmere');
@@ -197,7 +209,7 @@ export default function WeddingInvitationPage() {
     }
   };
 
-  // 🔤 MATRIZ DE TIPOGRAFÍAS DE ALTA GAMA (Integradas con CSS personalizado)
+  // 🔤 MATRIZ DE TIPOGRAFÍAS DE ALTA GAMA
   const listadoFuentes = {
     clasica: 'font-clasica leading-relaxed antialiased',               
     cursiva: 'font-cursiva leading-loose text-[1.25em] antialiased tracking-wide',         
@@ -299,8 +311,22 @@ export default function WeddingInvitationPage() {
           <span className="text-[9px] bg-[#e3d5c8] text-[#4a3f35] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Diseño de la App</span>
         </div>
 
+        {/* 1️⃣ EL SWITCH MAESTRO DE LA ESTRUCTURA */}
         <div className="space-y-1">
-          <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wide block">1. Tema y Color UI:</label>
+          <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wide block">1. Estructura Visual:</label>
+          <select
+            value={plantillaActiva}
+            onChange={(e) => setPlantillaActiva(e.target.value)}
+            className="w-full text-xs p-2 rounded-xl border bg-stone-50 text-stone-700 font-bold focus:outline-none cursor-pointer"
+          >
+            <option value="v1">V1: Clásica Minimalista</option>
+            <option value="v2">V2: Editorial Alta Costura</option>
+          </select>
+        </div>
+
+        {/* 2️⃣ SELECTOR DE COLOR */}
+        <div className="space-y-1">
+          <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wide block">2. Paleta UI:</label>
           <div className="grid grid-cols-5 gap-1.5">
             {Object.keys(listadoPaletas).map((key) => (
               <button
@@ -316,9 +342,9 @@ export default function WeddingInvitationPage() {
           </div>
         </div>
 
-        {/* 🔤 SELECTOR DE TIPOGRAFÍAS DE ALTA GAMA */}
+        {/* 3️⃣ SELECTOR DE TIPOGRAFÍAS */}
         <div className="space-y-1">
-          <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wide block">2. Estilo de Textos:</label>
+          <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wide block">3. Estilo de Textos:</label>
           <select
             value={fuenteActiva}
             onChange={(e) => setFuenteActiva(e.target.value)}
@@ -373,49 +399,59 @@ export default function WeddingInvitationPage() {
         </div>
       )}
 
-      {/* 🚀 INYECCIÓN DE COMPONENTES CON ANIMACIÓN SCROLL REVEAL */}
-      {weddingData && (
-        <div className="space-y-12 pb-16">
-          <ScrollReveal>
+      {/* 🚀 EL ENRUTADOR DINÁMICO: ELIGE QUÉ COMPONENTE MOSTRAR SEGÚN EL SWITCH */}
+      <div className="space-y-12 pb-16">
+        
+        {/* RENDERIZADO CONDICIONAL DEL HERO (PORTADA) */}
+        <ScrollReveal>
+          {plantillaActiva === 'v2' ? (
+            <InvitationHeroV2 weddingData={weddingData} diseño={diseño} />
+          ) : (
             <InvitationHero weddingData={weddingData} diseño={diseño} />
-          </ScrollReveal>
-
-          <ScrollReveal>
-            <EventTimeline weddingData={weddingData} diseño={diseño} />
-          </ScrollReveal>
-          
-          <ScrollReveal>
-            <PhotoGallery weddingData={weddingData} images={weddingData?.galleryImages || []} diseño={diseño} />
-          </ScrollReveal>
-          
-          {weddingData.album_compartido_activo && (
-            <ScrollReveal>
-              <section className="max-w-md mx-auto px-6 py-6 text-center font-sans">
-                <div className="bg-gradient-to-br from-[#9a7b5c] to-[#7a5c43] text-white p-6 rounded-3xl shadow-xl space-y-4 text-left border border-white/10">
-                  <div className="space-y-1">
-                    <span className="text-[10px] bg-white/20 text-white font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono inline-block">Función Premium</span>
-                    <h4 className="font-serif text-lg font-light">Álbum Colectivo en Vivo 📸</h4>
-                    <p className="text-xs text-white/80 font-light leading-relaxed">Sube tus fotos directamente para el recuerdo de los novios.</p>
-                  </div>
-                  <a href={`https://tugrandia.icu/${weddingData.slug}/compartir`} className="w-full bg-white text-[#4a3f35] font-bold text-center py-3 rounded-xl block text-xs uppercase tracking-wider shadow-md hover:bg-stone-50 transition-colors">📤 Subir Fotos</a>
-                </div>
-              </section>
-            </ScrollReveal>
           )}
+        </ScrollReveal>
 
-          <ScrollReveal>
-            <GiftRegistry weddingData={weddingData} diseño={diseño} />
-          </ScrollReveal>
+        {/* RENDERIZADO CONDICIONAL DEL ITINERARIO */}
+        <ScrollReveal>
+          {plantillaActiva === 'v2' ? (
+            <EventTimelineV2 weddingData={weddingData} diseño={diseño} />
+          ) : (
+            <EventTimeline weddingData={weddingData} diseño={diseño} />
+          )}
+        </ScrollReveal>
 
+        {/* LOS DEMÁS COMPONENTES SON COMUNES PARA AMBAS VERSIONES */}
+        <ScrollReveal>
+          <PhotoGallery weddingData={weddingData} images={weddingData?.galleryImages || []} diseño={diseño} />
+        </ScrollReveal>
+        
+        {weddingData.album_compartido_activo && (
           <ScrollReveal>
-            <QuoteBanner weddingData={weddingData} diseño={diseño} />
+            <section className="max-w-md mx-auto px-6 py-6 text-center font-sans">
+              <div className="bg-gradient-to-br from-[#9a7b5c] to-[#7a5c43] text-white p-6 rounded-3xl shadow-xl space-y-4 text-left border border-white/10">
+                <div className="space-y-1">
+                  <span className="text-[10px] bg-white/20 text-white font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono inline-block">Función Premium</span>
+                  <h4 className="font-serif text-lg font-light">Álbum Colectivo en Vivo 📸</h4>
+                  <p className="text-xs text-white/80 font-light leading-relaxed">Sube tus fotos directamente para el recuerdo de los novios.</p>
+                </div>
+                <a href={`https://tugrandia.icu/${weddingData.slug}/compartir`} className="w-full bg-white text-[#4a3f35] font-bold text-center py-3 rounded-xl block text-xs uppercase tracking-wider shadow-md hover:bg-stone-50 transition-colors">📤 Subir Fotos</a>
+              </div>
+            </section>
           </ScrollReveal>
+        )}
 
-          <ScrollReveal>
-            <RsvpModule weddingId={weddingData.id} weddingSlug={weddingData.slug} diseño={diseño} />
-          </ScrollReveal>
-        </div>
-      )}
+        <ScrollReveal>
+          <GiftRegistry weddingData={weddingData} diseño={diseño} />
+        </ScrollReveal>
+
+        <ScrollReveal>
+          <QuoteBanner weddingData={weddingData} diseño={diseño} />
+        </ScrollReveal>
+
+        <ScrollReveal>
+          <RsvpModule weddingId={weddingData.id} weddingSlug={weddingData.slug} diseño={diseño} />
+        </ScrollReveal>
+      </div>
 
       <footer className="text-center py-12 bg-[#121214] text-zinc-500 text-xs select-none font-sans">
         Invitación digital premium creada en <span className="text-zinc-300">clickypapel.com</span>
