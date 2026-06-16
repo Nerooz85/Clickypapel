@@ -1,7 +1,7 @@
 export default function EventTimelineV2({ weddingData, diseño }) {
-  // Fotos de locaciones por defecto (por si el cliente aún no sube fotos de su iglesia/salón)
-  const imgCeremonia = weddingData?.ceremonia_foto || "https://images.unsplash.com/photo-1548625361-ec853c032658?q=80&w=800&auto=format&fit=crop";
-  const imgRecepcion = weddingData?.recepcion_foto || "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=800&auto=format&fit=crop";
+  // 📸 Enlaces blindados: Si el cliente no tiene foto, usamos estas de alta calidad
+  const imgCeremonia = weddingData?.ceremoniaFoto || "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1000&q=80";
+  const imgRecepcion = weddingData?.recepcionFoto || "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=1000&q=80";
 
   return (
     <section className="py-24 px-6 max-w-6xl mx-auto flex flex-col gap-24 items-center">
@@ -14,14 +14,13 @@ export default function EventTimelineV2({ weddingData, diseño }) {
 
       {/* 📍 LOCACIÓN 1: CEREMONIA */}
       <div className="w-full flex flex-col lg:flex-row gap-10 items-center">
-        {/* Foto Grande */}
-        <div className="w-full lg:w-1/2 overflow-hidden rounded-[2rem] shadow-xl relative group">
+        {/* Foto Grande con fondo gris por si tarda en cargar */}
+        <div className="w-full lg:w-1/2 overflow-hidden rounded-[2rem] shadow-xl relative group bg-stone-200">
           <img 
             src={imgCeremonia} 
             alt="Ceremonia" 
             className="w-full h-[450px] object-cover group-hover:scale-105 transition-transform duration-1000 ease-in-out" 
           />
-          {/* Badge de hora flotante sobre la foto */}
           <div className="absolute top-6 left-6 bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-lg">
             <span className={`text-xs font-bold tracking-widest uppercase ${diseño.textAcento}`}>
               {weddingData?.ceremoniaHora || "16:00 HRS"}
@@ -52,16 +51,15 @@ export default function EventTimelineV2({ weddingData, diseño }) {
         </div>
       </div>
 
-      {/* 📍 LOCACIÓN 2: RECEPCIÓN (Invertido en pantallas grandes) */}
+      {/* 📍 LOCACIÓN 2: RECEPCIÓN */}
       <div className="w-full flex flex-col lg:flex-row-reverse gap-10 items-center">
-        {/* Foto Grande */}
-        <div className="w-full lg:w-1/2 overflow-hidden rounded-[2rem] shadow-xl relative group">
+        {/* Foto Grande con fondo gris */}
+        <div className="w-full lg:w-1/2 overflow-hidden rounded-[2rem] shadow-xl relative group bg-stone-200">
           <img 
             src={imgRecepcion} 
             alt="Recepción" 
             className="w-full h-[450px] object-cover group-hover:scale-105 transition-transform duration-1000 ease-in-out" 
           />
-          {/* Badge de hora flotante */}
           <div className="absolute top-6 right-6 bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-lg">
             <span className={`text-xs font-bold tracking-widest uppercase ${diseño.textAcento}`}>
               {weddingData?.recepcionHora || "19:00 HRS"}
