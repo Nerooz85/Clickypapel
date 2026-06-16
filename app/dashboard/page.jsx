@@ -71,7 +71,6 @@ export default function NoviosDashboard() {
   // ================= LÓGICA DE MULTIMEDIA Y UPGRADES =================
 
   const manejarUpgrade = (tipo) => {
-    // Aquí conectarás con Stripe para cobrar el extra
     const precio = tipo === 'musica' ? '$299 MXN' : '$599 MXN';
     const producto = tipo === 'musica' ? 'Canción Personalizada' : 'Álbum Colectivo Premium';
     alert(`🚀 Redirigiendo a pasarela de pago segura para agregar [${producto}] por ${precio}. Al pagar, la función se desbloqueará de inmediato.`);
@@ -151,6 +150,27 @@ export default function NoviosDashboard() {
     } catch (err) { alert("Error al cargar archivo."); } finally { setSubiendoIndex(null); }
   };
 
+  // 📥 FUNCIÓN PARA DESCARGAR EL CÓDIGO QR
+  const descargarQR = async (urlQr, nombreArchivo) => {
+    try {
+      const respuesta = await fetch(urlQr);
+      const blob = await respuesta.blob();
+      const urlBlob = window.URL.createObjectURL(blob);
+      
+      const enlace = document.createElement('a');
+      enlace.href = urlBlob;
+      enlace.download = `${nombreArchivo}.png`;
+      document.body.appendChild(enlace);
+      enlace.click();
+      
+      document.body.removeChild(enlace);
+      window.URL.revokeObjectURL(urlBlob);
+    } catch (error) {
+      console.error("Error al descargar el QR:", error);
+      window.open(urlQr, '_blank');
+    }
+  };
+
   const cargarTodoElDashboard = async () => {
     try {
       setCargando(true);
@@ -172,7 +192,6 @@ export default function NoviosDashboard() {
         setItinerarioMisa(bodaData.itinerario_misa || ''); setItinerarioFiesta(bodaData.itinerario_fiesta || '');
         setCodigoVestimentaText(bodaData.codigo_vestimenta || 'formal'); setPaletaColores(bodaData.paleta_colores || '');
         
-        // 🔒 BLINDAJE DE URL PARA EL QR
         setCodigoMesaUrl(`https://tugrandia.icu/${slugLimpio}/compartir`);
         setAlbumActivado(bodaData.album_compartido_activo || false);
         
@@ -506,15 +525,26 @@ export default function NoviosDashboard() {
 
                         {albumActivado && (
                           <div className="mt-8 pt-8 border-t border-stone-800 flex flex-col md:flex-row gap-8 items-center md:items-start">
-                            <div className="bg-white p-3 rounded-2xl shadow-xl w-32 h-32 shrink-0">
-                               {/* 🛡️ CÓDIGO QR MESA ACTUALIZADO */}
-                               <img 
-                                 src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(codigoMesaUrl)}&margin=10`} 
-                                 alt="QR Mesas" 
-                                 className="w-full h-full object-contain mix-blend-multiply" 
-                               />
+                            
+                            {/* 🛡️ CONTENEDOR DEL QR CON BOTÓN DE DESCARGA */}
+                            <div className="flex flex-col items-center gap-3 shrink-0">
+                              <div className="bg-white p-3 rounded-2xl shadow-xl w-32 h-32 flex items-center justify-center">
+                                 <img 
+                                   src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(codigoMesaUrl)}&margin=10`} 
+                                   alt="QR Mesas" 
+                                   className="w-full h-full object-contain mix-blend-multiply" 
+                                 />
+                              </div>
+                              <button 
+                                type="button"
+                                onClick={() => descargarQR(`https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(codigoMesaUrl)}&margin=15`, `QR-Mesas-${weddingSlug}`)}
+                                className="bg-white/10 hover:bg-white/20 text-white text-[9px] uppercase tracking-widest font-bold px-4 py-2 rounded-xl transition-all border border-white/10 flex items-center gap-1.5 cursor-pointer select-none"
+                              >
+                                📥 Descargar PNG
+                              </button>
                             </div>
-                            <div className="w-full">
+
+                            <div className="w-full text-left">
                               <h4 className="text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-4">Capturas del Evento ({fotosDelEvento.length})</h4>
                               {fotosDelEvento.length === 0 ? (
                                 <div className="w-full h-24 border border-dashed border-stone-800 rounded-xl flex items-center justify-center text-xs text-stone-500 font-light">Esperando la primera foto de tus invitados...</div>
@@ -794,7 +824,6 @@ export default function NoviosDashboard() {
               <div className="bg-[#fcfbfa] border border-stone-200 rounded-2xl p-6 space-y-5 shadow-inner">
                 <h5 className="font-serif text-lg text-[#9a7b5c]">{brideName || 'Evento'} & {groomName}</h5>
                 <div className="w-40 h-40 mx-auto bg-white p-3 rounded-2xl border shadow-sm flex items-center justify-center">
-                  {/* 🛡️ CÓDIGO QR PASE INVITADO ACTUALIZADO */}
                   <img 
                     src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`https://tugrandia.icu/${weddingSlug}/rsvp?id=${invitadoSeleccionado.id}`)}&margin=10`} 
                     alt="QR Pase" 
