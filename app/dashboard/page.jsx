@@ -6,6 +6,39 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function NoviosDashboard() {
   const weddingSlug = 'bruno-y-brisa'; // En producción vendrá de la sesión
 
+  // 📂 CATÁLOGO INTELIGENTE DE PLANTILLAS
+  const catalogos = {
+    boda: [
+      { id: 'v1', nombre: '💍 Minimalista Clásica' },
+      { id: 'v2', nombre: '✨ Alta Costura Editorial' },
+      { id: 'v3', nombre: '🌿 Botánica Orgánica' },
+      { id: 'v4', nombre: '🌑 Noir Modernista' },
+      { id: 'v5', nombre: '🏛️ Imperial Vintage' }
+    ],
+    xvanos: [
+      { id: 'v1', nombre: '👑 Real Clásica' },
+      { id: 'v2', nombre: '✨ Glamour Editorial' },
+      { id: 'v3', nombre: '🌸 Jardín Encantado' },
+      { id: 'v4', nombre: '🌃 Noche Neón' },
+      { id: 'v5', nombre: '🎀 Vintage Candy' }
+    ],
+    baby: [
+      { id: 'v1', nombre: '☁️ Nube Minimalista' },
+      { id: 'v2', nombre: '🧸 Estilo Editorial' },
+      { id: 'v3', nombre: '🌿 Boho Baby' }
+    ],
+    bautizo: [
+      { id: 'v1', nombre: '🕊️ Pureza Clásica' },
+      { id: 'v2', nombre: '✨ Divina Editorial' },
+      { id: 'v3', nombre: '🌾 Campo Santo' }
+    ],
+    despedida: [
+      { id: 'v1', nombre: '🥂 Minimalista Chic' },
+      { id: 'v2', nombre: '💄 Glamour Night' },
+      { id: 'v3', nombre: '🌸 Boho Bride' }
+    ]
+  };
+
   // 🎛️ Estados de Control
   const [pasoActivo, setPasoActivo] = useState(2); 
   const [cargando, setCargando] = useState(true);
@@ -16,6 +49,7 @@ export default function NoviosDashboard() {
   // 🪙 Información de Compra (Planes y Add-ons)
   const [planContratado, setPlanContratado] = useState('premium'); 
   const [tieneMusicaPersonalizada, setTieneMusicaPersonalizada] = useState(false); 
+  const [tipoEvento, setTipoEvento] = useState('boda'); // NUEVO ESTADO
 
   // 📸✨ ESTADOS ÁLBUM COLECTIVO
   const [albumActivado, setAlbumActivado] = useState(false);
@@ -150,7 +184,6 @@ export default function NoviosDashboard() {
     } catch (err) { alert("Error al cargar archivo."); } finally { setSubiendoIndex(null); }
   };
 
-  // 📥 FUNCIÓN PARA DESCARGAR EL CÓDIGO QR
   const descargarQR = async (urlQr, nombreArchivo) => {
     try {
       const respuesta = await fetch(urlQr);
@@ -171,26 +204,39 @@ export default function NoviosDashboard() {
     }
   };
 
+  // 🛠️ FUNCIÓN CORREGIDA PARA AUTO-REPARAR LA BASE DE DATOS
   const cargarTodoElDashboard = async () => {
     try {
       setCargando(true);
       const slugLimpio = weddingSlug ? weddingSlug.toLowerCase().trim() : 'bruno-y-brisa';
+      
+      // 1. Buscamos el evento
       const { data: bodaData, error: bodaError } = await supabase.from('bodas').select('*').eq('slug', slugLimpio).maybeSingle();
-      if (bodaError) throw bodaError;
 
       if (bodaData) {
-        setBrideName(bodaData.bride_name || ''); setGroomName(bodaData.groom_name || '');
+        // Si existe, cargamos los datos
+        setBrideName(bodaData.bride_name || ''); 
+        setGroomName(bodaData.groom_name || '');
         setEventDate(bodaData.event_date ? bodaData.event_date.substring(0, 10) : '');
-        setCeremoniaLugar(bodaData.ceremonia_lugar || ''); setCeremoniaMaps(bodaData.ceremonia_maps_url || '');
-        setRecepcionLugar(bodaData.recepcion_lugar || ''); setRecepcionMaps(bodaData.recepcion_maps_url || '');
-        setTemplateId(bodaData.template_id || 'v2'); setCoverImage(bodaData.cover_image || '');
+        setCeremoniaLugar(bodaData.ceremonia_lugar || ''); 
+        setCeremoniaMaps(bodaData.ceremonia_maps_url || '');
+        setRecepcionLugar(bodaData.recepcion_lugar || ''); 
+        setRecepcionMaps(bodaData.recepcion_maps_url || '');
+        setTemplateId(bodaData.template_id || 'v2'); 
+        setTipoEvento(bodaData.tipo_evento || 'boda'); // CARGAMOS TIPO DE EVENTO
+        setCoverImage(bodaData.cover_image || '');
         setMusicUrl(bodaData.music_url || '/music/1-thousand-years.mp3');
         setPlanContratado(bodaData.plan_tipo || 'premium'); 
         setTieneMusicaPersonalizada(bodaData.musica_extra || false);
-        setBanco(bodaData.banco || ''); setTitular(bodaData.titular || ''); setClabe(bodaData.clabe || '');
-        setAmazonUrl(bodaData.amazon_url || ''); setLiverpoolUrl(bodaData.liverpool_url || '');
-        setItinerarioMisa(bodaData.itinerario_misa || ''); setItinerarioFiesta(bodaData.itinerario_fiesta || '');
-        setCodigoVestimentaText(bodaData.codigo_vestimenta || 'formal'); setPaletaColores(bodaData.paleta_colores || '');
+        setBanco(bodaData.banco || ''); 
+        setTitular(bodaData.titular || ''); 
+        setClabe(bodaData.clabe || '');
+        setAmazonUrl(bodaData.amazon_url || ''); 
+        setLiverpoolUrl(bodaData.liverpool_url || '');
+        setItinerarioMisa(bodaData.itinerario_misa || ''); 
+        setItinerarioFiesta(bodaData.itinerario_fiesta || '');
+        setCodigoVestimentaText(bodaData.codigo_vestimenta || 'formal'); 
+        setPaletaColores(bodaData.paleta_colores || '');
         
         setCodigoMesaUrl(`https://tugrandia.icu/${slugLimpio}/compartir`);
         setAlbumActivado(bodaData.album_compartido_activo || false);
@@ -204,11 +250,25 @@ export default function NoviosDashboard() {
           bodaData.gallery_images.forEach((img, i) => { if(i < limite) nuevasFotos[i] = img; });
           setGaleriaFotos(nuevasFotos);
         }
+      } else {
+        // 2. SI NO EXISTE (PORQUE SE BORRÓ), LO CREAMOS DE NUEVO
+        await supabase.from('bodas').insert([{ 
+          slug: slugLimpio, 
+          bride_name: 'Bruno', 
+          groom_name: 'Brisa',
+          tipo_evento: 'boda'
+        }]);
       }
+
       const { data: listaInvitados } = await supabase.from('invitados').select('*').eq('boda_slug', slugLimpio).order('nombre_invitado', { ascending: true });
       if (listaInvitados) setInvitados(listaInvitados);
       if (bodaData?.plan_tipo !== 'basicos') await cargarFotosDelAlbumCompartido();
-    } catch (err) { console.error(err); } finally { setCargando(false); }
+      
+    } catch (err) { 
+      console.error("Error cargando dashboard:", err); 
+    } finally { 
+      setCargando(false); 
+    }
   };
 
   useEffect(() => { cargarTodoElDashboard(); }, []);
@@ -221,7 +281,20 @@ export default function NoviosDashboard() {
 
   const handleGuardarYContinuar = async () => {
     setGuardando(true);
-    try { await supabase.from('bodas').update({ bride_name: brideName, groom_name: groomName, event_date: eventDate ? `${eventDate}T18:00:00` : null, ceremonia_lugar: ceremoniaLugar, ceremonia_maps_url: ceremoniaMaps, recepcion_lugar: recepcionLugar, recepcion_maps_url: recepcionMaps, template_id: templateId }).eq('slug', weddingSlug); setPasoActivo(3); } catch (err) { alert("Error"); } finally { setGuardando(false); }
+    try { 
+      await supabase.from('bodas').update({ 
+        bride_name: brideName, 
+        groom_name: groomName, 
+        event_date: eventDate ? `${eventDate}T18:00:00` : null, 
+        ceremonia_lugar: ceremoniaLugar, 
+        ceremonia_maps_url: ceremoniaMaps, 
+        recepcion_lugar: recepcionLugar, 
+        recepcion_maps_url: recepcionMaps, 
+        template_id: templateId,
+        tipo_evento: tipoEvento // GUARDAMOS EL TIPO DE EVENTO
+      }).eq('slug', weddingSlug); 
+      setPasoActivo(3); 
+    } catch (err) { alert("Error"); } finally { setGuardando(false); }
   };
 
   const handleAgregarInvitado = async (e) => {
@@ -373,11 +446,14 @@ export default function NoviosDashboard() {
                       <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Fecha del Evento</label>
                       <input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30 focus:border-[#9a7b5c] transition-all" />
                     </div>
+                    
+                    {/* ESTE ES EL SELECTOR INTELIGENTE */}
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Plantilla Visual</label>
-                      <select value={templateId} onChange={(e) => setTemplateId(e.target.value)} className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30 focus:border-[#9a7b5c] transition-all font-medium">
-                        <option value="v1">Minimalista Clásica (V1)</option>
-                        <option value="v2">Alta Costura Editorial (V2)</option>
+                      <select value={templateId} onChange={(e) => setTemplateId(e.target.value)} className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30 focus:border-[#9a7b5c] transition-all font-medium cursor-pointer">
+                        {(catalogos[tipoEvento] || catalogos.boda).map((t) => (
+                          <option key={t.id} value={t.id}>{t.nombre}</option>
+                        ))}
                       </select>
                     </div>
                   </div>
