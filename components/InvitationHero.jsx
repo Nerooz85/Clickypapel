@@ -2,13 +2,14 @@
 import { useState, useEffect } from 'react';
 
 export default function InvitationHero({ weddingData }) {
-  // weddingData vendrá de tu base de datos (Supabase/Firebase) con los nombres y la fecha
-  const { groomName, brideName, eventDate, coverImage, welcomePhrase } = weddingData;
+  // Le agregamos el || {} por seguridad para que no marque error mientras carga
+  const { groomName, brideName, eventDate, coverImage, welcomePhrase } = weddingData || {};
 
   // Estado para la cuenta regresiva
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
+    if (!eventDate) return;
     const targetDate = new Date(eventDate).getTime();
 
     const interval = setInterval(() => {
@@ -31,7 +32,9 @@ export default function InvitationHero({ weddingData }) {
   }, [eventDate]);
 
   return (
-    <section className="relative h-screen w-full flex flex-col items-center justify-center text-center px-4 overflow-hidden">
+    // 👇 AQUÍ ESTÁ EL CAMBIO MÁGICO: justify-start y pt-[20vh] para subir todo
+    <section className="relative h-screen w-full flex flex-col items-center justify-start pt-[20vh] text-center px-4 overflow-hidden">
+      
       {/* Imagen de fondo premium con un overlay oscuro para que el texto resalte */}
       <div 
         className="absolute inset-0 bg-cover bg-center z-0 scale-105 transition-transform duration-10000 ease-out"
@@ -55,7 +58,7 @@ export default function InvitationHero({ weddingData }) {
         </p>
 
         {/* Bloque de la Cuenta Regresiva (Innovación Visual) */}
-        <div className="mt-12 grid grid-cols-4 gap-4 md:gap-6 bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl max-w-md w-full">
+        <div className="mt-12 grid grid-cols-4 gap-4 md:gap-6 bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl max-w-md w-full shadow-2xl">
           <div className="flex flex-col">
             <span className="text-3xl md:text-4xl font-serif font-light text-amber-200">{timeLeft.days}</span>
             <span className="text-[10px] uppercase tracking-wider text-gray-300 mt-1">Días</span>
@@ -77,7 +80,7 @@ export default function InvitationHero({ weddingData }) {
 
       {/* Indicador de scroll sutil */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 animate-bounce">
-        <span className="text-xs tracking-widest uppercase text-gray-300 font-light">Desliza para ver más</span>
+        <span className="text-xs tracking-widest uppercase text-gray-300 font-light drop-shadow-md">Desliza para ver más</span>
       </div>
     </section>
   );

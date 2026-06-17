@@ -23,7 +23,9 @@ export default function InvitationHeroV2({ weddingData, diseño }) {
   }, [weddingData?.eventDate]);
 
   return (
-    <section className="relative w-full h-[95vh] flex items-center justify-center overflow-hidden">
+    // 👇 CAMBIO AQUÍ: justify-start y pt-[15vh] para subir el bloque de cristal
+    <section className="relative w-full h-screen flex flex-col items-center justify-start pt-[15vh] overflow-hidden">
+      
       {/* Fondo fotográfico a pantalla completa con zoom suave */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-[20s] ease-out scale-100 hover:scale-110"
@@ -34,14 +36,19 @@ export default function InvitationHeroV2({ weddingData, diseño }) {
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-stone-900/20 to-stone-900/90" />
 
       {/* Tarjeta de Cristal Central (Frosted Glass) */}
-      <div className="relative z-10 bg-white/10 backdrop-blur-md border border-white/20 p-10 md:p-16 rounded-3xl text-center text-white shadow-2xl max-w-lg w-[90%] flex flex-col items-center animate-fadeIn">
-        <p className="text-[10px] md:text-xs tracking-[0.3em] uppercase mb-6 opacity-80 font-sans">Nuestra Boda</p>
+      <div className="relative z-10 bg-white/10 backdrop-blur-md border border-white/20 p-8 md:p-12 rounded-3xl text-center text-white shadow-2xl max-w-lg w-[90%] flex flex-col items-center animate-fadeIn">
+        <p className="text-[10px] md:text-xs tracking-[0.3em] uppercase mb-4 opacity-80 font-sans">Nuestra Boda</p>
         
         {/* Nombres */}
-        <h1 className="text-5xl md:text-7xl mb-2">{weddingData?.brideName || "Novia"}</h1>
-        <span className="text-3xl italic opacity-70 my-2 font-serif">&</span>
-        <h1 className="text-5xl md:text-7xl mb-8">{weddingData?.groomName || "Novio"}</h1>
+        <h1 className="text-5xl md:text-7xl mb-1">{weddingData?.brideName || "Novia"}</h1>
+        <span className="text-3xl italic opacity-70 my-1 font-serif">&</span>
+        <h1 className="text-5xl md:text-7xl mb-4">{weddingData?.groomName || "Novio"}</h1>
         
+        {/* 👇 FRASE PERSONALIZADA AÑADIDA AQUÍ */}
+        <p className="font-light italic text-sm md:text-base text-gray-200/90 mb-6 max-w-sm px-4 drop-shadow-md">
+          "{weddingData?.welcomePhrase || 'El amor todo lo cree, todo lo espera, todo lo soporta.'}"
+        </p>
+
         {/* Fecha y Botón de Agenda */}
         <div className="border-t border-white/30 pt-6 w-full flex flex-col items-center gap-4">
           <p className="text-sm md:text-base tracking-widest uppercase font-sans font-light">
