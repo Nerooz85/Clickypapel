@@ -447,14 +447,56 @@ export default function NoviosDashboard() {
                       <input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30 focus:border-[#9a7b5c] transition-all" />
                     </div>
                     
-                    {/* ESTE ES EL SELECTOR INTELIGENTE */}
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Plantilla Visual</label>
-                      <select value={templateId} onChange={(e) => setTemplateId(e.target.value)} className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30 focus:border-[#9a7b5c] transition-all font-medium cursor-pointer">
-                        {(catalogos[tipoEvento] || catalogos.boda).map((t) => (
-                          <option key={t.id} value={t.id}>{t.nombre}</option>
-                        ))}
-                      </select>
+                    {/* ESTE ES EL SELECTOR DE PLANTILLAS VISUAL Y MODERNO */}
+                    <div className="col-span-1 md:col-span-2 pt-4 border-t border-stone-100">
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1 block mb-3">
+                        Selecciona el Diseño de tu Invitación
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        
+                        {/* V1: Clásica */}
+                        <button
+                          type="button"
+                          onClick={() => setTemplateId('v1')}
+                          className={`p-5 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-3 relative overflow-hidden group cursor-pointer ${templateId === 'v1' ? 'border-[#9a7b5c] bg-[#9a7b5c]/5 shadow-md' : 'border-stone-200 bg-white hover:border-[#9a7b5c]/50'}`}
+                        >
+                          {templateId === 'v1' && <div className="absolute top-2 right-2 text-xs">✅</div>}
+                          <span className="text-3xl filter drop-shadow-sm group-hover:scale-110 transition-transform">✨</span>
+                          <div className="text-center">
+                            <span className={`text-[10px] font-bold uppercase tracking-wider block ${templateId === 'v1' ? 'text-[#9a7b5c]' : 'text-stone-700'}`}>V1: Minimalista</span>
+                            <span className="text-[9px] text-stone-400 font-light tracking-wide">Clásica y limpia</span>
+                          </div>
+                        </button>
+
+                        {/* V2: Editorial */}
+                        <button
+                          type="button"
+                          onClick={() => setTemplateId('v2')}
+                          className={`p-5 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-3 relative overflow-hidden group cursor-pointer ${templateId === 'v2' ? 'border-[#9a7b5c] bg-[#9a7b5c]/5 shadow-md' : 'border-stone-200 bg-white hover:border-[#9a7b5c]/50'}`}
+                        >
+                          {templateId === 'v2' && <div className="absolute top-2 right-2 text-xs">✅</div>}
+                          <span className="text-3xl filter drop-shadow-sm group-hover:scale-110 transition-transform">💎</span>
+                          <div className="text-center">
+                            <span className={`text-[10px] font-bold uppercase tracking-wider block ${templateId === 'v2' ? 'text-[#9a7b5c]' : 'text-stone-700'}`}>V2: Editorial</span>
+                            <span className="text-[9px] text-stone-400 font-light tracking-wide">Elegante con cristal</span>
+                          </div>
+                        </button>
+
+                        {/* V3: Bosque Místico */}
+                        <button
+                          type="button"
+                          onClick={() => setTemplateId('v3')}
+                          className={`p-5 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-3 relative overflow-hidden group cursor-pointer ${templateId === 'v3' ? 'border-[#9a7b5c] bg-[#9a7b5c]/5 shadow-md' : 'border-stone-200 bg-white hover:border-[#9a7b5c]/50'}`}
+                        >
+                          {templateId === 'v3' && <div className="absolute top-2 right-2 text-xs">✅</div>}
+                          <span className="text-3xl filter drop-shadow-sm group-hover:scale-110 transition-transform">🌲</span>
+                          <div className="text-center">
+                            <span className={`text-[10px] font-bold uppercase tracking-wider block ${templateId === 'v3' ? 'text-[#9a7b5c]' : 'text-stone-700'}`}>V3: Naturaleza</span>
+                            <span className="text-[9px] text-stone-400 font-light tracking-wide">Animación inmersiva</span>
+                          </div>
+                        </button>
+
+                      </div>
                     </div>
                   </div>
 
