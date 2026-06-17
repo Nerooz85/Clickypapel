@@ -95,11 +95,11 @@ export default function NoviosDashboard() {
   const [paletaColores, setPaletaColores] = useState('');
 
   const cancionesCatalogo = [
-    { id: '1', titulo: "A Thousand Years (Piano Elegante)", url: "/music/1-thousand-years.mp3", bpm: "69 BPM" },
-    { id: '2', titulo: "Perfect - Ed Sheeran (Orquestal)", url: "/music/2-perfect.mp3", bpm: "95 BPM" },
-    { id: '3', titulo: "Marry Me - Train (Acústico Dulce)", url: "/music/3-marry-me.mp3", bpm: "88 BPM" },
-    { id: '4', titulo: "Canon en D - Pachelbel (Clásico)", url: "/music/4-canon-in-d.mp3", bpm: "72 BPM" },
-    { id: '5', titulo: "Hasta Mi Final - Il Divo (Voz)", url: "/music/5-hasta-mi-final.mp3", bpm: "65 BPM" }
+    { id: '1', titulo: "Clásico Romántico", url: "/music/1. Clásico Romántico.mp3", bpm: "69 BPM" },
+    { id: '2', titulo: "Pop Acústico", url: "/music/2. Pop Acústico.mp3", bpm: "95 BPM" },
+    { id: '3', titulo: "Elegancia Tradicional", url: "/music/3. Elegancia Tradicional.mp3", bpm: "88 BPM" },
+    { id: '4', titulo: "Vintage Emotivo", url: "/music/4. Vintage Emotivo.mp3", bpm: "72 BPM" },
+    { id: '5', titulo: "Instrumental Dulce", url: "/music/5. Instrumental Dulce.mp3", bpm: "65 BPM" }
   ];
 
   // ================= LÓGICA DE MULTIMEDIA Y UPGRADES =================
