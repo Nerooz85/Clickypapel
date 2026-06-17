@@ -69,6 +69,7 @@ export default function PaginaMaestraInvitacion() {
   const [planSeleccionado, setPlanSeleccionado] = useState('premium'); 
   const [agregaMusicaExtra, setAgregaMusicaExtra] = useState(false);
 
+  // 👇 AQUÍ AGREGAMOS TODAS LAS CATEGORÍAS QUE PEDISTE
   const catalogo25Demos = {
     'Bodas 💍': [
       { slug: 'demo-boda-tradicional', nombre: '✨ Gala Cashmere' },
@@ -83,6 +84,25 @@ export default function PaginaMaestraInvitacion() {
       { slug: 'demo-xv-boho', nombre: '🍵 Matcha Silvestre' },
       { slug: 'demo-xv-romantica', nombre: '☁️ Celestial Perla' },
       { slug: 'demo-xv-neon', nombre: '🖤 Obsidian Night' }
+    ],
+    'Baby Shower 🍼': [
+      { slug: 'demo-baby-neutral', nombre: '✨ Cashmere Lino' },
+      { slug: 'demo-baby-boy', nombre: '☁️ Celestial Baby' },
+      { slug: 'demo-baby-girl', nombre: '🏺 Terracota Soft' },
+      { slug: 'demo-baby-safari', nombre: '🍵 Matcha Orgánico' },
+      { slug: 'demo-baby-reveal', nombre: '🖤 Obsidian Night' }
+    ],
+    'Bautizos 🕊️': [
+      { slug: 'demo-bautizo-clean', nombre: '✨ Gala Cashmere' },
+      { slug: 'demo-bautizo-moderno', nombre: '🖤 Obsidian Minimal' },
+      { slug: 'demo-bautizo-botanico', nombre: '🍵 Matcha Silvestre' },
+      { slug: 'demo-bautizo-vintage', nombre: '🏺 Terracota Sunset' },
+      { slug: 'demo-bautizo-sky', nombre: '☁️ Ethereal Celestial' }
+    ],
+    'Despedida 🥂': [
+      { slug: 'demo-despedida-chic', nombre: '✨ Glamour Night' },
+      { slug: 'demo-despedida-boho', nombre: '🏺 Boho Bride' },
+      { slug: 'demo-despedida-pool', nombre: '☁️ Pool Party' }
     ]
   };
 
@@ -90,7 +110,6 @@ export default function PaginaMaestraInvitacion() {
     // 1. Detectar el dominio actual en el navegador
     if (typeof window !== 'undefined') {
       const hostname = window.location.hostname;
-      // Si están en clickypapel.com o en localhost, activamos el modo ventas
       if (hostname.includes('clickypapel') || hostname.includes('localhost')) {
         setEsModoVentas(true);
       }
@@ -103,23 +122,36 @@ export default function PaginaMaestraInvitacion() {
       const { data, error } = await supabase.from('bodas').select('*').eq('slug', slugLimpio).maybeSingle();
 
       if (error || !data) {
-        // Fallback de demostración si la URL no existe en BD
         setWeddingData({
           id: 'demo-id', slug: slugLimpio, groomName: 'Bruno', brideName: 'Brisa',
           eventDate: "2026-12-19T18:00:00", coverImage: "https://images.unsplash.com/photo-1519741497674-611481863552", 
           galleryImages: [], musicUrl: '/music/1. Clásico Romántico.mp3', albumCompartidoActivo: true,
           ceremoniaLugar: 'Parroquia de Nuestra Señora', recepcionLugar: 'Quinta Gran Jardín',
+          // Fallbacks para la demo
+          ceremoniaMapsUrl: '#', recepcionMapsUrl: '#',
+          banco: 'BBVA', titular: 'Bruno y Brisa', clabe: '012345678901234567',
+          amazonUrl: '#', liverpoolUrl: '#'
         });
       } else {
+        // 👇 AQUÍ AGREGAMOS MAPAS, REGALOS Y LA FRASE ESPECIAL
         setWeddingData({
           id: data.id, slug: data.slug, groomName: data.groom_name, brideName: data.bride_name,
           eventDate: data.event_date || "2026-12-19T18:00:00", coverImage: data.cover_image, 
-          galleryImages: data.gallery_images || [], ceremoniaLugar: data.ceremonia_lugar,
-          recepcionLugar: data.recepcion_lugar, musicUrl: data.music_url || '/music/1. Clásico Romántico.mp3',
+          galleryImages: data.gallery_images || [], 
+          welcomePhrase: data.welcome_phrase, // Agregado
+          ceremoniaLugar: data.ceremonia_lugar,
+          ceremoniaMapsUrl: data.ceremonia_maps_url, // Agregado
+          recepcionLugar: data.recepcion_lugar, 
+          recepcionMapsUrl: data.recepcion_maps_url, // Agregado
+          musicUrl: data.music_url || '/music/1. Clásico Romántico.mp3',
           albumCompartidoActivo: data.album_compartido_activo || false,
+          banco: data.banco, // Agregado
+          titular: data.titular, // Agregado
+          clabe: data.clabe, // Agregado
+          amazonUrl: data.amazon_url, // Agregado
+          liverpoolUrl: data.liverpool_url // Agregado
         });
         
-        // Bloqueamos los estilos iniciales con lo que está en la base de datos
         setPlantillaActiva(data.template_id || 'v1');
         setPaletaActiva(data.paleta_colores || 'cashmere');
         setFuenteActiva(data.estilo_texto || 'clasica');
