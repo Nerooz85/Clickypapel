@@ -7,7 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import InvitationHero from '@/components/InvitationHero';
 import EventTimeline from '@/components/EventTimeline';
 import InvitationHeroV2 from '@/components/InvitationHeroV2';
-import InvitationHeroV3 from '@/components/InvitationHeroV3'; // 👇 AQUÍ SE IMPORTA LA V3
+import InvitationHeroV3 from '@/components/InvitationHeroV3'; 
+import InvitationHeroXV from '@/components/InvitationHeroXV'; // 👇 LA NUEVA PLANTILLA XV
 import EventTimelineV2 from '@/components/EventTimelineV2';
 import PhotoGallery from '@/components/PhotoGallery';
 import GiftRegistry from '@/components/GiftRegistry';
@@ -46,12 +47,12 @@ const ScrollReveal = ({ children }) => {
 
 export default function PaginaMaestraInvitacion() {
   const params = useParams();
-  const slug = params?.weddingSlug || params?.slug;
+  const slug = params?.weddingSlug || params?.slug || '';
 
   const [weddingData, setWeddingData] = useState(null);
   const [cargando, setCargando] = useState(true);
   
-  // 🕵️ DETECTOR DE DOMINIO (Magia pura)
+  // 🕵️ DETECTOR DE DOMINIO
   const [esModoVentas, setEsModoVentas] = useState(false);
 
   // ✉️ ESTADOS DE INTERACCIÓN
@@ -63,27 +64,24 @@ export default function PaginaMaestraInvitacion() {
   const [plantillaActiva, setPlantillaActiva] = useState('v1'); 
   const [paletaActiva, setPaletaActiva] = useState('cashmere');       
   const [fuenteActiva, setFuenteActiva] = useState('clasica');     
+  const [tipoEventoGlobal, setTipoEventoGlobal] = useState('boda'); // 👈 NUEVO: Detecta Boda o XV
 
-  // 🛒 ESTADOS COMERCIALES (Solo visibles si esModoVentas === true)
+  // 🛒 ESTADOS COMERCIALES
   const [categoriaAbierta, setCategoriaAbierta] = useState(null); 
   const [modalContratarAbierto, setModalContratarAbierto] = useState(false);
   const [planSeleccionado, setPlanSeleccionado] = useState('premium'); 
   const [agregaMusicaExtra, setAgregaMusicaExtra] = useState(false);
 
+  // 👇 CATÁLOGO ACTUALIZADO
   const catalogo25Demos = {
     'Bodas 💍': [
-      { slug: 'demo-boda-tradicional', nombre: '✨ Gala Cashmere' },
-      { slug: 'demo-boda-industrial', nombre: '🖤 Obsidian Dark' },
-      { slug: 'demo-boda-boho', nombre: '🏺 Terracota Sunset' },
-      { slug: 'demo-boda-playa', nombre: '☁️ Ethereal Celestial' },
-      { slug: 'demo-boda-vintage', nombre: '🍵 Matcha Orgánico' }
+      { slug: 'demo-boda-v1', nombre: '✨ V1: Minimalista Clásica' },
+      { slug: 'demo-boda-v2', nombre: '💎 V2: Editorial Alta Costura' },
+      { slug: 'demo-boda-v3', nombre: '🌲 V3: Bosque Místico' }
     ],
     'XV Años 👑': [
-      { slug: 'demo-xv-glitter', nombre: '✨ Gala Cashmere' },
-      { slug: 'demo-xv-glam', nombre: '🖤 Obsidian Minimal' },
-      { slug: 'demo-xv-boho', nombre: '🍵 Matcha Silvestre' },
-      { slug: 'demo-xv-romantica', nombre: '☁️ Celestial Perla' },
-      { slug: 'demo-xv-neon', nombre: '🖤 Obsidian Night' }
+      { slug: 'demo-xv-v1', nombre: '🌸 V1: Jardín Encantado' },
+      { slug: 'demo-xv-v2', nombre: '🌃 V2: Noche Neón (Próximamente)' }
     ],
     'Baby Shower 🍼': [
       { slug: 'demo-baby-neutral', nombre: '✨ Cashmere Lino' },
@@ -107,7 +105,6 @@ export default function PaginaMaestraInvitacion() {
   };
 
   useEffect(() => {
-    // 1. Detectar el dominio actual en el navegador
     if (typeof window !== 'undefined') {
       const hostname = window.location.hostname;
       if (hostname.includes('clickypapel') || hostname.includes('localhost')) {
@@ -119,18 +116,32 @@ export default function PaginaMaestraInvitacion() {
       if (!slug) { setCargando(false); return; }
       setCargando(true);
       const slugLimpio = slug.toLowerCase().trim();
+      
+      // Magia: Detectamos si en la URL dice "xv" para cambiar la estructura automáticamente
+      const esXV = slugLimpio.includes('xv');
+      setTipoEventoGlobal(esXV ? 'xvanos' : 'boda');
+
       const { data, error } = await supabase.from('bodas').select('*').eq('slug', slugLimpio).maybeSingle();
 
       if (error || !data) {
+        // LÓGICA INTELIGENTE DE DEMOSTRACIÓN (Fallback)
+        let templateFallback = esXV ? 'xv-v1' : 'v1';
+        if (slugLimpio.includes('boda-v2')) templateFallback = 'v2';
+        if (slugLimpio.includes('boda-v3')) templateFallback = 'v3';
+
         setWeddingData({
-          id: 'demo-id', slug: slugLimpio, groomName: 'Bruno', brideName: 'Brisa',
-          eventDate: "2026-12-19T18:00:00", coverImage: "https://images.unsplash.com/photo-1519741497674-611481863552", 
+          id: 'demo-id', slug: slugLimpio, 
+          groomName: esXV ? '' : 'Bruno', // En XV no hay novio
+          brideName: esXV ? 'Sofía' : 'Brisa', // Nombre de la quinceañera
+          eventDate: "2026-12-19T18:00:00", 
+          coverImage: esXV ? "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7" : "https://images.unsplash.com/photo-1519741497674-611481863552", 
           galleryImages: [], musicUrl: '/music/1. Clásico Romántico.mp3', albumCompartidoActivo: true,
           ceremoniaLugar: 'Parroquia de Nuestra Señora', recepcionLugar: 'Quinta Gran Jardín',
           ceremoniaMapsUrl: '#', recepcionMapsUrl: '#',
-          banco: 'BBVA', titular: 'Bruno y Brisa', clabe: '012345678901234567',
+          banco: 'BBVA', titular: esXV ? 'Familia de Sofía' : 'Bruno y Brisa', clabe: '012345678901234567',
           amazonUrl: '#', liverpoolUrl: '#'
         });
+        setPlantillaActiva(templateFallback);
       } else {
         setWeddingData({
           id: data.id, slug: data.slug, groomName: data.groom_name, brideName: data.bride_name,
@@ -143,16 +154,13 @@ export default function PaginaMaestraInvitacion() {
           recepcionMapsUrl: data.recepcion_maps_url, 
           musicUrl: data.music_url || '/music/1. Clásico Romántico.mp3',
           albumCompartidoActivo: data.album_compartido_activo || false,
-          banco: data.banco, 
-          titular: data.titular, 
-          clabe: data.clabe, 
-          amazonUrl: data.amazon_url, 
-          liverpoolUrl: data.liverpool_url 
+          banco: data.banco, titular: data.titular, clabe: data.clabe, amazonUrl: data.amazon_url, liverpoolUrl: data.liverpool_url 
         });
         
-        setPlantillaActiva(data.template_id || 'v1');
+        setPlantillaActiva(data.template_id || (esXV ? 'xv-v1' : 'v1'));
         setPaletaActiva(data.paleta_colores || 'cashmere');
         setFuenteActiva(data.estilo_texto || 'clasica');
+        setTipoEventoGlobal(data.tipo_evento || (esXV ? 'xvanos' : 'boda'));
       }
       setCargando(false);
     }
@@ -180,7 +188,8 @@ export default function PaginaMaestraInvitacion() {
     matcha: { bgGlobal: 'bg-[#eef2eb] text-[#1f3022]', textAcento: 'text-[#3f6345]', btn: 'bg-[#3f6345] text-white' },
     terracota: { bgGlobal: 'bg-[#fbf1ea] text-[#5c2a1a]', textAcento: 'text-[#c85a3a]', btn: 'bg-[#c85a3a] text-white' },
     celestial: { bgGlobal: 'bg-[#eef2f6] text-[#1e3246]', textAcento: 'text-[#466a8e]', btn: 'bg-[#466a8e] text-white' },
-    obsidian: { bgGlobal: 'bg-[#121214] text-[#f4f4f5]', textAcento: 'text-[#d4d4d8]', btn: 'bg-[#f4f4f5] text-[#121214]' }
+    obsidian: { bgGlobal: 'bg-[#121214] text-[#f4f4f5]', textAcento: 'text-[#d4d4d8]', btn: 'bg-[#f4f4f5] text-[#121214]' },
+    rosegold: { bgGlobal: 'bg-rose-50 text-stone-800', textAcento: 'text-rose-400', btn: 'bg-rose-400 text-white' } // 🌸 Paleta extra para XV
   };
 
   const listadoFuentes = {
@@ -229,7 +238,10 @@ export default function PaginaMaestraInvitacion() {
             <motion.button onClick={abrirSobre} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.35 }} className="relative z-10 flex flex-col items-center gap-4 group select-none">
               <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#ba9f83] to-[#8a6b4c] shadow-2xl border-4 border-[#e8e4de] flex items-center justify-center relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
                 <div className="absolute inset-0 bg-white/20 rounded-full animate-ping opacity-75"></div>
-                <span className="text-white font-serif text-2xl font-light relative z-10 tracking-wider">{weddingData.brideName?.charAt(0)}&{weddingData.groomName?.charAt(0)}</span>
+                {/* 👇 EL SOBRE AHORA DICE "XV" SI ES EVENTO DE XV AÑOS */}
+                <span className="text-white font-serif text-2xl font-light relative z-10 tracking-wider">
+                  {tipoEventoGlobal === 'xvanos' ? 'XV' : `${weddingData.brideName?.charAt(0)}&${weddingData.groomName?.charAt(0)}`}
+                </span>
               </div>
               <span className="text-[#8a6b4c] text-[10px] uppercase tracking-[0.3em] font-bold animate-pulse">Toca para abrir</span>
             </motion.button>
@@ -244,14 +256,22 @@ export default function PaginaMaestraInvitacion() {
           <div className="fixed bottom-6 right-6 z-[100] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-stone-200/80 max-w-xs w-64 space-y-3.5 text-left text-stone-800 font-sans pointer-events-auto">
             <span className="text-[9px] bg-[#e3d5c8] text-[#4a3f35] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Prueba de Diseño</span>
             
-            {/* 👇 AQUÍ AÑADIMOS LA OPCIÓN V3 AL DESPLEGABLE */}
+            {/* 👇 SELECTOR INTELIGENTE: Muestra plantillas de Boda o de XV */}
             <select value={plantillaActiva} onChange={(e) => setPlantillaActiva(e.target.value)} className="w-full text-xs p-2 rounded-xl border bg-stone-50 font-bold">
-              <option value="v1">V1: Clásica Minimalista</option>
-              <option value="v2">V2: Editorial Alta Costura</option>
-              <option value="v3">V3: Bosque Místico</option>
+              {tipoEventoGlobal === 'boda' ? (
+                <>
+                  <option value="v1">V1: Clásica Minimalista</option>
+                  <option value="v2">V2: Editorial Alta Costura</option>
+                  <option value="v3">V3: Bosque Místico</option>
+                </>
+              ) : (
+                <>
+                  <option value="xv-v1">XV V1: Jardín Encantado</option>
+                </>
+              )}
             </select>
 
-            <div className="grid grid-cols-5 gap-1.5">{Object.keys(listadoPaletas).map((key) => <button key={key} type="button" onClick={() => setPaletaActiva(key)} className={`h-7 rounded-lg border text-[10px] ${paletaActiva === key ? 'border-stone-950 ring-2 scale-105 bg-stone-100' : 'border-stone-200 bg-stone-50'}`}>{key === 'cashmere' ? '🕊️' : key === 'matcha' ? '🍵' : key === 'terracota' ? '🏺' : key === 'celestial' ? '☁️' : '🖤'}</button>)}</div>
+            <div className="grid grid-cols-6 gap-1.5">{Object.keys(listadoPaletas).map((key) => <button key={key} type="button" onClick={() => setPaletaActiva(key)} className={`h-7 rounded-lg border text-[10px] ${paletaActiva === key ? 'border-stone-950 ring-2 scale-105 bg-stone-100' : 'border-stone-200 bg-stone-50'}`}>{key === 'cashmere' ? '🕊️' : key === 'matcha' ? '🍵' : key === 'terracota' ? '🏺' : key === 'celestial' ? '☁️' : key === 'rosegold' ? '🌸' : '🖤'}</button>)}</div>
             <select value={fuenteActiva} onChange={(e) => setFuenteActiva(e.target.value)} className="w-full text-xs p-2 rounded-xl border bg-white font-medium"><option value="clasica">Clásica Atemporal</option><option value="cursiva">Cursiva Elegante</option><option value="editorial">Alta Costura</option><option value="minimalista">Minimalista</option><option value="boho">Boho Chic</option></select>
           </div>
         )}
@@ -260,17 +280,20 @@ export default function PaginaMaestraInvitacion() {
 
         <div className="space-y-12 pb-16">
           
-          {/* 👇 AQUÍ AGREGAMOS LA CONDICIÓN PARA RENDERIZAR LA V3 */}
+          {/* 👇 AQUÍ RENDERIZAMOS LA PLANTILLA ADECUADA */}
           <ScrollReveal>
             {plantillaActiva === 'v3' ? (
               <InvitationHeroV3 weddingData={weddingData} diseño={diseño} />
             ) : plantillaActiva === 'v2' ? (
               <InvitationHeroV2 weddingData={weddingData} diseño={diseño} />
+            ) : plantillaActiva === 'xv-v1' ? (
+              <InvitationHeroXV weddingData={weddingData} diseño={diseño} />
             ) : (
               <InvitationHero weddingData={weddingData} diseño={diseño} />
             )}
           </ScrollReveal>
 
+          {/* El resto de componentes se reúsan porque funcionan igual para XV o Boda */}
           <ScrollReveal>{plantillaActiva === 'v2' || plantillaActiva === 'v3' ? <EventTimelineV2 weddingData={weddingData} diseño={diseño} /> : <EventTimeline weddingData={weddingData} diseño={diseño} />}</ScrollReveal>
           {weddingData.galleryImages && weddingData.galleryImages.length > 0 && <ScrollReveal><PhotoGallery weddingData={weddingData} images={weddingData.galleryImages} diseño={diseño} /></ScrollReveal>}
           <ScrollReveal><GiftRegistry weddingData={weddingData} diseño={diseño} /></ScrollReveal>
