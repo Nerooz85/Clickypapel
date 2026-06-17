@@ -91,7 +91,7 @@ export default function WeddingDemoPage() {
       { slug: 'demo-civil-brunch', nombre: '✨ Gala Cashmere' },
       { slug: 'demo-civil-minimal', nombre: '🖤 Obsidian Minimal' },
       { slug: 'demo-civil-garden', nombre: '🍵 Matcha Silvestre' },
-      { slug: 'demo-civil-sunset', font-semibold: '🏺 Terracota Sunset' },
+      { slug: 'demo-civil-sunset', nombre: '🏺 Terracota Sunset' },
       { slug: 'demo-civil-urban', nombre: '🖤 Obsidian Night' }
     ],
     'Baby Shower 🍼': [
