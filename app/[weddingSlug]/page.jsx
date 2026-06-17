@@ -43,22 +43,59 @@ const ScrollReveal = ({ children }) => {
   );
 };
 
-export default function InvitacionFinalCliente() {
+export default function PaginaMaestraInvitacion() {
   const params = useParams();
   const slug = params?.weddingSlug || params?.slug;
 
   const [weddingData, setWeddingData] = useState(null);
   const [cargando, setCargando] = useState(true);
   
+  // 🕵️ DETECTOR DE DOMINIO (Magia pura)
+  const [esModoVentas, setEsModoVentas] = useState(false);
+
+  // ✉️ ESTADOS DE INTERACCIÓN
   const [sobreAbierto, setSobreAbierto] = useState(false);
   const [musicaSonando, setMusicaSonando] = useState(false);
   const audioRef = useRef(null);
 
+  // 🎨 ESTADOS DE DISEÑO INTERACTIVO
   const [plantillaActiva, setPlantillaActiva] = useState('v1'); 
   const [paletaActiva, setPaletaActiva] = useState('cashmere');       
   const [fuenteActiva, setFuenteActiva] = useState('clasica');     
 
+  // 🛒 ESTADOS COMERCIALES (Solo visibles si esModoVentas === true)
+  const [categoriaAbierta, setCategoriaAbierta] = useState(null); 
+  const [modalContratarAbierto, setModalContratarAbierto] = useState(false);
+  const [planSeleccionado, setPlanSeleccionado] = useState('premium'); 
+  const [agregaMusicaExtra, setAgregaMusicaExtra] = useState(false);
+
+  const catalogo25Demos = {
+    'Bodas 💍': [
+      { slug: 'demo-boda-tradicional', nombre: '✨ Gala Cashmere' },
+      { slug: 'demo-boda-industrial', nombre: '🖤 Obsidian Dark' },
+      { slug: 'demo-boda-boho', nombre: '🏺 Terracota Sunset' },
+      { slug: 'demo-boda-playa', nombre: '☁️ Ethereal Celestial' },
+      { slug: 'demo-boda-vintage', nombre: '🍵 Matcha Orgánico' }
+    ],
+    'XV Años 👑': [
+      { slug: 'demo-xv-glitter', nombre: '✨ Gala Cashmere' },
+      { slug: 'demo-xv-glam', nombre: '🖤 Obsidian Minimal' },
+      { slug: 'demo-xv-boho', nombre: '🍵 Matcha Silvestre' },
+      { slug: 'demo-xv-romantica', nombre: '☁️ Celestial Perla' },
+      { slug: 'demo-xv-neon', nombre: '🖤 Obsidian Night' }
+    ]
+  };
+
   useEffect(() => {
+    // 1. Detectar el dominio actual en el navegador
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      // Si están en clickypapel.com o en localhost, activamos el modo ventas
+      if (hostname.includes('clickypapel') || hostname.includes('localhost')) {
+        setEsModoVentas(true);
+      }
+    }
+
     async function jalarDatosBoda() {
       if (!slug) { setCargando(false); return; }
       setCargando(true);
@@ -66,7 +103,13 @@ export default function InvitacionFinalCliente() {
       const { data, error } = await supabase.from('bodas').select('*').eq('slug', slugLimpio).maybeSingle();
 
       if (error || !data) {
-        setWeddingData(null);
+        // Fallback de demostración si la URL no existe en BD
+        setWeddingData({
+          id: 'demo-id', slug: slugLimpio, groomName: 'Bruno', brideName: 'Brisa',
+          eventDate: "2026-12-19T18:00:00", coverImage: "https://images.unsplash.com/photo-1519741497674-611481863552", 
+          galleryImages: [], musicUrl: '/music/1. Clásico Romántico.mp3', albumCompartidoActivo: true,
+          ceremoniaLugar: 'Parroquia de Nuestra Señora', recepcionLugar: 'Quinta Gran Jardín',
+        });
       } else {
         setWeddingData({
           id: data.id, slug: data.slug, groomName: data.groom_name, brideName: data.bride_name,
@@ -75,6 +118,8 @@ export default function InvitacionFinalCliente() {
           recepcionLugar: data.recepcion_lugar, musicUrl: data.music_url || '/music/1. Clásico Romántico.mp3',
           albumCompartidoActivo: data.album_compartido_activo || false,
         });
+        
+        // Bloqueamos los estilos iniciales con lo que está en la base de datos
         setPlantillaActiva(data.template_id || 'v1');
         setPaletaActiva(data.paleta_colores || 'cashmere');
         setFuenteActiva(data.estilo_texto || 'clasica');
@@ -120,10 +165,32 @@ export default function InvitacionFinalCliente() {
   if (!weddingData) return <div className="min-h-screen flex items-center justify-center text-stone-400 font-sans">Invitación no encontrada</div>;
 
   return (
-    <main className={`min-h-screen overflow-x-hidden relative ${diseño.bgGlobal} ${claseFuente}`}>
+    <main className={`min-h-screen overflow-x-hidden relative ${diseño.bgGlobal} ${claseFuente} ${esModoVentas ? 'pt-32 md:pt-20' : ''}`}>
       <style dangerouslySetInnerHTML={{__html: `@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Great+Vibes&family=Jost:wght@300;400;500&family=Lora:ital,wght@0,400;1,400&display=swap'); .font-clasica { font-family: 'Cormorant Garamond', serif; } .font-cursiva { font-family: 'Great Vibes', cursive; } .font-editorial { font-family: 'Cinzel', serif; letter-spacing: 0.15em; text-transform: uppercase; } .font-minimalista { font-family: 'Jost', sans-serif; font-weight: 300; } .font-boho { font-family: 'Lora', serif; font-style: italic; }`}} />
+      
       {weddingData?.musicUrl && <audio ref={audioRef} src={weddingData.musicUrl} loop />}
 
+      {/* HEADER EXCLUSIVO MODO VENTAS */}
+      {esModoVentas && (
+        <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md border-b border-stone-200/80 px-4 md:px-8 py-3 flex flex-col lg:flex-row items-center justify-between gap-4 z-[200] font-sans">
+          <a href="https://clickypapel.com" className="flex items-center gap-1 group select-none shrink-0"><span className="font-serif text-base tracking-wider font-light text-stone-900">clicky<span className="font-normal text-[#9a7b5c]">papel</span>.com</span></a>
+          <nav className="flex items-center gap-1 overflow-x-auto max-w-full no-scrollbar py-1 shrink-0 px-2">
+            {Object.keys(catalogo25Demos).map((categoria) => (
+              <div key={categoria} className="relative shrink-0">
+                <button type="button" onClick={() => setCategoriaAbierta(categoriaAbierta === categoria ? null : categoria)} className="text-[11px] font-black tracking-wider uppercase px-3 py-2 rounded-xl text-stone-600 hover:bg-stone-100">{categoria}</button>
+                {categoriaAbierta === categoria && (
+                  <div className="absolute top-11 left-1/2 -translate-x-1/2 w-48 bg-white border border-stone-200/90 rounded-2xl shadow-xl p-1.5 space-y-0.5 z-[210]">
+                    {catalogo25Demos[categoria].map((demo) => <a key={demo.slug} href={`/${demo.slug}`} className="block text-left text-[11px] px-3 py-2 rounded-xl font-semibold text-stone-600 hover:bg-stone-50">{demo.nombre}</a>)}
+                  </div>
+                )}
+              </div>
+            ))}
+          </nav>
+          <button type="button" onClick={() => setModalContratarAbierto(true)} className="bg-stone-950 hover:bg-[#9a7b5c] text-white text-[11px] uppercase tracking-widest font-bold px-5 py-2.5 rounded-xl shrink-0">✨ Quiero esta invitación</button>
+        </header>
+      )}
+
+      {/* ANIMACIÓN DEL SOBRE */}
       <AnimatePresence>
         {!sobreAbierto && (
           <motion.div key="sobreMaster" className="fixed inset-0 z-[999] flex flex-col items-center justify-center overflow-hidden bg-[#e8e4de]" exit={{ opacity: 0 }} transition={{ duration: 0.9, delay: 0.2 }}>
@@ -141,7 +208,19 @@ export default function InvitacionFinalCliente() {
       </AnimatePresence>
 
       <div className={`transition-opacity duration-1000 delay-300 w-full ${sobreAbierto ? 'opacity-100' : 'opacity-0 h-screen overflow-hidden pointer-events-none'}`}>
-        <button type="button" onClick={toggleMusicaFlotante} className="fixed bottom-6 left-6 z-[150] bg-white/90 text-stone-900 backdrop-blur-md border border-stone-200 p-3 rounded-full shadow-xl text-xs">{musicaSonando ? '🎵 ⏸️' : '🔇 ▶️'}</button>
+        
+        {/* PANEL LATERAL EXCLUSIVO MODO VENTAS */}
+        {esModoVentas && (
+          <div className="fixed bottom-6 right-6 z-[100] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-stone-200/80 max-w-xs w-64 space-y-3.5 text-left text-stone-800 font-sans pointer-events-auto">
+            <span className="text-[9px] bg-[#e3d5c8] text-[#4a3f35] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Prueba de Diseño</span>
+            <select value={plantillaActiva} onChange={(e) => setPlantillaActiva(e.target.value)} className="w-full text-xs p-2 rounded-xl border bg-stone-50 font-bold"><option value="v1">V1: Clásica Minimalista</option><option value="v2">V2: Editorial Alta Costura</option></select>
+            <div className="grid grid-cols-5 gap-1.5">{Object.keys(listadoPaletas).map((key) => <button key={key} type="button" onClick={() => setPaletaActiva(key)} className={`h-7 rounded-lg border text-[10px] ${paletaActiva === key ? 'border-stone-950 ring-2 scale-105 bg-stone-100' : 'border-stone-200 bg-stone-50'}`}>{key === 'cashmere' ? '🕊️' : key === 'matcha' ? '🍵' : key === 'terracota' ? '🏺' : key === 'celestial' ? '☁️' : '🖤'}</button>)}</div>
+            <select value={fuenteActiva} onChange={(e) => setFuenteActiva(e.target.value)} className="w-full text-xs p-2 rounded-xl border bg-white font-medium"><option value="clasica">Clásica Atemporal</option><option value="cursiva">Cursiva Elegante</option><option value="editorial">Alta Costura</option><option value="minimalista">Minimalista</option><option value="boho">Boho Chic</option></select>
+          </div>
+        )}
+
+        <button type="button" onClick={toggleMusicaFlotante} className="fixed bottom-6 left-6 z-[150] bg-white/90 text-stone-900 backdrop-blur-md border border-stone-200 p-3 rounded-full shadow-xl text-xs pointer-events-auto">{musicaSonando ? '🎵 ⏸️' : '🔇 ▶️'}</button>
+
         <div className="space-y-12 pb-16">
           <ScrollReveal>{plantillaActiva === 'v2' ? <InvitationHeroV2 weddingData={weddingData} diseño={diseño} /> : <InvitationHero weddingData={weddingData} diseño={diseño} />}</ScrollReveal>
           <ScrollReveal>{plantillaActiva === 'v2' ? <EventTimelineV2 weddingData={weddingData} diseño={diseño} /> : <EventTimeline weddingData={weddingData} diseño={diseño} />}</ScrollReveal>
@@ -150,7 +229,10 @@ export default function InvitacionFinalCliente() {
           <ScrollReveal><QuoteBanner weddingData={weddingData} diseño={diseño} /></ScrollReveal>
           <ScrollReveal><RsvpModule weddingId={weddingData.id} weddingSlug={weddingData.slug} diseño={diseño} /></ScrollReveal>
         </div>
-        <footer className="text-center py-12 bg-transparent text-stone-400 text-[9px] uppercase tracking-widest font-sans">Creado en <a href="https://clickypapel.com" target="_blank" className="font-bold hover:text-[#9a7b5c]">ClickyPapel</a></footer>
+        
+        <footer className="text-center py-12 bg-transparent text-stone-400 text-[9px] uppercase tracking-widest font-sans">
+          {esModoVentas ? 'Demostración de plataforma interactiva' : <>Creado en <a href="https://clickypapel.com" target="_blank" className="font-bold hover:text-[#9a7b5c]">ClickyPapel</a></>}
+        </footer>
       </div>
     </main>
   );
