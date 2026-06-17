@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import InvitationHero from '@/components/InvitationHero';
 import EventTimeline from '@/components/EventTimeline';
 import InvitationHeroV2 from '@/components/InvitationHeroV2';
+import InvitationHeroV3 from '@/components/InvitationHeroV3'; // 👇 AQUÍ SE IMPORTA LA V3
 import EventTimelineV2 from '@/components/EventTimelineV2';
 import PhotoGallery from '@/components/PhotoGallery';
 import GiftRegistry from '@/components/GiftRegistry';
@@ -69,7 +70,6 @@ export default function PaginaMaestraInvitacion() {
   const [planSeleccionado, setPlanSeleccionado] = useState('premium'); 
   const [agregaMusicaExtra, setAgregaMusicaExtra] = useState(false);
 
-  // 👇 AQUÍ AGREGAMOS TODAS LAS CATEGORÍAS QUE PEDISTE
   const catalogo25Demos = {
     'Bodas 💍': [
       { slug: 'demo-boda-tradicional', nombre: '✨ Gala Cashmere' },
@@ -127,29 +127,27 @@ export default function PaginaMaestraInvitacion() {
           eventDate: "2026-12-19T18:00:00", coverImage: "https://images.unsplash.com/photo-1519741497674-611481863552", 
           galleryImages: [], musicUrl: '/music/1. Clásico Romántico.mp3', albumCompartidoActivo: true,
           ceremoniaLugar: 'Parroquia de Nuestra Señora', recepcionLugar: 'Quinta Gran Jardín',
-          // Fallbacks para la demo
           ceremoniaMapsUrl: '#', recepcionMapsUrl: '#',
           banco: 'BBVA', titular: 'Bruno y Brisa', clabe: '012345678901234567',
           amazonUrl: '#', liverpoolUrl: '#'
         });
       } else {
-        // 👇 AQUÍ AGREGAMOS MAPAS, REGALOS Y LA FRASE ESPECIAL
         setWeddingData({
           id: data.id, slug: data.slug, groomName: data.groom_name, brideName: data.bride_name,
           eventDate: data.event_date || "2026-12-19T18:00:00", coverImage: data.cover_image, 
           galleryImages: data.gallery_images || [], 
-          welcomePhrase: data.welcome_phrase, // Agregado
+          welcomePhrase: data.welcome_phrase, 
           ceremoniaLugar: data.ceremonia_lugar,
-          ceremoniaMapsUrl: data.ceremonia_maps_url, // Agregado
+          ceremoniaMapsUrl: data.ceremonia_maps_url, 
           recepcionLugar: data.recepcion_lugar, 
-          recepcionMapsUrl: data.recepcion_maps_url, // Agregado
+          recepcionMapsUrl: data.recepcion_maps_url, 
           musicUrl: data.music_url || '/music/1. Clásico Romántico.mp3',
           albumCompartidoActivo: data.album_compartido_activo || false,
-          banco: data.banco, // Agregado
-          titular: data.titular, // Agregado
-          clabe: data.clabe, // Agregado
-          amazonUrl: data.amazon_url, // Agregado
-          liverpoolUrl: data.liverpool_url // Agregado
+          banco: data.banco, 
+          titular: data.titular, 
+          clabe: data.clabe, 
+          amazonUrl: data.amazon_url, 
+          liverpoolUrl: data.liverpool_url 
         });
         
         setPlantillaActiva(data.template_id || 'v1');
@@ -245,7 +243,14 @@ export default function PaginaMaestraInvitacion() {
         {esModoVentas && (
           <div className="fixed bottom-6 right-6 z-[100] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-stone-200/80 max-w-xs w-64 space-y-3.5 text-left text-stone-800 font-sans pointer-events-auto">
             <span className="text-[9px] bg-[#e3d5c8] text-[#4a3f35] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Prueba de Diseño</span>
-            <select value={plantillaActiva} onChange={(e) => setPlantillaActiva(e.target.value)} className="w-full text-xs p-2 rounded-xl border bg-stone-50 font-bold"><option value="v1">V1: Clásica Minimalista</option><option value="v2">V2: Editorial Alta Costura</option></select>
+            
+            {/* 👇 AQUÍ AÑADIMOS LA OPCIÓN V3 AL DESPLEGABLE */}
+            <select value={plantillaActiva} onChange={(e) => setPlantillaActiva(e.target.value)} className="w-full text-xs p-2 rounded-xl border bg-stone-50 font-bold">
+              <option value="v1">V1: Clásica Minimalista</option>
+              <option value="v2">V2: Editorial Alta Costura</option>
+              <option value="v3">V3: Bosque Místico</option>
+            </select>
+
             <div className="grid grid-cols-5 gap-1.5">{Object.keys(listadoPaletas).map((key) => <button key={key} type="button" onClick={() => setPaletaActiva(key)} className={`h-7 rounded-lg border text-[10px] ${paletaActiva === key ? 'border-stone-950 ring-2 scale-105 bg-stone-100' : 'border-stone-200 bg-stone-50'}`}>{key === 'cashmere' ? '🕊️' : key === 'matcha' ? '🍵' : key === 'terracota' ? '🏺' : key === 'celestial' ? '☁️' : '🖤'}</button>)}</div>
             <select value={fuenteActiva} onChange={(e) => setFuenteActiva(e.target.value)} className="w-full text-xs p-2 rounded-xl border bg-white font-medium"><option value="clasica">Clásica Atemporal</option><option value="cursiva">Cursiva Elegante</option><option value="editorial">Alta Costura</option><option value="minimalista">Minimalista</option><option value="boho">Boho Chic</option></select>
           </div>
@@ -254,8 +259,19 @@ export default function PaginaMaestraInvitacion() {
         <button type="button" onClick={toggleMusicaFlotante} className="fixed bottom-6 left-6 z-[150] bg-white/90 text-stone-900 backdrop-blur-md border border-stone-200 p-3 rounded-full shadow-xl text-xs pointer-events-auto">{musicaSonando ? '🎵 ⏸️' : '🔇 ▶️'}</button>
 
         <div className="space-y-12 pb-16">
-          <ScrollReveal>{plantillaActiva === 'v2' ? <InvitationHeroV2 weddingData={weddingData} diseño={diseño} /> : <InvitationHero weddingData={weddingData} diseño={diseño} />}</ScrollReveal>
-          <ScrollReveal>{plantillaActiva === 'v2' ? <EventTimelineV2 weddingData={weddingData} diseño={diseño} /> : <EventTimeline weddingData={weddingData} diseño={diseño} />}</ScrollReveal>
+          
+          {/* 👇 AQUÍ AGREGAMOS LA CONDICIÓN PARA RENDERIZAR LA V3 */}
+          <ScrollReveal>
+            {plantillaActiva === 'v3' ? (
+              <InvitationHeroV3 weddingData={weddingData} diseño={diseño} />
+            ) : plantillaActiva === 'v2' ? (
+              <InvitationHeroV2 weddingData={weddingData} diseño={diseño} />
+            ) : (
+              <InvitationHero weddingData={weddingData} diseño={diseño} />
+            )}
+          </ScrollReveal>
+
+          <ScrollReveal>{plantillaActiva === 'v2' || plantillaActiva === 'v3' ? <EventTimelineV2 weddingData={weddingData} diseño={diseño} /> : <EventTimeline weddingData={weddingData} diseño={diseño} />}</ScrollReveal>
           {weddingData.galleryImages && weddingData.galleryImages.length > 0 && <ScrollReveal><PhotoGallery weddingData={weddingData} images={weddingData.galleryImages} diseño={diseño} /></ScrollReveal>}
           <ScrollReveal><GiftRegistry weddingData={weddingData} diseño={diseño} /></ScrollReveal>
           <ScrollReveal><QuoteBanner weddingData={weddingData} diseño={diseño} /></ScrollReveal>
