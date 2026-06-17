@@ -2,12 +2,13 @@
 import { useParams, useSearchParams } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase'; 
+import { motion, AnimatePresence } from 'framer-motion';
 
 // 🧩 IMPORTACIÓN COMPONENTES V1 (Clásicos)
 import InvitationHero from '@/components/InvitationHero';
 import EventTimeline from '@/components/EventTimeline';
 
-// 💎 IMPORTACIÓN COMPONENTES V2 (Editorial Tipo Invitio) - Asegúrate de tener estos archivos en tu carpeta components
+// 💎 IMPORTACIÓN COMPONENTES V2 (Editorial Tipo Invitio)
 import InvitationHeroV2 from '@/components/InvitationHeroV2';
 import EventTimelineV2 from '@/components/EventTimelineV2';
 
@@ -58,9 +59,12 @@ export default function WeddingInvitationPage() {
   const [cargando, setCargando] = useState(true);
   const [categoriaAbierta, setCategoriaAbierta] = useState(null); 
   const [musicaSonando, setMusicaSonando] = useState(false);
+  
+  // ✉️ ESTADO DE LA ANIMACIÓN DE ENTRADA
+  const [sobreAbierto, setSobreAbierto] = useState(false);
 
-  // 🎨 ESTADOS DE DISEÑO INTERACTIVO (SWITCH MAESTRO)
-  const [plantillaActiva, setPlantillaActiva] = useState('v1'); // ⬅️ Este es el switch para cambiar entre demos visuales
+  // 🎨 ESTADOS DE DISEÑO INTERACTIVO
+  const [plantillaActiva, setPlantillaActiva] = useState('v1'); 
   const [paletaActiva, setPaletaActiva] = useState('cashmere');       
   const [fuenteActiva, setFuenteActiva] = useState('clasica');     
 
@@ -147,13 +151,12 @@ export default function WeddingInvitationPage() {
           recepcionLugar: data.recepcion_lugar,
           recepcionMapsUrl: data.recepcion_maps_url,
           musicType: data.music_type || 'default',
-          musicUrl: data.music_url || '/music/1-thousand-years.mp3',
+          musicUrl: data.music_url || '/music/1. Clásico Romántico.mp3',
           albumCompartidoActivo: data.album_compartido_activo || false,
           codigoVestimenta: data.codigo_vestimenta,
           paletaColores: data.paleta_colores,
         });
 
-        // 🧠 Auto-detección: Si en BD dice v2, activa la plantilla v2. Si no, la v1.
         if (data.template_id === 'v2') setPlantillaActiva('v2');
         else setPlantillaActiva('v1');
 
@@ -166,6 +169,15 @@ export default function WeddingInvitationPage() {
 
     jalarDatosBoda();
   }, [slug, params]);
+
+  // ✉️ LÓGICA PARA ABRIR SOBRE Y REPRODUCIR AUDIO
+  const abrirSobre = () => {
+    setSobreAbierto(true);
+    if (audioRef.current) {
+      audioRef.current.play().catch(e => console.log("Audio bloqueado:", e));
+      setMusicaSonando(true);
+    }
+  };
 
   const toggleMusicaFlotante = () => {
     if (audioRef.current) {
@@ -209,7 +221,6 @@ export default function WeddingInvitationPage() {
     }
   };
 
-  // 🔤 MATRIZ DE TIPOGRAFÍAS DE ALTA GAMA
   const listadoFuentes = {
     clasica: 'font-clasica leading-relaxed antialiased',               
     cursiva: 'font-cursiva leading-loose text-[1.25em] antialiased tracking-wide',         
@@ -242,7 +253,7 @@ export default function WeddingInvitationPage() {
   }
 
   return (
-    <main className={`min-h-screen overflow-x-hidden transition-all duration-500 relative ${diseño.bgGlobal} ${claseFuente} pt-32 md:pt-20`}>
+    <main className={`min-h-screen overflow-x-hidden relative ${diseño.bgGlobal} ${claseFuente}`}>
       
       {/* 🚀 MOTOR DE FUENTES PREMIUM GOOGLE FONTS INYECTADO */}
       <style dangerouslySetInnerHTML={{__html: `
@@ -257,205 +268,240 @@ export default function WeddingInvitationPage() {
 
       {weddingData?.musicUrl && <audio ref={audioRef} src={weddingData.musicUrl} loop />}
 
-      {/* HEADER PREMIUM COMERCIAL */}
-      {esModoDemo && (
-        <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md border-b border-stone-200/80 px-4 md:px-8 py-3 flex flex-col lg:flex-row items-center justify-between gap-4 z-[200] shadow-xs font-sans">
-          
-          <a href="https://clickypapel.com" className="flex items-center gap-1 group select-none shrink-0">
-            <span className="font-serif text-base tracking-wider font-light text-stone-900 group-hover:text-[#9a7b5c] transition-colors">
-              clicky<span className="font-normal text-[#9a7b5c]">papel</span>.com
-            </span>
-          </a>
-
-          <nav className="flex items-center gap-1 overflow-x-auto max-w-full no-scrollbar py-1 shrink-0 px-2">
-            {Object.keys(catalogo25Demos).map((categoria) => {
-              const estaAbierto = categoriaAbierta === categoria;
-              return (
-                <div key={categoria} className="relative shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => setCategoriaAbierta(estaAbierto ? null : categoria)}
-                    className={`text-[11px] font-black tracking-wider uppercase px-3 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1 select-none ${estaAbierto ? 'bg-stone-950 text-white shadow-xs' : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'}`}
-                  >
-                    {categoria} <span className="text-[9px] opacity-40">{estaAbierto ? '▲' : '▼'}</span>
-                  </button>
-
-                  {estaAbierto && (
-                    <div className="absolute top-11 left-1/2 -translate-x-1/2 w-48 bg-white border border-stone-200/90 rounded-2xl shadow-xl p-1.5 space-y-0.5 z-[210] animate-fadeIn">
-                      {catalogo25Demos[categoria].map((demo) => (
-                        <a 
-                          key={demo.slug}
-                          href={`/${demo.slug}?demo=true`} 
-                          className={`block text-left text-[11px] px-3 py-2 rounded-xl font-semibold transition-all ${slug === demo.slug ? 'bg-stone-50 text-[#9a7b5c] font-bold border-l-2 border-[#9a7b5c]' : 'text-stone-600 hover:bg-stone-50 hover:text-stone-950'}`}
-                          onClick={() => setCategoriaAbierta(null)}
-                        >
-                          {demo.nombre}
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </nav>
-
-          <button type="button" onClick={() => setModalContratarAbierto(true)} className="bg-stone-950 hover:bg-[#9a7b5c] text-white text-[11px] uppercase tracking-widest font-bold px-5 py-2.5 rounded-xl transition-all shadow-md shrink-0 cursor-pointer">
-            ✨ Quiero esta invitación ➔
-          </button>
-        </header>
-      )}
-
-      {/* 🔮 BARRA FLOTANTE INTERACTIVA DE TEMA Y TIPOGRAFÍA */}
-      <div className="fixed bottom-6 right-6 z-[100] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-stone-200/80 max-w-xs w-64 space-y-3.5 text-left text-stone-800 font-sans">
-        <div>
-          <span className="text-[9px] bg-[#e3d5c8] text-[#4a3f35] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Diseño de la App</span>
-        </div>
-
-        {/* 1️⃣ EL SWITCH MAESTRO DE LA ESTRUCTURA */}
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wide block">1. Estructura Visual:</label>
-          <select
-            value={plantillaActiva}
-            onChange={(e) => setPlantillaActiva(e.target.value)}
-            className="w-full text-xs p-2 rounded-xl border bg-stone-50 text-stone-700 font-bold focus:outline-none cursor-pointer"
+      {/* ✉️ ANIMACIÓN DEL SOBRE (Cubre toda la pantalla) */}
+      <AnimatePresence>
+        {!sobreAbierto && (
+          <motion.div 
+            key="sobre"
+            className="fixed inset-0 z-[999] flex flex-col items-center justify-center overflow-hidden bg-transparent"
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1, ease: "easeInOut", delay: 0.3 }}
           >
-            <option value="v1">V1: Clásica Minimalista</option>
-            <option value="v2">V2: Editorial Alta Costura</option>
-          </select>
-        </div>
+            {/* Panel Superior del Sobre */}
+            <motion.div 
+              className="absolute top-0 left-0 right-0 h-1/2 bg-[#e8e4de] border-b border-[#d8caba] shadow-md origin-top"
+              exit={{ y: '-100%' }}
+              transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
+            />
 
-        {/* 2️⃣ SELECTOR DE COLOR */}
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wide block">2. Paleta UI:</label>
-          <div className="grid grid-cols-5 gap-1.5">
-            {Object.keys(listadoPaletas).map((key) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setPaletaActiva(key)}
-                className={`h-7 rounded-lg border text-[10px] uppercase font-bold transition-all cursor-pointer flex items-center justify-center ${paletaActiva === key ? 'border-stone-950 ring-2 ring-stone-950/20 scale-105 bg-stone-100' : 'border-stone-200 bg-stone-50 text-stone-500'}`}
-                title={`Cambiar a Tema ${key}`}
-              >
-                {key === 'cashmere' ? '🕊️' : key === 'matcha' ? '🍵' : key === 'terracota' ? '🏺' : key === 'celestial' ? '☁️' : '🖤'}
-              </button>
-            ))}
-          </div>
-        </div>
+            {/* Panel Inferior del Sobre */}
+            <motion.div 
+              className="absolute bottom-0 left-0 right-0 h-1/2 bg-[#e8e4de] border-t border-white/50 origin-bottom"
+              exit={{ y: '100%' }}
+              transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
+            />
 
-        {/* 3️⃣ SELECTOR DE TIPOGRAFÍAS */}
-        <div className="space-y-1">
-          <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wide block">3. Estilo de Textos:</label>
-          <select
-            value={fuenteActiva}
-            onChange={(e) => setFuenteActiva(e.target.value)}
-            className="w-full text-xs p-2 rounded-xl border bg-white text-stone-700 font-medium focus:outline-none cursor-pointer"
-          >
-            <option value="clasica">Clásica Atemporal (Serif)</option>
-            <option value="cursiva">Cursiva Elegante (Script)</option>
-            <option value="editorial">Alta Costura (Editorial)</option>
-            <option value="minimalista">Minimalista Moderna (Sans)</option>
-            <option value="boho">Boho Chic Orgánica (Italic)</option>
-          </select>
-        </div>
-      </div>
-
-      <button type="button" onClick={toggleMusicaFlotante} className="fixed bottom-6 left-6 z-[150] bg-white/90 backdrop-blur-md border border-stone-200/80 p-3 rounded-full shadow-xl text-xs cursor-pointer">
-        {musicaSonando ? '🎵 ⏸️' : '🔇 ▶️'}
-      </button>
-
-      {/* 🛍️ MODAL ASISTENTE DE CONTRATACIÓN */}
-      {modalContratarAbierto && (
-        <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center z-[300] p-4">
-          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full border border-stone-200 shadow-2xl space-y-6 relative text-stone-800 text-left font-sans">
-            <button type="button" onClick={() => setModalContratarAbierto(false)} className="absolute top-4 right-4 text-stone-400 hover:text-stone-700 font-bold text-xs bg-stone-100 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer">✕</button>
-            <div className="space-y-1">
-              <span className="text-[10px] bg-[#e3d5c8] text-[#4a3f35] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Alta Segura</span>
-              <h3 className="font-serif text-xl text-stone-950 font-medium">Configura tu Entorno</h3>
-              <p className="text-stone-400 text-xs font-light">Se exportará la paleta <strong className="text-stone-700 capitalize">{paletaActiva}</strong> y tipografía <strong className="text-stone-700 capitalize">{fuenteActiva}</strong>.</p>
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex flex-col gap-2">
-                {['basicos', 'premium', 'vip'].map((p) => (
-                  <label key={p} className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${planSeleccionado === p ? 'border-[#9a7b5c] bg-[#f5f0ea]' : 'border-stone-100 bg-stone-50/50'}`}>
-                    <div className="flex items-center gap-3">
-                      <input type="radio" name="modal_plan" checked={planSeleccionado === p} onChange={() => setPlanSeleccionado(p)} className="accent-[#9a7b5c]" />
-                      <span className="text-xs font-semibold capitalize">{p === 'basicos' ? '💍 Plan Esencial' : p === 'vip' ? '👑 VIP Celestial' : '🌟 Gran Día Premium'}</span>
-                    </div>
-                    <span className="text-xs font-mono font-bold">${preciosPlanes[p]} MXN</span>
-                  </label>
-                ))}
+            {/* Sello / Botón Central */}
+            <motion.button
+              onClick={abrirSobre}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ duration: 0.4 }}
+              className="relative z-10 flex flex-col items-center gap-4 cursor-pointer group"
+            >
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#ba9f83] to-[#8a6b4c] shadow-2xl border-4 border-[#e8e4de] flex items-center justify-center relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
+                <div className="absolute inset-0 bg-white/20 rounded-full animate-ping opacity-75"></div>
+                <span className="text-white font-serif text-3xl font-light relative z-10">
+                  {weddingData.brideName?.charAt(0)}&{weddingData.groomName?.charAt(0)}
+                </span>
               </div>
-            </div>
+              <span className="text-[#8a6b4c] text-[10px] uppercase tracking-[0.3em] font-bold">
+                Toca para abrir
+              </span>
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-            <div className="pt-4 border-t border-stone-100 flex items-center justify-between">
-              <div>
-                <span className="text-[9px] uppercase tracking-wider text-stone-400 block font-semibold">Total:</span>
-                <span className="text-xl font-mono font-black text-stone-900">${precioTotal.toLocaleString('es-MX')} MXN</span>
-              </div>
-              <button type="button" onClick={handleProcederAlPago} className="bg-stone-950 hover:bg-[#9a7b5c] text-white text-xs uppercase font-bold tracking-wider px-6 py-3.5 rounded-xl shadow-md cursor-pointer">Proceder ➔</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 🚀 EL ENRUTADOR DINÁMICO: ELIGE QUÉ COMPONENTE MOSTRAR SEGÚN EL SWITCH */}
-      <div className="space-y-12 pb-16">
+      {/* ✨ CONTENIDO DE LA INVITACIÓN 
+        Todo tu código original está aquí adentro.
+        Si el sobre no está abierto, escondemos la barra de scroll y hacemos que sea invisible.
+      */}
+      <div className={`transition-opacity duration-1000 delay-300 w-full pt-32 md:pt-20 ${sobreAbierto ? 'opacity-100' : 'opacity-0 h-screen overflow-hidden pointer-events-none'}`}>
         
-        {/* RENDERIZADO CONDICIONAL DEL HERO (PORTADA) */}
-        <ScrollReveal>
-          {plantillaActiva === 'v2' ? (
-            <InvitationHeroV2 weddingData={weddingData} diseño={diseño} />
-          ) : (
-            <InvitationHero weddingData={weddingData} diseño={diseño} />
-          )}
-        </ScrollReveal>
-
-        {/* RENDERIZADO CONDICIONAL DEL ITINERARIO */}
-        <ScrollReveal>
-          {plantillaActiva === 'v2' ? (
-            <EventTimelineV2 weddingData={weddingData} diseño={diseño} />
-          ) : (
-            <EventTimeline weddingData={weddingData} diseño={diseño} />
-          )}
-        </ScrollReveal>
-
-        {/* LOS DEMÁS COMPONENTES SON COMUNES PARA AMBAS VERSIONES */}
-        <ScrollReveal>
-          <PhotoGallery weddingData={weddingData} images={weddingData?.galleryImages || []} diseño={diseño} />
-        </ScrollReveal>
-        
-        {weddingData.album_compartido_activo && (
-          <ScrollReveal>
-            <section className="max-w-md mx-auto px-6 py-6 text-center font-sans">
-              <div className="bg-gradient-to-br from-[#9a7b5c] to-[#7a5c43] text-white p-6 rounded-3xl shadow-xl space-y-4 text-left border border-white/10">
-                <div className="space-y-1">
-                  <span className="text-[10px] bg-white/20 text-white font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono inline-block">Función Premium</span>
-                  <h4 className="font-serif text-lg font-light">Álbum Colectivo en Vivo 📸</h4>
-                  <p className="text-xs text-white/80 font-light leading-relaxed">Sube tus fotos directamente para el recuerdo de los novios.</p>
-                </div>
-                <a href={`https://tugrandia.icu/${weddingData.slug}/compartir`} className="w-full bg-white text-[#4a3f35] font-bold text-center py-3 rounded-xl block text-xs uppercase tracking-wider shadow-md hover:bg-stone-50 transition-colors">📤 Subir Fotos</a>
-              </div>
-            </section>
-          </ScrollReveal>
+        {/* HEADER PREMIUM COMERCIAL */}
+        {esModoDemo && (
+          <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md border-b border-stone-200/80 px-4 md:px-8 py-3 flex flex-col lg:flex-row items-center justify-between gap-4 z-[200] shadow-xs font-sans">
+            <a href="https://clickypapel.com" className="flex items-center gap-1 group select-none shrink-0">
+              <span className="font-serif text-base tracking-wider font-light text-stone-900 group-hover:text-[#9a7b5c] transition-colors">
+                clicky<span className="font-normal text-[#9a7b5c]">papel</span>.com
+              </span>
+            </a>
+            <nav className="flex items-center gap-1 overflow-x-auto max-w-full no-scrollbar py-1 shrink-0 px-2">
+              {Object.keys(catalogo25Demos).map((categoria) => {
+                const estaAbierto = categoriaAbierta === categoria;
+                return (
+                  <div key={categoria} className="relative shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setCategoriaAbierta(estaAbierto ? null : categoria)}
+                      className={`text-[11px] font-black tracking-wider uppercase px-3 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1 select-none ${estaAbierto ? 'bg-stone-950 text-white shadow-xs' : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'}`}
+                    >
+                      {categoria} <span className="text-[9px] opacity-40">{estaAbierto ? '▲' : '▼'}</span>
+                    </button>
+                    {estaAbierto && (
+                      <div className="absolute top-11 left-1/2 -translate-x-1/2 w-48 bg-white border border-stone-200/90 rounded-2xl shadow-xl p-1.5 space-y-0.5 z-[210] animate-fadeIn">
+                        {catalogo25Demos[categoria].map((demo) => (
+                          <a 
+                            key={demo.slug}
+                            href={`/${demo.slug}?demo=true`} 
+                            className={`block text-left text-[11px] px-3 py-2 rounded-xl font-semibold transition-all ${slug === demo.slug ? 'bg-stone-50 text-[#9a7b5c] font-bold border-l-2 border-[#9a7b5c]' : 'text-stone-600 hover:bg-stone-50 hover:text-stone-950'}`}
+                            onClick={() => setCategoriaAbierta(null)}
+                          >
+                            {demo.nombre}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </nav>
+            <button type="button" onClick={() => setModalContratarAbierto(true)} className="bg-stone-950 hover:bg-[#9a7b5c] text-white text-[11px] uppercase tracking-widest font-bold px-5 py-2.5 rounded-xl transition-all shadow-md shrink-0 cursor-pointer">
+              ✨ Quiero esta invitación ➔
+            </button>
+          </header>
         )}
 
-        <ScrollReveal>
-          <GiftRegistry weddingData={weddingData} diseño={diseño} />
-        </ScrollReveal>
+        {/* 🔮 BARRA FLOTANTE INTERACTIVA DE TEMA Y TIPOGRAFÍA */}
+        <div className="fixed bottom-6 right-6 z-[100] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-stone-200/80 max-w-xs w-64 space-y-3.5 text-left text-stone-800 font-sans">
+          <div>
+            <span className="text-[9px] bg-[#e3d5c8] text-[#4a3f35] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Diseño de la App</span>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wide block">1. Estructura Visual:</label>
+            <select
+              value={plantillaActiva}
+              onChange={(e) => setPlantillaActiva(e.target.value)}
+              className="w-full text-xs p-2 rounded-xl border bg-stone-50 text-stone-700 font-bold focus:outline-none cursor-pointer"
+            >
+              <option value="v1">V1: Clásica Minimalista</option>
+              <option value="v2">V2: Editorial Alta Costura</option>
+            </select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wide block">2. Paleta UI:</label>
+            <div className="grid grid-cols-5 gap-1.5">
+              {Object.keys(listadoPaletas).map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setPaletaActiva(key)}
+                  className={`h-7 rounded-lg border text-[10px] uppercase font-bold transition-all cursor-pointer flex items-center justify-center ${paletaActiva === key ? 'border-stone-950 ring-2 ring-stone-950/20 scale-105 bg-stone-100' : 'border-stone-200 bg-stone-50 text-stone-500'}`}
+                  title={`Cambiar a Tema ${key}`}
+                >
+                  {key === 'cashmere' ? '🕊️' : key === 'matcha' ? '🍵' : key === 'terracota' ? '🏺' : key === 'celestial' ? '☁️' : '🖤'}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-stone-400 uppercase tracking-wide block">3. Estilo de Textos:</label>
+            <select
+              value={fuenteActiva}
+              onChange={(e) => setFuenteActiva(e.target.value)}
+              className="w-full text-xs p-2 rounded-xl border bg-white text-stone-700 font-medium focus:outline-none cursor-pointer"
+            >
+              <option value="clasica">Clásica Atemporal (Serif)</option>
+              <option value="cursiva">Cursiva Elegante (Script)</option>
+              <option value="editorial">Alta Costura (Editorial)</option>
+              <option value="minimalista">Minimalista Moderna (Sans)</option>
+              <option value="boho">Boho Chic Orgánica (Italic)</option>
+            </select>
+          </div>
+        </div>
 
-        <ScrollReveal>
-          <QuoteBanner weddingData={weddingData} diseño={diseño} />
-        </ScrollReveal>
+        <button type="button" onClick={toggleMusicaFlotante} className="fixed bottom-6 left-6 z-[150] bg-white/90 backdrop-blur-md border border-stone-200/80 p-3 rounded-full shadow-xl text-xs cursor-pointer">
+          {musicaSonando ? '🎵 ⏸️' : '🔇 ▶️'}
+        </button>
 
-        <ScrollReveal>
-          <RsvpModule weddingId={weddingData.id} weddingSlug={weddingData.slug} diseño={diseño} />
-        </ScrollReveal>
+        {/* 🛍️ MODAL ASISTENTE DE CONTRATACIÓN */}
+        {modalContratarAbierto && (
+          <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center z-[300] p-4 pointer-events-auto">
+            <div className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full border border-stone-200 shadow-2xl space-y-6 relative text-stone-800 text-left font-sans">
+              <button type="button" onClick={() => setModalContratarAbierto(false)} className="absolute top-4 right-4 text-stone-400 hover:text-stone-700 font-bold text-xs bg-stone-100 w-8 h-8 rounded-full flex items-center justify-center cursor-pointer">✕</button>
+              <div className="space-y-1">
+                <span className="text-[10px] bg-[#e3d5c8] text-[#4a3f35] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Alta Segura</span>
+                <h3 className="font-serif text-xl text-stone-950 font-medium">Configura tu Entorno</h3>
+                <p className="text-stone-400 text-xs font-light">Se exportará la paleta <strong className="text-stone-700 capitalize">{paletaActiva}</strong> y tipografía <strong className="text-stone-700 capitalize">{fuenteActiva}</strong>.</p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex flex-col gap-2">
+                  {['basicos', 'premium', 'vip'].map((p) => (
+                    <label key={p} className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${planSeleccionado === p ? 'border-[#9a7b5c] bg-[#f5f0ea]' : 'border-stone-100 bg-stone-50/50'}`}>
+                      <div className="flex items-center gap-3">
+                        <input type="radio" name="modal_plan" checked={planSeleccionado === p} onChange={() => setPlanSeleccionado(p)} className="accent-[#9a7b5c]" />
+                        <span className="text-xs font-semibold capitalize">{p === 'basicos' ? '💍 Plan Esencial' : p === 'vip' ? '👑 VIP Celestial' : '🌟 Gran Día Premium'}</span>
+                      </div>
+                      <span className="text-xs font-mono font-bold">${preciosPlanes[p]} MXN</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="pt-4 border-t border-stone-100 flex items-center justify-between">
+                <div>
+                  <span className="text-[9px] uppercase tracking-wider text-stone-400 block font-semibold">Total:</span>
+                  <span className="text-xl font-mono font-black text-stone-900">${precioTotal.toLocaleString('es-MX')} MXN</span>
+                </div>
+                <button type="button" onClick={handleProcederAlPago} className="bg-stone-950 hover:bg-[#9a7b5c] text-white text-xs uppercase font-bold tracking-wider px-6 py-3.5 rounded-xl shadow-md cursor-pointer">Proceder ➔</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 🚀 EL ENRUTADOR DINÁMICO */}
+        <div className="space-y-12 pb-16">
+          <ScrollReveal>
+            {plantillaActiva === 'v2' ? (
+              <InvitationHeroV2 weddingData={weddingData} diseño={diseño} />
+            ) : (
+              <InvitationHero weddingData={weddingData} diseño={diseño} />
+            )}
+          </ScrollReveal>
+
+          <ScrollReveal>
+            {plantillaActiva === 'v2' ? (
+              <EventTimelineV2 weddingData={weddingData} diseño={diseño} />
+            ) : (
+              <EventTimeline weddingData={weddingData} diseño={diseño} />
+            )}
+          </ScrollReveal>
+
+          <ScrollReveal>
+            <PhotoGallery weddingData={weddingData} images={weddingData?.galleryImages || []} diseño={diseño} />
+          </ScrollReveal>
+          
+          {weddingData.albumCompartidoActivo && (
+            <ScrollReveal>
+              <section className="max-w-md mx-auto px-6 py-6 text-center font-sans">
+                <div className="bg-gradient-to-br from-[#9a7b5c] to-[#7a5c43] text-white p-6 rounded-3xl shadow-xl space-y-4 text-left border border-white/10">
+                  <div className="space-y-1">
+                    <span className="text-[10px] bg-white/20 text-white font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono inline-block">Función Premium</span>
+                    <h4 className="font-serif text-lg font-light">Álbum Colectivo en Vivo 📸</h4>
+                    <p className="text-xs text-white/80 font-light leading-relaxed">Sube tus fotos directamente para el recuerdo de los novios.</p>
+                  </div>
+                  <a href={`https://tugrandia.icu/${weddingData.slug}/compartir`} className="w-full bg-white text-[#4a3f35] font-bold text-center py-3 rounded-xl block text-xs uppercase tracking-wider shadow-md hover:bg-stone-50 transition-colors">📤 Subir Fotos</a>
+                </div>
+              </section>
+            </ScrollReveal>
+          )}
+
+          <ScrollReveal>
+            <GiftRegistry weddingData={weddingData} diseño={diseño} />
+          </ScrollReveal>
+
+          <ScrollReveal>
+            <QuoteBanner weddingData={weddingData} diseño={diseño} />
+          </ScrollReveal>
+
+          <ScrollReveal>
+            <RsvpModule weddingId={weddingData.id} weddingSlug={weddingData.slug} diseño={diseño} />
+          </ScrollReveal>
+        </div>
+
+        <footer className="text-center py-12 bg-[#121214] text-zinc-500 text-xs select-none font-sans">
+          Invitación digital premium creada en <span className="text-zinc-300">clickypapel.com</span>
+        </footer>
       </div>
-
-      <footer className="text-center py-12 bg-[#121214] text-zinc-500 text-xs select-none font-sans">
-        Invitación digital premium creada en <span className="text-zinc-300">clickypapel.com</span>
-      </footer>
     </main>
   );
 }
