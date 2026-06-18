@@ -136,6 +136,34 @@ export default function PaginaMaestraInvitacion() {
     jalarDatosBoda();
   }, [slug]);
 
+  // 👇 FUNCIÓN MÁGICA PARA CAMBIAR DEMOS EN VIVO SIN RECARGAR LA PÁGINA
+  const cambiarDemoEnVivo = (demoSlug) => {
+    const esXV = demoSlug.includes('xv');
+    setTipoEventoGlobal(esXV ? 'xvanos' : 'boda');
+    
+    // Asignamos la plantilla según la selección
+    let nuevaPlantilla = 'v1';
+    if (demoSlug.includes('xv-v1')) nuevaPlantilla = 'xv-v1';
+    else if (demoSlug.includes('boda-v2')) nuevaPlantilla = 'v2';
+    else if (demoSlug.includes('boda-v3')) nuevaPlantilla = 'v3';
+
+    setPlantillaActiva(nuevaPlantilla);
+
+    // Ajustamos la información visual para que se adapte al tipo de demo al instante
+    setWeddingData(prev => ({
+      ...prev,
+      brideName: esXV ? 'Sofía' : 'Brisa',
+      groomName: esXV ? '' : 'Bruno',
+      coverImage: esXV 
+        ? "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7" 
+        : "https://images.unsplash.com/photo-1519741497674-611481863552",
+      titular: esXV ? 'Familia de Sofía' : 'Bruno y Brisa'
+    }));
+    
+    // Volvemos a cerrar el sobre para que el cliente disfrute la animación con el nuevo tema
+    setSobreAbierto(false);
+  };
+
   const abrirSobre = () => {
     setSobreAbierto(true);
     if (audioRef.current) { audioRef.current.play().catch(e => console.log(e)); setMusicaSonando(true); }
@@ -182,7 +210,7 @@ export default function PaginaMaestraInvitacion() {
       
       {weddingData?.musicUrl && <audio ref={audioRef} src={weddingData.musicUrl} loop />}
 
-      {/* 🚀 HEADER ELEGANTE TIPO STOREFRONT (Basado en tu imagen) */}
+      {/* 🚀 HEADER ELEGANTE TIPO STOREFRONT */}
       {esModoVentas && (
         <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md border-b border-stone-200 px-6 py-3 flex items-center justify-between z-[200] font-sans shadow-sm">
           
@@ -190,7 +218,7 @@ export default function PaginaMaestraInvitacion() {
             clicky<span className="text-[#9a7b5c]">papel</span>
           </a>
 
-          {/* Menú de categorías Centrado */}
+          {/* Menú de categorías Inteligente */}
           <nav className="flex items-center gap-4 md:gap-8 overflow-x-auto no-scrollbar w-full md:w-auto justify-start md:justify-center">
             {Object.keys(catalogo25Demos).map((categoria) => (
               <div key={categoria} className="relative group shrink-0">
@@ -199,9 +227,14 @@ export default function PaginaMaestraInvitacion() {
                 </button>
                 <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-48 bg-white border border-stone-100 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                   {catalogo25Demos[categoria].map(demo => (
-                     <a key={demo.slug} href={`/${demo.slug}`} className="block px-4 py-3 text-[10px] uppercase font-bold text-stone-600 hover:bg-stone-50 hover:text-[#9a7b5c] first:rounded-t-xl last:rounded-b-xl border-b border-stone-50 last:border-0">
+                     // 👇 AQUI ES DONDE CAMBIA A UN BOTON EN VIVO
+                     <button 
+                       key={demo.slug} 
+                       onClick={() => cambiarDemoEnVivo(demo.slug)} 
+                       className="w-full text-left block px-4 py-3 text-[10px] uppercase font-bold text-stone-600 hover:bg-stone-50 hover:text-[#9a7b5c] first:rounded-t-xl last:rounded-b-xl border-b border-stone-50 last:border-0"
+                     >
                        {demo.nombre}
-                     </a>
+                     </button>
                   ))}
                 </div>
               </div>
