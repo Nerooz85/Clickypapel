@@ -61,26 +61,8 @@ export default function PaginaMaestraInvitacion() {
   const [fuenteActiva, setFuenteActiva] = useState('clasica');     
   const [tipoEventoGlobal, setTipoEventoGlobal] = useState('boda'); 
 
-  // 👇 CATÁLOGO
-  const catalogo25Demos = {
-    'Bodas 💍': [
-      { slug: 'demo-boda-v1', nombre: '✨ V1: Minimalista Clásica' },
-      { slug: 'demo-boda-v2', nombre: '💎 V2: Editorial Alta Costura' },
-      { slug: 'demo-boda-v3', nombre: '🌲 V3: Bosque Místico' }
-    ],
-    'XV Años 👑': [
-      { slug: 'demo-xv-v1', nombre: '🌸 V1: Jardín Encantado' }
-    ],
-    'Baby Shower 🍼': [
-      { slug: 'demo-baby-neutral', nombre: '✨ Cashmere Lino' }
-    ],
-    'Bautizos 🕊️': [
-      { slug: 'demo-bautizo-clean', nombre: '✨ Gala Cashmere' }
-    ],
-    'Despedida 🥂': [
-      { slug: 'demo-despedida-chic', nombre: '✨ Glamour Night' }
-    ]
-  };
+  // 👇 CATÁLOGO CATEGORÍAS
+  const categoriasDemos = ['Bodas 💍', 'XV Años 👑', 'Baby Shower 🍼', 'Bautizos 🕊️', 'Despedida 🥂'];
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -136,32 +118,39 @@ export default function PaginaMaestraInvitacion() {
     jalarDatosBoda();
   }, [slug]);
 
-  // 👇 FUNCIÓN MÁGICA PARA CAMBIAR DEMOS EN VIVO SIN RECARGAR LA PÁGINA
-  const cambiarDemoEnVivo = (demoSlug) => {
-    const esXV = demoSlug.includes('xv');
-    setTipoEventoGlobal(esXV ? 'xvanos' : 'boda');
-    
-    // Asignamos la plantilla según la selección
-    let nuevaPlantilla = 'v1';
-    if (demoSlug.includes('xv-v1')) nuevaPlantilla = 'xv-v1';
-    else if (demoSlug.includes('boda-v2')) nuevaPlantilla = 'v2';
-    else if (demoSlug.includes('boda-v3')) nuevaPlantilla = 'v3';
+  // 👇 MAGIA: CAMBIADOR DE PESTAÑAS DEL MENÚ SUPERIOR
+  const handleCambioCategoria = (categoria) => {
+    if (!weddingData) return;
 
-    setPlantillaActiva(nuevaPlantilla);
-
-    // Ajustamos la información visual para que se adapte al tipo de demo al instante
-    setWeddingData(prev => ({
-      ...prev,
-      brideName: esXV ? 'Sofía' : 'Brisa',
-      groomName: esXV ? '' : 'Bruno',
-      coverImage: esXV 
-        ? "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7" 
-        : "https://images.unsplash.com/photo-1519741497674-611481863552",
-      titular: esXV ? 'Familia de Sofía' : 'Bruno y Brisa'
-    }));
-    
-    // Volvemos a cerrar el sobre para que el cliente disfrute la animación con el nuevo tema
-    setSobreAbierto(false);
+    if (categoria.includes('XV')) {
+      setTipoEventoGlobal('xvanos');
+      setPlantillaActiva('xv-v1');
+      setPaletaActiva('rosegold'); // Para XV ponemos colores pastel por default
+      setWeddingData({
+        ...weddingData,
+        brideName: 'Sofía',
+        groomName: '',
+        coverImage: "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7",
+        titular: 'Familia de Sofía',
+        welcomePhrase: 'Hay momentos inolvidables que se guardan en el corazón para siempre.'
+      });
+      setSobreAbierto(false); // Cierra el sobre
+    } else if (categoria.includes('Bodas')) {
+      setTipoEventoGlobal('boda');
+      setPlantillaActiva('v1');
+      setPaletaActiva('cashmere');
+      setWeddingData({
+        ...weddingData,
+        brideName: 'Brisa',
+        groomName: 'Bruno',
+        coverImage: "https://images.unsplash.com/photo-1519741497674-611481863552",
+        titular: 'Bruno y Brisa',
+        welcomePhrase: 'El amor todo lo cree, todo lo espera, todo lo soporta.'
+      });
+      setSobreAbierto(false); // Cierra el sobre
+    } else {
+      alert(`Las plantillas para ${categoria} estarán disponibles en la próxima actualización ✨`);
+    }
   };
 
   const abrirSobre = () => {
@@ -196,9 +185,8 @@ export default function PaginaMaestraInvitacion() {
   const diseño = listadoPaletas[paletaActiva] || listadoPaletas.cashmere;
   const claseFuente = listadoFuentes[fuenteActiva] || listadoFuentes.clasica;
 
-  // FUNCIÓN DE COMPRA
   const procesarCompra = () => {
-    alert(`Redirigiendo al checkout...\n\nDiseño elegido: ${plantillaActiva}\nColor: ${paletaActiva}\nFuente: ${fuenteActiva}\n\nAquí los llevarías a registrarse o pagar guardando estos datos.`);
+    alert(`Redirigiendo al checkout...\n\nEvento: ${tipoEventoGlobal}\nDiseño elegido: ${plantillaActiva}\nColor: ${paletaActiva}\nFuente: ${fuenteActiva}`);
   };
 
   if (cargando) return <div className="min-h-screen bg-[#faf9f6] flex items-center justify-center"><div className="w-10 h-10 border-2 border-[#9a7b5c] border-t-transparent rounded-full animate-spin" /></div>;
@@ -210,38 +198,36 @@ export default function PaginaMaestraInvitacion() {
       
       {weddingData?.musicUrl && <audio ref={audioRef} src={weddingData.musicUrl} loop />}
 
-      {/* 🚀 HEADER ELEGANTE TIPO STOREFRONT */}
+      {/* 🚀 HEADER TIPO TABS (PESTAÑAS) */}
       {esModoVentas && (
-        <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md border-b border-stone-200 px-6 py-3 flex items-center justify-between z-[200] font-sans shadow-sm">
+        <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md border-b border-stone-200 px-6 py-2 flex items-center justify-between z-[200] font-sans shadow-sm">
           
-          <a href="https://clickypapel.com" className="font-serif text-lg tracking-widest text-stone-900 hidden md:block">
+          <a href="https://clickypapel.com" className="font-serif text-lg tracking-widest text-stone-900 hidden md:block shrink-0">
             clicky<span className="text-[#9a7b5c]">papel</span>
           </a>
 
-          {/* Menú de categorías Inteligente */}
-          <nav className="flex items-center gap-4 md:gap-8 overflow-x-auto no-scrollbar w-full md:w-auto justify-start md:justify-center">
-            {Object.keys(catalogo25Demos).map((categoria) => (
-              <div key={categoria} className="relative group shrink-0">
-                <button className="text-[9px] md:text-[10px] font-black tracking-widest uppercase text-stone-500 hover:text-stone-900 transition-colors py-2 flex items-center gap-1">
+          {/* Menú de categorías Inteligente (TABS) */}
+          <nav className="flex items-center gap-6 md:gap-10 overflow-x-auto no-scrollbar w-full md:w-auto justify-start md:justify-center">
+            {categoriasDemos.map((categoria) => {
+              const isActive = (tipoEventoGlobal === 'boda' && categoria.includes('Bodas')) || 
+                               (tipoEventoGlobal === 'xvanos' && categoria.includes('XV'));
+              return (
+                <button 
+                  key={categoria} 
+                  onClick={() => handleCambioCategoria(categoria)}
+                  className={`text-[9px] md:text-[10px] font-black tracking-widest uppercase transition-all py-3 border-b-[3px] shrink-0 flex items-center gap-1 ${
+                    isActive 
+                      ? 'text-stone-900 border-[#9a7b5c]' 
+                      : 'text-stone-400 border-transparent hover:text-stone-700'
+                  }`}
+                >
                   {categoria}
                 </button>
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-48 bg-white border border-stone-100 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                  {catalogo25Demos[categoria].map(demo => (
-                     // 👇 AQUI ES DONDE CAMBIA A UN BOTON EN VIVO
-                     <button 
-                       key={demo.slug} 
-                       onClick={() => cambiarDemoEnVivo(demo.slug)} 
-                       className="w-full text-left block px-4 py-3 text-[10px] uppercase font-bold text-stone-600 hover:bg-stone-50 hover:text-[#9a7b5c] first:rounded-t-xl last:rounded-b-xl border-b border-stone-50 last:border-0"
-                     >
-                       {demo.nombre}
-                     </button>
-                  ))}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </nav>
 
-          <button onClick={procesarCompra} className="hidden md:flex bg-stone-950 hover:bg-stone-800 text-white text-[10px] uppercase tracking-widest font-bold px-6 py-2.5 rounded-full transition-colors shadow-lg items-center gap-2">
+          <button onClick={procesarCompra} className="hidden md:flex bg-stone-950 hover:bg-stone-800 text-white text-[10px] uppercase tracking-widest font-bold px-6 py-2.5 rounded-full transition-colors shadow-lg items-center gap-2 shrink-0">
             ✨ Quiero esta
           </button>
         </header>
