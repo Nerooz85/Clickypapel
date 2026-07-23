@@ -46,10 +46,10 @@ export default function NoviosDashboard() {
   const [subiendoIndex, setSubiendoIndex] = useState(null);
   const [subiendoMusica, setSubiendoMusica] = useState(false);
 
-  // 🪙 Información de Compra (Planes y Add-ons)
+  // 🪙 Información de Compra
   const [planContratado, setPlanContratado] = useState('premium'); 
   const [tieneMusicaPersonalizada, setTieneMusicaPersonalizada] = useState(false); 
-  const [tipoEvento, setTipoEvento] = useState('boda'); // NUEVO ESTADO
+  const [tipoEvento, setTipoEvento] = useState('boda'); 
 
   // 📸✨ ESTADOS ÁLBUM COLECTIVO
   const [albumActivado, setAlbumActivado] = useState(false);
@@ -60,7 +60,7 @@ export default function NoviosDashboard() {
   const [brideName, setBrideName] = useState('');
   const [groomName, setGroomName] = useState('');
   const [eventDate, setEventDate] = useState('');
-  const [welcomePhrase, setWelcomePhrase] = useState(''); // 👈 NUEVO: FRASE DE BIENVENIDA
+  const [welcomePhrase, setWelcomePhrase] = useState('');
   const [ceremoniaLugar, setCeremoniaLugar] = useState('');
   const [ceremoniaMaps, setCeremoniaMaps] = useState('');
   const [recepcionLugar, setRecepcionLugar] = useState('');
@@ -92,6 +92,9 @@ export default function NoviosDashboard() {
   // 🗓️🎨 ESTADOS PASO 6
   const [itinerarioMisa, setItinerarioMisa] = useState('');
   const [itinerarioFiesta, setItinerarioFiesta] = useState('');
+  const [horaBaile, setHoraBaile] = useState('');
+  const [horaShow, setHoraShow] = useState('');   
+  const [horaFin, setHoraFin] = useState('');     
   const [codigoVestimentaText, setCodigoVestimentaText] = useState('formal'); 
   const [paletaColores, setPaletaColores] = useState('');
 
@@ -102,8 +105,6 @@ export default function NoviosDashboard() {
     { id: '4', titulo: "Vintage Emotivo", url: "/music/4. Vintage Emotivo.mp3", bpm: "72 BPM" },
     { id: '5', titulo: "Instrumental Dulce", url: "/music/5. Instrumental Dulce.mp3", bpm: "65 BPM" }
   ];
-
-  // ================= LÓGICA DE MULTIMEDIA Y UPGRADES =================
 
   const manejarUpgrade = (tipo) => {
     const precio = tipo === 'musica' ? '$299 MXN' : '$599 MXN';
@@ -126,11 +127,7 @@ export default function NoviosDashboard() {
       const { data: { publicUrl } } = supabase.storage.from('invitaciones-media').getPublicUrl(filePath);
       setMusicUrl(publicUrl);
       alert("🎵 ¡Tu canción se ha subido y procesado con éxito!");
-    } catch (err) { 
-      alert("Error al cargar el archivo de audio."); 
-    } finally { 
-      setSubiendoMusica(false); 
-    }
+    } catch (err) { alert("Error al cargar el archivo de audio."); } finally { setSubiendoMusica(false); }
   };
 
   const escucharCancion = (url) => {
@@ -190,19 +187,14 @@ export default function NoviosDashboard() {
       const respuesta = await fetch(urlQr);
       const blob = await respuesta.blob();
       const urlBlob = window.URL.createObjectURL(blob);
-      
       const enlace = document.createElement('a');
       enlace.href = urlBlob;
       enlace.download = `${nombreArchivo}.png`;
       document.body.appendChild(enlace);
       enlace.click();
-      
       document.body.removeChild(enlace);
       window.URL.revokeObjectURL(urlBlob);
-    } catch (error) {
-      console.error("Error al descargar el QR:", error);
-      window.open(urlQr, '_blank');
-    }
+    } catch (error) { window.open(urlQr, '_blank'); }
   };
 
   const cargarTodoElDashboard = async () => {
@@ -210,13 +202,13 @@ export default function NoviosDashboard() {
       setCargando(true);
       const slugLimpio = weddingSlug ? weddingSlug.toLowerCase().trim() : 'bruno-y-brisa';
       
-      const { data: bodaData, error: bodaError } = await supabase.from('bodas').select('*').eq('slug', slugLimpio).maybeSingle();
+      const { data: bodaData } = await supabase.from('bodas').select('*').eq('slug', slugLimpio).maybeSingle();
 
       if (bodaData) {
         setBrideName(bodaData.bride_name || ''); 
         setGroomName(bodaData.groom_name || '');
         setEventDate(bodaData.event_date ? bodaData.event_date.substring(0, 10) : '');
-        setWelcomePhrase(bodaData.welcome_phrase || ''); // 👈 CARGAMOS LA FRASE DE LA BASE DE DATOS
+        setWelcomePhrase(bodaData.welcome_phrase || ''); 
         setCeremoniaLugar(bodaData.ceremonia_lugar || ''); 
         setCeremoniaMaps(bodaData.ceremonia_maps_url || '');
         setRecepcionLugar(bodaData.recepcion_lugar || ''); 
@@ -232,14 +224,17 @@ export default function NoviosDashboard() {
         setClabe(bodaData.clabe || '');
         setAmazonUrl(bodaData.amazon_url || ''); 
         setLiverpoolUrl(bodaData.liverpool_url || '');
+        
         setItinerarioMisa(bodaData.itinerario_misa || ''); 
         setItinerarioFiesta(bodaData.itinerario_fiesta || '');
+        setHoraBaile(bodaData.hora_baile || ''); 
+        setHoraShow(bodaData.hora_show || '');   
+        setHoraFin(bodaData.hora_fin || '');     
+        
         setCodigoVestimentaText(bodaData.codigo_vestimenta || 'formal'); 
         setPaletaColores(bodaData.paleta_colores || '');
-        
         setCodigoMesaUrl(`https://tugrandia.icu/${slugLimpio}/compartir`);
         setAlbumActivado(bodaData.album_compartido_activo || false);
-        
         setCeremoniaFoto(bodaData.ceremonia_foto || '');
         setRecepcionFoto(bodaData.recepcion_foto || '');
 
@@ -250,23 +245,14 @@ export default function NoviosDashboard() {
           setGaleriaFotos(nuevasFotos);
         }
       } else {
-        await supabase.from('bodas').insert([{ 
-          slug: slugLimpio, 
-          bride_name: 'Bruno', 
-          groom_name: 'Brisa',
-          tipo_evento: 'boda'
-        }]);
+        await supabase.from('bodas').insert([{ slug: slugLimpio, bride_name: 'Bruno', groom_name: 'Brisa', tipo_evento: 'boda' }]);
       }
 
       const { data: listaInvitados } = await supabase.from('invitados').select('*').eq('boda_slug', slugLimpio).order('nombre_invitado', { ascending: true });
       if (listaInvitados) setInvitados(listaInvitados);
       if (bodaData?.plan_tipo !== 'basicos') await cargarFotosDelAlbumCompartido();
       
-    } catch (err) { 
-      console.error("Error cargando dashboard:", err); 
-    } finally { 
-      setCargando(false); 
-    }
+    } catch (err) { console.error("Error", err); } finally { setCargando(false); }
   };
 
   useEffect(() => { cargarTodoElDashboard(); }, []);
@@ -274,7 +260,7 @@ export default function NoviosDashboard() {
   const toggleAlbumCompartido = async () => {
     const nuevoEstado = !albumActivado; 
     setAlbumActivado(nuevoEstado);
-    try { await supabase.from('bodas').update({ album_compartido_activo: nuevoEstado }).eq('slug', weddingSlug); } catch (e) { console.error(e); }
+    try { await supabase.from('bodas').update({ album_compartido_activo: nuevoEstado }).eq('slug', weddingSlug); } catch (e) {}
   };
 
   const handleGuardarYContinuar = async () => {
@@ -284,13 +270,13 @@ export default function NoviosDashboard() {
         bride_name: brideName, 
         groom_name: groomName, 
         event_date: eventDate ? `${eventDate}T18:00:00` : null, 
-        welcome_phrase: welcomePhrase.trim(), // 👈 GUARDAMOS LA FRASE EN LA BASE DE DATOS
+        welcome_phrase: welcomePhrase.trim(),
         ceremonia_lugar: ceremoniaLugar, 
         ceremonia_maps_url: ceremoniaMaps, 
         recepcion_lugar: recepcionLugar, 
         recepcion_maps_url: recepcionMaps, 
         template_id: templateId,
-        tipo_evento: tipoEvento
+        tipo_evento: tipoEvento 
       }).eq('slug', weddingSlug); 
       setPasoActivo(3); 
     } catch (err) { alert("Error"); } finally { setGuardando(false); }
@@ -311,11 +297,8 @@ export default function NoviosDashboard() {
     try {
       const fotosLimpias = galeriaFotos.filter(url => url.trim() !== '');
       await supabase.from('bodas').update({ 
-        cover_image: coverImage.trim(), 
-        music_url: musicUrl, 
-        gallery_images: fotosLimpias,
-        ceremonia_foto: ceremoniaFoto.trim(),
-        recepcion_foto: recepcionFoto.trim()
+        cover_image: coverImage.trim(), music_url: musicUrl, gallery_images: fotosLimpias,
+        ceremonia_foto: ceremoniaFoto.trim(), recepcion_foto: recepcionFoto.trim()
       }).eq('slug', weddingSlug);
       setPasoActivo(5); 
     } catch (err) { alert("Error"); } finally { setGuardando(false); }
@@ -328,17 +311,24 @@ export default function NoviosDashboard() {
 
   const handleGuardarPaso6 = async () => {
     setGuardando(true);
-    try { await supabase.from('bodas').update({ itinerario_misa: itinerarioMisa.trim(), itinerario_fiesta: itinerarioFiesta.trim(), codigo_vestimenta: codigoVestimentaText, paleta_colores: paletaColores.trim() }).eq('slug', weddingSlug); alert("✅ Configuración guardada y en línea."); } catch (err) { alert("Error al guardar."); } finally { setGuardando(false); }
+    try { 
+      await supabase.from('bodas').update({ 
+        itinerario_misa: itinerarioMisa.trim(), 
+        itinerario_fiesta: itinerarioFiesta.trim(),
+        hora_baile: horaBaile.trim(),
+        hora_show: horaShow.trim(),
+        hora_fin: horaFin.trim(),
+        codigo_vestimenta: codigoVestimentaText, 
+        paleta_colores: paletaColores.trim() 
+      }).eq('slug', weddingSlug); 
+      alert("✅ Configuración guardada y en línea."); 
+    } catch (err) { alert("Error al guardar."); } finally { setGuardando(false); }
   };
 
-  // Cálculos dinámicos
   const totalInvitados = invitados.length;
   const totalPasesAsignados = invitados.reduce((acc, curr) => acc + (curr.pases_totales || 0), 0);
   const totalConfirmados = invitados.reduce((acc, curr) => acc + (curr.pases_confirmados || 0), 0);
   const pendientes = invitados.filter(inv => inv.estado === 'pendiente').length;
-
-  const maxFotosPermitidas = planContratado === 'basicos' ? 3 : planContratado === 'vip' ? 12 : 6;
-  const fotosSubidasCount = galeriaFotos.filter(f => f && f.trim() !== '').length;
 
   if (cargando) return (
     <div className="min-h-screen bg-[#fcfbfa] flex flex-col items-center justify-center space-y-4">
@@ -447,31 +437,17 @@ export default function NoviosDashboard() {
                       <input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30 focus:border-[#9a7b5c] transition-all" />
                     </div>
 
-                    {/* 👇 NUEVO CAMPO PARA LA FRASE DEL BANNER DE BIENVENIDA */}
                     <div className="space-y-1.5 md:col-span-2">
                       <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Frase del Banner (Portada)</label>
-                      <input 
-                        type="text" 
-                        value={welcomePhrase} 
-                        onChange={(e) => setWelcomePhrase(e.target.value)} 
-                        placeholder="Ej. El amor todo lo cree, todo lo espera, todo lo soporta." 
-                        className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30 focus:border-[#9a7b5c] transition-all" 
-                      />
+                      <input type="text" value={welcomePhrase} onChange={(e) => setWelcomePhrase(e.target.value)} placeholder="Ej. El amor todo lo cree, todo lo espera, todo lo soporta." className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30 focus:border-[#9a7b5c] transition-all" />
                     </div>
                     
-                    {/* ESTE ES EL SELECTOR DE PLANTILLAS VISUAL Y MODERNO */}
                     <div className="col-span-1 md:col-span-2 pt-4 border-t border-stone-100">
                       <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1 block mb-3">
                         Selecciona el Diseño de tu Invitación
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        
-                        {/* V1: Clásica */}
-                        <button
-                          type="button"
-                          onClick={() => setTemplateId('v1')}
-                          className={`p-5 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-3 relative overflow-hidden group cursor-pointer ${templateId === 'v1' ? 'border-[#9a7b5c] bg-[#9a7b5c]/5 shadow-md' : 'border-stone-200 bg-white hover:border-[#9a7b5c]/50'}`}
-                        >
+                        <button type="button" onClick={() => setTemplateId('v1')} className={`p-5 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-3 relative overflow-hidden group cursor-pointer ${templateId === 'v1' ? 'border-[#9a7b5c] bg-[#9a7b5c]/5 shadow-md' : 'border-stone-200 bg-white hover:border-[#9a7b5c]/50'}`}>
                           {templateId === 'v1' && <div className="absolute top-2 right-2 text-xs">✅</div>}
                           <span className="text-3xl filter drop-shadow-sm group-hover:scale-110 transition-transform">✨</span>
                           <div className="text-center">
@@ -479,13 +455,7 @@ export default function NoviosDashboard() {
                             <span className="text-[9px] text-stone-400 font-light tracking-wide">Clásica y limpia</span>
                           </div>
                         </button>
-
-                        {/* V2: Editorial */}
-                        <button
-                          type="button"
-                          onClick={() => setTemplateId('v2')}
-                          className={`p-5 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-3 relative overflow-hidden group cursor-pointer ${templateId === 'v2' ? 'border-[#9a7b5c] bg-[#9a7b5c]/5 shadow-md' : 'border-stone-200 bg-white hover:border-[#9a7b5c]/50'}`}
-                        >
+                        <button type="button" onClick={() => setTemplateId('v2')} className={`p-5 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-3 relative overflow-hidden group cursor-pointer ${templateId === 'v2' ? 'border-[#9a7b5c] bg-[#9a7b5c]/5 shadow-md' : 'border-stone-200 bg-white hover:border-[#9a7b5c]/50'}`}>
                           {templateId === 'v2' && <div className="absolute top-2 right-2 text-xs">✅</div>}
                           <span className="text-3xl filter drop-shadow-sm group-hover:scale-110 transition-transform">💎</span>
                           <div className="text-center">
@@ -493,13 +463,7 @@ export default function NoviosDashboard() {
                             <span className="text-[9px] text-stone-400 font-light tracking-wide">Elegante con cristal</span>
                           </div>
                         </button>
-
-                        {/* V3: Bosque Místico */}
-                        <button
-                          type="button"
-                          onClick={() => setTemplateId('v3')}
-                          className={`p-5 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-3 relative overflow-hidden group cursor-pointer ${templateId === 'v3' ? 'border-[#9a7b5c] bg-[#9a7b5c]/5 shadow-md' : 'border-stone-200 bg-white hover:border-[#9a7b5c]/50'}`}
-                        >
+                        <button type="button" onClick={() => setTemplateId('v3')} className={`p-5 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-3 relative overflow-hidden group cursor-pointer ${templateId === 'v3' ? 'border-[#9a7b5c] bg-[#9a7b5c]/5 shadow-md' : 'border-stone-200 bg-white hover:border-[#9a7b5c]/50'}`}>
                           {templateId === 'v3' && <div className="absolute top-2 right-2 text-xs">✅</div>}
                           <span className="text-3xl filter drop-shadow-sm group-hover:scale-110 transition-transform">🌲</span>
                           <div className="text-center">
@@ -507,7 +471,6 @@ export default function NoviosDashboard() {
                             <span className="text-[9px] text-stone-400 font-light tracking-wide">Animación inmersiva</span>
                           </div>
                         </button>
-
                       </div>
                     </div>
                   </div>
@@ -625,7 +588,6 @@ export default function NoviosDashboard() {
                     <div className="absolute top-0 right-0 w-64 h-64 bg-[#9a7b5c]/20 blur-3xl rounded-full pointer-events-none transform translate-x-1/2 -translate-y-1/2"></div>
                     
                     {planContratado === 'basicos' ? (
-                      // UPSELL PARA PLAN BÁSICO
                       <div className="relative z-10 flex flex-col md:flex-row items-center text-center md:text-left gap-6">
                         <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center text-4xl shrink-0">🔒</div>
                         <div className="space-y-3">
@@ -640,7 +602,6 @@ export default function NoviosDashboard() {
                         </div>
                       </div>
                     ) : (
-                      // FUNCIONALIDAD ACTIVA PARA PREMIUM / VIP
                       <div className="relative z-10">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                           <div className="space-y-2 max-w-xl">
@@ -655,8 +616,6 @@ export default function NoviosDashboard() {
 
                         {albumActivado && (
                           <div className="mt-8 pt-8 border-t border-stone-800 flex flex-col md:flex-row gap-8 items-center md:items-start">
-                            
-                            {/* 🛡️ CONTENEDOR DEL QR CON BOTÓN DE DESCARGA */}
                             <div className="flex flex-col items-center gap-3 shrink-0">
                               <div className="bg-white p-3 rounded-2xl shadow-xl w-32 h-32 flex items-center justify-center">
                                  <img 
@@ -886,7 +845,7 @@ export default function NoviosDashboard() {
               )}
 
               {pasoActivo === 6 && (
-                /* ---------------- PASO 6: LOGÍSTICA ---------------- */
+                /* 👇 AQUÍ ESTÁN POR FIN LAS 5 HORAS COMPLETAS EN PANTALLA 👇 */
                 <div className="bg-white rounded-[2rem] p-8 border border-stone-100 shadow-sm space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     
@@ -897,12 +856,24 @@ export default function NoviosDashboard() {
                       </div>
                       <div className="space-y-4">
                         <div className="space-y-1.5">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Hora de la Ceremonia (Misa)</label>
-                          <input type="text" value={itinerarioMisa} onChange={(e) => setItinerarioMisa(e.target.value)} placeholder="Ej. 18:00 hrs" className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">⛪ Hora de la Ceremonia (Misa)</label>
+                          <input type="text" value={itinerarioMisa} onChange={(e) => setItinerarioMisa(e.target.value)} placeholder="Ej. 17:00 hrs" className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Hora de la Recepción (Banquete)</label>
-                          <input type="text" value={itinerarioFiesta} onChange={(e) => setItinerarioFiesta(e.target.value)} placeholder="Ej. 20:30 hrs" className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">🥂 Hora de la Recepción (Banquete)</label>
+                          <input type="text" value={itinerarioFiesta} onChange={(e) => setItinerarioFiesta(e.target.value)} placeholder="Ej. 19:30 hrs" className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">✨ Baile / Vals</label>
+                          <input type="text" value={horaBaile} onChange={(e) => setHoraBaile(e.target.value)} placeholder="Ej. 21:00 hrs" className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">🎉 Fiesta</label>
+                          <input type="text" value={horaShow} onChange={(e) => setHoraShow(e.target.value)} placeholder="Ej. 22:00 hrs" className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">🕛 Fin de fiesta</label>
+                          <input type="text" value={horaFin} onChange={(e) => setHoraFin(e.target.value)} placeholder="Ej. 02:00 am" className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
                         </div>
                       </div>
                     </div>
