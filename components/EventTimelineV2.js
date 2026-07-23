@@ -13,12 +13,12 @@ export default function EventTimelineV2({ weddingData, diseño }) {
   const btnStyle = diseño?.btn || 'bg-stone-900 text-white hover:bg-stone-800';
   const cardStyle = diseño?.colorCard || 'bg-white border-stone-200 shadow-xl text-stone-700';
 
-  // Sincronización de horarios y datos (AQUÍ ESTÁ LA CONEXIÓN)
-  const horaMisa = weddingData?.ceremoniaHora || "17:00 HRS";
-  const horaFiesta = weddingData?.recepcionHora || "19:30 HRS";
-  const horaBaile = weddingData?.horaBaile || "21:00 HRS"; // 👈 NUEVO
-  const horaShow = weddingData?.horaShow || "22:00 HRS";   // 👈 NUEVO
-  const horaFin = weddingData?.horaFin || "02:00 AM";      // 👈 NUEVO
+  // 👇 Sincronización de horarios y datos (YA SIN LA PALABRA 'HRS' FIJA)
+  const horaMisa = weddingData?.ceremoniaHora || "17:00 hrs";
+  const horaFiesta = weddingData?.recepcionHora || "19:30 hrs";
+  const horaBaile = weddingData?.horaBaile || "21:00 hrs";
+  const horaShow = weddingData?.horaShow || "22:00 hrs";   
+  const horaFin = weddingData?.horaFin || "02:00 am";      
   const textoPaleta = weddingData?.paletaColores || "Tonos terracota, beige, verde olivo";
   const codigoVestimenta = weddingData?.codigoVestimenta || "Formal / Gala";
 
@@ -33,9 +33,9 @@ export default function EventTimelineV2({ weddingData, diseño }) {
   const itinerario = [
     { time: horaMisa, title: 'Ceremonia religiosa', icon: '⛪' },
     { time: horaFiesta, title: 'Recepción', icon: '🥂' },
-    { time: horaBaile, title: 'Baile', icon: '✨' }, // 👈 CONECTADO
-    { time: horaShow, title: 'Fiesta', icon: '🎉' },  // 👈 CONECTADO
-    { time: horaFin, title: 'Fin de fiesta', icon: '' } // 👈 CONECTADO
+    { time: horaBaile, title: 'Baile / Vals', icon: '✨' }, 
+    { time: horaShow, title: 'Fiesta', icon: '🎉' },  
+    { time: horaFin, title: 'Fin de fiesta', icon: '🕛' } 
   ];
 
   return (

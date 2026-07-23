@@ -9,9 +9,12 @@ export default function EventTimeline({ weddingData, diseño }) {
   const labelStyle = diseño?.textAcento || 'text-stone-400';
   const btnStyle = diseño?.btn || 'bg-stone-900 hover:bg-stone-800 text-white';
 
-  // Sincronización en caliente con el Paso 6 del Dashboard
-  const horaMisa = weddingData?.ceremoniaHora || "17:00";
-  const horaFiesta = weddingData?.recepcionHora || "19:30";
+  // 👇 Sincronización en caliente con el Paso 6 del Dashboard (LAS 5 HORAS)
+  const horaMisa = weddingData?.ceremoniaHora || "17:00 hrs";
+  const horaFiesta = weddingData?.recepcionHora || "19:30 hrs";
+  const horaBaile = weddingData?.horaBaile || "21:00 hrs"; // 👈 CONECTADO
+  const horaShow = weddingData?.horaShow || "22:00 hrs";   // 👈 CONECTADO
+  const horaFin = weddingData?.horaFin || "02:00 am";      // 👈 CONECTADO
   const textoPaleta = weddingData?.paletaColores || "Tonos terracota, beige, verde olivo";
 
   // Mapeo automático de burbujas de color según la paleta activa
@@ -21,13 +24,13 @@ export default function EventTimeline({ weddingData, diseño }) {
     ? ['#8c6239', '#bf9b7a', '#dfd3c3', '#7d8a7c', '#c2baa6']
     : ['#78350f', '#b45309', '#f59e0b', '#fef3c7', '#d97706']; // Clásico
 
-  // 📝 DATOS DEL ITINERARIO
+  // 👇 DATOS DEL ITINERARIO CONECTADOS
   const itinerario = [
-    { time: `${horaMisa} HRS`, title: 'Ceremonia religiosa', icon: '⛪' },
-    { time: `${horaFiesta} HRS`, title: 'Recepción', icon: '🥂' },
-    { time: '21:00 HRS', title: 'Baile', icon: '✨' },
-    { time: '22:00 HRS', title: 'Fiesta', icon: '🎉' },
-    { time: '02:00 AM', title: 'Fin de fiesta', icon: '' } 
+    { time: horaMisa, title: 'Ceremonia religiosa', icon: '⛪' },
+    { time: horaFiesta, title: 'Recepción', icon: '🥂' },
+    { time: horaBaile, title: 'Baile / Vals', icon: '✨' },
+    { time: horaShow, title: 'Fiesta', icon: '🎉' },
+    { time: horaFin, title: 'Fin de fiesta', icon: '🕛' } 
   ];
 
   return (
@@ -54,7 +57,6 @@ export default function EventTimeline({ weddingData, diseño }) {
               <p><strong className="font-semibold">Lugar:</strong> {weddingData?.ceremoniaLugar || "Templo del Evento"}</p>
             </div>
             
-            {/* 👇 AQUÍ ESTÁ LA CORRECCIÓN DE SEGURIDAD PARA EL MAPA */}
             {(weddingData?.ceremoniaMapsUrl && weddingData.ceremoniaMapsUrl !== '#' && weddingData.ceremoniaMapsUrl !== '') && (
               <a 
                 href={weddingData.ceremoniaMapsUrl} 
@@ -77,7 +79,6 @@ export default function EventTimeline({ weddingData, diseño }) {
               <p><strong className="font-semibold">Lugar:</strong> {weddingData?.recepcionLugar || "Salón de Eventos"}</p>
             </div>
             
-            {/* 👇 Y AQUÍ TAMBIÉN */}
             {(weddingData?.recepcionMapsUrl && weddingData.recepcionMapsUrl !== '#' && weddingData.recepcionMapsUrl !== '') && (
               <a 
                 href={weddingData.recepcionMapsUrl} 

@@ -99,17 +99,38 @@ export default function PaginaMaestraInvitacion() {
         setPlantillaActiva(templateFallback);
       } else {
         setWeddingData({
-          id: data.id, slug: data.slug, groomName: data.groom_name, brideName: data.bride_name,
-          eventDate: data.event_date || "2026-12-19T18:00:00", coverImage: data.cover_image, 
-          galleryImages: data.gallery_images || [], welcomePhrase: data.welcome_phrase, 
-          ceremoniaLugar: data.ceremonia_lugar, ceremoniaMapsUrl: data.ceremonia_maps_url, 
-          recepcionLugar: data.recepcion_lugar, recepcionMapsUrl: data.recepcion_maps_url, 
+          id: data.id, 
+          slug: data.slug, 
+          groomName: data.groom_name, 
+          brideName: data.bride_name,
+          eventDate: data.event_date || "2026-12-19T18:00:00", 
+          coverImage: data.cover_image, 
+          galleryImages: data.gallery_images || [], 
+          welcomePhrase: data.welcome_phrase, 
+          ceremoniaLugar: data.ceremonia_lugar, 
+          ceremoniaMapsUrl: data.ceremonia_maps_url, 
+          recepcionLugar: data.recepcion_lugar, 
+          recepcionMapsUrl: data.recepcion_maps_url, 
           musicUrl: data.music_url || '/music/1. Clásico Romántico.mp3',
           albumCompartidoActivo: data.album_compartido_activo || false,
-          banco: data.banco, titular: data.titular, clabe: data.clabe, amazonUrl: data.amazon_url, liverpoolUrl: data.liverpool_url 
+          banco: data.banco, 
+          titular: data.titular, 
+          clabe: data.clabe, 
+          amazonUrl: data.amazon_url, 
+          liverpoolUrl: data.liverpool_url,
+          
+          // 👇 AQUÍ CONECTAMOS LOS NUEVOS HORARIOS DIRECTO AL ITINERARIO 👇
+          ceremoniaHora: data.itinerario_misa,
+          recepcionHora: data.itinerario_fiesta,
+          horaBaile: data.hora_baile,
+          horaShow: data.hora_show,
+          horaFin: data.hora_fin,
+          codigoVestimenta: data.codigo_vestimenta,
+          paletaColores: data.paleta_colores
         });
+        
         setPlantillaActiva(data.template_id || (esXV ? 'xv-v1' : 'v1'));
-        setPaletaActiva(data.paleta_colores || 'cashmere');
+        setPaletaActiva(data.paleta_colores_ui || 'cashmere'); // Nota: uso paleta_colores_ui para el configurador para no chocar con el texto
         setFuenteActiva(data.estilo_texto || 'clasica');
         setTipoEventoGlobal(data.tipo_evento || (esXV ? 'xvanos' : 'boda'));
       }
