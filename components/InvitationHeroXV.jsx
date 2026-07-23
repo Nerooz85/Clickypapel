@@ -8,7 +8,7 @@ export default function InvitationHeroXV({ weddingData }) {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
-    if (!weddingData.eventDate) return;
+    if (!weddingData?.eventDate) return;
     const target = new Date(weddingData.eventDate).getTime();
     
     const interval = setInterval(() => {
@@ -24,7 +24,7 @@ export default function InvitationHeroXV({ weddingData }) {
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [weddingData.eventDate]);
+  }, [weddingData?.eventDate]);
 
   const floatAnimation = {
     y: [0, -15, 0],
@@ -37,7 +37,7 @@ export default function InvitationHeroXV({ weddingData }) {
       {/* 🌸 FONDO JUVENIL (Imagen + Degradado Rose Gold) */}
       <div className="absolute inset-0 z-0">
         <img 
-          src={weddingData.coverImage || 'https://images.unsplash.com/photo-1518831959646-742c3a14ebf7'} 
+          src={weddingData?.coverImage || 'https://images.unsplash.com/photo-1518831959646-742c3a14ebf7'} 
           alt="Mis XV" 
           className="w-full h-full object-cover opacity-80"
         />
@@ -54,18 +54,19 @@ export default function InvitationHeroXV({ weddingData }) {
           </span>
         </motion.div>
 
-        {/* El nombre toma protagonismo absoluto */}
+        {/* El nombre toma protagonismo absoluto (Con fallback seguro) */}
         <motion.h1 
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 1.5, ease: "easeOut" }}
           className="text-7xl md:text-9xl font-script text-white drop-shadow-[0_5px_15px_rgba(255,192,203,0.5)] my-2"
         >
-          {weddingData.brideName || "Sofía"}
+          {weddingData?.brideName || "Sofía"}
         </motion.h1>
 
+        {/* 👇 FRASE CONECTADA AL DASHBOARD CON VALOR POR DEFECTO DE XV */}
         <p className="font-sans font-light tracking-widest text-xs md:text-sm text-white/90 mt-6 max-w-sm uppercase drop-shadow-md">
-          "Hay momentos inolvidables que se guardan en el corazón para siempre."
+          "{weddingData?.welcomePhrase || 'Hay momentos inolvidables que se guardan en el corazón para siempre.'}"
         </p>
 
         {/* ⏳ CONTADOR ESTILO "GLAMOUR" */}

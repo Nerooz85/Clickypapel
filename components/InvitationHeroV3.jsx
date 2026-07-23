@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
@@ -8,7 +8,7 @@ export default function InvitationHeroV3({ weddingData, diseño }) {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
-    if (!weddingData.eventDate) return;
+    if (!weddingData?.eventDate) return;
     const target = new Date(weddingData.eventDate).getTime();
     
     const interval = setInterval(() => {
@@ -24,7 +24,7 @@ export default function InvitationHeroV3({ weddingData, diseño }) {
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [weddingData.eventDate]);
+  }, [weddingData?.eventDate]);
 
   // Variantes de animación de Framer Motion para lograr el efecto "Bosque"
   const containerVariants = {
@@ -52,7 +52,7 @@ export default function InvitationHeroV3({ weddingData, diseño }) {
       >
         <div 
           className="w-full h-full bg-cover bg-center"
-          style={{ backgroundImage: `url(${weddingData.coverImage || 'https://images.unsplash.com/photo-1519741497674-611481863552'})` }}
+          style={{ backgroundImage: `url(${weddingData?.coverImage || 'https://images.unsplash.com/photo-1519741497674-611481863552'})` }}
         />
       </motion.div>
 
@@ -71,9 +71,9 @@ export default function InvitationHeroV3({ weddingData, diseño }) {
           ¡Nos Casamos!
         </motion.span>
 
-        {/* Nombres */}
+        {/* Nombres con Fallback de seguridad 👇 */}
         <motion.h1 variants={itemVariants} className="text-6xl md:text-8xl font-serif text-white/95 drop-shadow-2xl leading-none">
-          {weddingData.brideName}
+          {weddingData?.brideName || "Novia"}
         </motion.h1>
         
         <motion.div variants={itemVariants} className="my-2 md:my-4">
@@ -81,12 +81,12 @@ export default function InvitationHeroV3({ weddingData, diseño }) {
         </motion.div>
         
         <motion.h1 variants={itemVariants} className="text-6xl md:text-8xl font-serif text-white/95 drop-shadow-2xl leading-none mb-8">
-          {weddingData.groomName}
+          {weddingData?.groomName || "Novio"}
         </motion.h1>
 
-        {/* Frase Personalizada */}
+        {/* Frase Personalizada conectada 👇 */}
         <motion.p variants={itemVariants} className="font-serif italic text-sm md:text-base text-stone-200/80 max-w-md drop-shadow-md tracking-wide">
-          "{weddingData.welcomePhrase || 'El amor todo lo cree, todo lo espera, todo lo soporta.'}"
+          "{weddingData?.welcomePhrase || 'El amor todo lo cree, todo lo espera, todo lo soporta.'}"
         </motion.p>
 
         {/* Línea divisoria elegante */}

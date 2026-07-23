@@ -60,6 +60,7 @@ export default function NoviosDashboard() {
   const [brideName, setBrideName] = useState('');
   const [groomName, setGroomName] = useState('');
   const [eventDate, setEventDate] = useState('');
+  const [welcomePhrase, setWelcomePhrase] = useState(''); // 👈 NUEVO: FRASE DE BIENVENIDA
   const [ceremoniaLugar, setCeremoniaLugar] = useState('');
   const [ceremoniaMaps, setCeremoniaMaps] = useState('');
   const [recepcionLugar, setRecepcionLugar] = useState('');
@@ -204,26 +205,24 @@ export default function NoviosDashboard() {
     }
   };
 
-  // 🛠️ FUNCIÓN CORREGIDA PARA AUTO-REPARAR LA BASE DE DATOS
   const cargarTodoElDashboard = async () => {
     try {
       setCargando(true);
       const slugLimpio = weddingSlug ? weddingSlug.toLowerCase().trim() : 'bruno-y-brisa';
       
-      // 1. Buscamos el evento
       const { data: bodaData, error: bodaError } = await supabase.from('bodas').select('*').eq('slug', slugLimpio).maybeSingle();
 
       if (bodaData) {
-        // Si existe, cargamos los datos
         setBrideName(bodaData.bride_name || ''); 
         setGroomName(bodaData.groom_name || '');
         setEventDate(bodaData.event_date ? bodaData.event_date.substring(0, 10) : '');
+        setWelcomePhrase(bodaData.welcome_phrase || ''); // 👈 CARGAMOS LA FRASE DE LA BASE DE DATOS
         setCeremoniaLugar(bodaData.ceremonia_lugar || ''); 
         setCeremoniaMaps(bodaData.ceremonia_maps_url || '');
         setRecepcionLugar(bodaData.recepcion_lugar || ''); 
         setRecepcionMaps(bodaData.recepcion_maps_url || '');
         setTemplateId(bodaData.template_id || 'v2'); 
-        setTipoEvento(bodaData.tipo_evento || 'boda'); // CARGAMOS TIPO DE EVENTO
+        setTipoEvento(bodaData.tipo_evento || 'boda'); 
         setCoverImage(bodaData.cover_image || '');
         setMusicUrl(bodaData.music_url || '/music/1-thousand-years.mp3');
         setPlanContratado(bodaData.plan_tipo || 'premium'); 
@@ -251,7 +250,6 @@ export default function NoviosDashboard() {
           setGaleriaFotos(nuevasFotos);
         }
       } else {
-        // 2. SI NO EXISTE (PORQUE SE BORRÓ), LO CREAMOS DE NUEVO
         await supabase.from('bodas').insert([{ 
           slug: slugLimpio, 
           bride_name: 'Bruno', 
@@ -286,12 +284,13 @@ export default function NoviosDashboard() {
         bride_name: brideName, 
         groom_name: groomName, 
         event_date: eventDate ? `${eventDate}T18:00:00` : null, 
+        welcome_phrase: welcomePhrase.trim(), // 👈 GUARDAMOS LA FRASE EN LA BASE DE DATOS
         ceremonia_lugar: ceremoniaLugar, 
         ceremonia_maps_url: ceremoniaMaps, 
         recepcion_lugar: recepcionLugar, 
         recepcion_maps_url: recepcionMaps, 
         template_id: templateId,
-        tipo_evento: tipoEvento // GUARDAMOS EL TIPO DE EVENTO
+        tipo_evento: tipoEvento
       }).eq('slug', weddingSlug); 
       setPasoActivo(3); 
     } catch (err) { alert("Error"); } finally { setGuardando(false); }
@@ -442,9 +441,22 @@ export default function NoviosDashboard() {
                       <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Festejado 2 / Novio</label>
                       <input type="text" value={groomName} onChange={(e) => setGroomName(e.target.value)} className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30 focus:border-[#9a7b5c] transition-all" />
                     </div>
+                    
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Fecha del Evento</label>
                       <input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30 focus:border-[#9a7b5c] transition-all" />
+                    </div>
+
+                    {/* 👇 NUEVO CAMPO PARA LA FRASE DEL BANNER DE BIENVENIDA */}
+                    <div className="space-y-1.5 md:col-span-2">
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Frase del Banner (Portada)</label>
+                      <input 
+                        type="text" 
+                        value={welcomePhrase} 
+                        onChange={(e) => setWelcomePhrase(e.target.value)} 
+                        placeholder="Ej. El amor todo lo cree, todo lo espera, todo lo soporta." 
+                        className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30 focus:border-[#9a7b5c] transition-all" 
+                      />
                     </div>
                     
                     {/* ESTE ES EL SELECTOR DE PLANTILLAS VISUAL Y MODERNO */}
