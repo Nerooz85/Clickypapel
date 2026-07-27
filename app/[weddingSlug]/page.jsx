@@ -9,6 +9,10 @@ import EventTimeline from '@/components/EventTimeline';
 import InvitationHeroV2 from '@/components/InvitationHeroV2';
 import InvitationHeroV3 from '@/components/InvitationHeroV3'; 
 import InvitationHeroXV from '@/components/InvitationHeroXV'; 
+// 👇 NUEVAS IMPORTACIONES DE XV AÑOS 👇
+import InvitationHeroXV_V2 from '@/components/InvitationHeroXV_V2'; 
+import InvitationHeroXV_V3 from '@/components/InvitationHeroXV_V3'; 
+
 import EventTimelineV2 from '@/components/EventTimelineV2';
 import PhotoGallery from '@/components/PhotoGallery';
 import GiftRegistry from '@/components/GiftRegistry';
@@ -119,7 +123,6 @@ export default function PaginaMaestraInvitacion() {
           amazonUrl: data.amazon_url, 
           liverpoolUrl: data.liverpool_url,
           
-          // 👇 AQUÍ CONECTAMOS LOS NUEVOS HORARIOS DIRECTO AL ITINERARIO 👇
           ceremoniaHora: data.itinerario_misa,
           recepcionHora: data.itinerario_fiesta,
           horaBaile: data.hora_baile,
@@ -130,7 +133,7 @@ export default function PaginaMaestraInvitacion() {
         });
         
         setPlantillaActiva(data.template_id || (esXV ? 'xv-v1' : 'v1'));
-        setPaletaActiva(data.paleta_colores_ui || 'cashmere'); // Nota: uso paleta_colores_ui para el configurador para no chocar con el texto
+        setPaletaActiva(data.paleta_colores_ui || 'cashmere'); 
         setFuenteActiva(data.estilo_texto || 'clasica');
         setTipoEventoGlobal(data.tipo_evento || (esXV ? 'xvanos' : 'boda'));
       }
@@ -139,14 +142,13 @@ export default function PaginaMaestraInvitacion() {
     jalarDatosBoda();
   }, [slug]);
 
-  // 👇 MAGIA: CAMBIADOR DE PESTAÑAS DEL MENÚ SUPERIOR
   const handleCambioCategoria = (categoria) => {
     if (!weddingData) return;
 
     if (categoria.includes('XV')) {
       setTipoEventoGlobal('xvanos');
       setPlantillaActiva('xv-v1');
-      setPaletaActiva('rosegold'); // Para XV ponemos colores pastel por default
+      setPaletaActiva('rosegold'); 
       setWeddingData({
         ...weddingData,
         brideName: 'Sofía',
@@ -155,7 +157,7 @@ export default function PaginaMaestraInvitacion() {
         titular: 'Familia de Sofía',
         welcomePhrase: 'Hay momentos inolvidables que se guardan en el corazón para siempre.'
       });
-      setSobreAbierto(false); // Cierra el sobre
+      setSobreAbierto(false); 
     } else if (categoria.includes('Bodas')) {
       setTipoEventoGlobal('boda');
       setPlantillaActiva('v1');
@@ -168,7 +170,7 @@ export default function PaginaMaestraInvitacion() {
         titular: 'Bruno y Brisa',
         welcomePhrase: 'El amor todo lo cree, todo lo espera, todo lo soporta.'
       });
-      setSobreAbierto(false); // Cierra el sobre
+      setSobreAbierto(false); 
     } else {
       alert(`Las plantillas para ${categoria} estarán disponibles en la próxima actualización ✨`);
     }
@@ -272,7 +274,12 @@ export default function PaginaMaestraInvitacion() {
                 <button onClick={() => setPlantillaActiva('v3')} className={`text-xl transition-transform hover:scale-110 ${plantillaActiva === 'v3' ? 'filter drop-shadow-md scale-110' : 'opacity-40 grayscale'}`} title="Bosque">🌲</button>
               </div>
             ) : (
-               <button onClick={() => setPlantillaActiva('xv-v1')} className={`text-xl transition-transform hover:scale-110 ${plantillaActiva === 'xv-v1' ? 'filter drop-shadow-md scale-110' : 'opacity-40 grayscale'}`} title="Jardín">🌸</button>
+               // 👇 NUEVOS BOTONES DE SELECCIÓN PARA XV AÑOS 👇
+               <div className="flex gap-2">
+                 <button onClick={() => setPlantillaActiva('xv-v1')} className={`text-xl transition-transform hover:scale-110 ${plantillaActiva === 'xv-v1' ? 'filter drop-shadow-md scale-110' : 'opacity-40 grayscale'}`} title="Jardín Floral">🌸</button>
+                 <button onClick={() => setPlantillaActiva('xv-v2')} className={`text-xl transition-transform hover:scale-110 ${plantillaActiva === 'xv-v2' ? 'filter drop-shadow-md scale-110' : 'opacity-40 grayscale'}`} title="Noche Neón">🌃</button>
+                 <button onClick={() => setPlantillaActiva('xv-v3')} className={`text-xl transition-transform hover:scale-110 ${plantillaActiva === 'xv-v3' ? 'filter drop-shadow-md scale-110' : 'opacity-40 grayscale'}`} title="Coquette">🎀</button>
+               </div>
             )}
           </div>
 
@@ -333,9 +340,13 @@ export default function PaginaMaestraInvitacion() {
         <button type="button" onClick={toggleMusicaFlotante} className="fixed bottom-24 md:bottom-6 left-6 z-[150] bg-white/90 text-stone-900 backdrop-blur-md border border-stone-200 p-3 rounded-full shadow-xl text-xs pointer-events-auto">{musicaSonando ? '🎵 ⏸️' : '🔇 ▶️'}</button>
 
         <div className="space-y-12 pb-24 md:pb-16">
+          
+          {/* 👇 INTEGRACIÓN DEL RENDERIZADO DE LAS NUEVAS PORTADAS XV 👇 */}
           <ScrollReveal>
             {plantillaActiva === 'v3' ? <InvitationHeroV3 weddingData={weddingData} diseño={diseño} /> 
             : plantillaActiva === 'v2' ? <InvitationHeroV2 weddingData={weddingData} diseño={diseño} /> 
+            : plantillaActiva === 'xv-v3' ? <InvitationHeroXV_V3 weddingData={weddingData} /> 
+            : plantillaActiva === 'xv-v2' ? <InvitationHeroXV_V2 weddingData={weddingData} /> 
             : plantillaActiva === 'xv-v1' ? <InvitationHeroXV weddingData={weddingData} diseño={diseño} /> 
             : <InvitationHero weddingData={weddingData} diseño={diseño} />}
           </ScrollReveal>
