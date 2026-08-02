@@ -1,10 +1,18 @@
 "use client";
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function NoviosDashboard() {
-  const weddingSlug = 'bruno-y-brisa'; // En producción vendrá de la sesión
+function NoviosDashboard() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // 🔐 El evento que se edita sale de la sesión, no de una constante.
+  const [usuario, setUsuario] = useState(null);
+  const [weddingSlug, setWeddingSlug] = useState(null);
+  const [misEventos, setMisEventos] = useState([]);
+  const [sinEventos, setSinEventos] = useState(false);
 
   // 📂 CATÁLOGO INTELIGENTE DE PLANTILLAS
   const catalogos = {
@@ -198,10 +206,11 @@ export default function NoviosDashboard() {
   };
 
   const cargarTodoElDashboard = async () => {
+    if (!weddingSlug) return;
     try {
       setCargando(true);
-      const slugLimpio = weddingSlug ? weddingSlug.toLowerCase().trim() : 'bruno-y-brisa';
-      
+      const slugLimpio = weddingSlug.toLowerCase().trim();
+
       const { data: bodaData } = await supabase.from('bodas').select('*').eq('slug', slugLimpio).maybeSingle();
 
       if (bodaData) {
@@ -244,9 +253,8 @@ export default function NoviosDashboard() {
           bodaData.gallery_images.forEach((img, i) => { if(i < limite) nuevasFotos[i] = img; });
           setGaleriaFotos(nuevasFotos);
         }
-      } else {
-        await supabase.from('bodas').insert([{ slug: slugLimpio, bride_name: 'Bruno', groom_name: 'Brisa', tipo_evento: 'boda' }]);
       }
+      // Ya no creamos bodas solas: solo existen las que el usuario aparta en /registro.
 
       const { data: listaInvitados } = await supabase.from('invitados').select('*').eq('boda_slug', slugLimpio).order('nombre_invitado', { ascending: true });
       if (listaInvitados) setInvitados(listaInvitados);
@@ -255,7 +263,51 @@ export default function NoviosDashboard() {
     } catch (err) { console.error("Error", err); } finally { setCargando(false); }
   };
 
-  useEffect(() => { cargarTodoElDashboard(); }, []);
+  // 🔐 Paso 1: verificar sesión y averiguar qué evento le toca editar.
+  useEffect(() => {
+    let activo = true;
+
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        router.replace('/login');
+        return;
+      }
+      if (!activo) return;
+      setUsuario(session.user);
+
+      const { data: eventos } = await supabase
+        .from('bodas')
+        .select('slug, bride_name, groom_name, tipo_evento')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false });
+
+      if (!activo) return;
+      setMisEventos(eventos || []);
+
+      if (!eventos || eventos.length === 0) {
+        setSinEventos(true);
+        setCargando(false);
+        return;
+      }
+
+      // ?slug= permite elegir cuál editar cuando tiene más de uno.
+      const pedido = searchParams.get('slug');
+      const elegido = eventos.find((e) => e.slug === pedido) || eventos[0];
+      setWeddingSlug(elegido.slug);
+    })();
+
+    return () => { activo = false; };
+  }, [router, searchParams]);
+
+  // 🔐 Paso 2: cuando ya sabemos el slug, cargamos todo.
+  useEffect(() => { if (weddingSlug) cargarTodoElDashboard(); }, [weddingSlug]);
+
+  const cerrarSesion = async () => {
+    await supabase.auth.signOut();
+    router.replace('/login');
+  };
 
   const toggleAlbumCompartido = async () => {
     const nuevoEstado = !albumActivado; 
@@ -334,6 +386,32 @@ export default function NoviosDashboard() {
     <div className="min-h-screen bg-[#fcfbfa] flex flex-col items-center justify-center space-y-4">
       <div className="w-12 h-12 border-2 border-[#9a7b5c] border-t-transparent rounded-full animate-spin" />
       <p className="font-serif text-[#9a7b5c] tracking-widest uppercase text-xs">Cargando tu espacio...</p>
+    </div>
+  );
+
+  // Tiene cuenta pero todavía no aparta ningún evento.
+  if (sinEventos) return (
+    <div className="min-h-screen bg-[#fcfbfa] flex flex-col items-center justify-center px-6 text-center font-sans">
+      <div className="max-w-sm space-y-5">
+        <span className="text-4xl block">✉️</span>
+        <h1 className="font-serif text-2xl text-stone-900 font-light">Todavía no tienes un evento</h1>
+        <p className="text-sm text-stone-500 font-light leading-relaxed">
+          Aparta tu enlace y aquí mismo vas a poder llenar los datos, subir fotos y llevar el control de tus invitados.
+        </p>
+        <a
+          href="/registro"
+          className="inline-block bg-stone-900 hover:bg-[#9a7b5c] text-white text-xs uppercase font-bold tracking-widest px-8 py-3.5 rounded-xl transition-colors"
+        >
+          Crear mi evento
+        </a>
+        <button
+          type="button"
+          onClick={cerrarSesion}
+          className="block mx-auto text-[10px] uppercase tracking-widest text-stone-400 underline cursor-pointer"
+        >
+          Cerrar sesión
+        </button>
+      </div>
     </div>
   );
 
@@ -946,5 +1024,18 @@ export default function NoviosDashboard() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+// useSearchParams necesita una frontera de Suspense en el App Router.
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#fcfbfa] flex items-center justify-center">
+        <div className="w-12 h-12 border-2 border-[#9a7b5c] border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <NoviosDashboard />
+    </Suspense>
   );
 }

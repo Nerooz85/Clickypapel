@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 
 export default function CompartirFotosFiesta() {
   const params = useParams();
-  const slug = params?.slug;
+  const slug = params?.weddingSlug; // la carpeta es [weddingSlug], no [slug]
 
   const [boda, setBoda] = useState(null);
   const [cargando, setCargando] = useState(true);
