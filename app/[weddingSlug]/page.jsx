@@ -99,6 +99,7 @@ export default function PaginaMaestraInvitacion() {
           galleryImages: [], musicUrl: '/music/1. Clásico Romántico.mp3', albumCompartidoActivo: true,
           ceremoniaLugar: 'Parroquia de Nuestra Señora', recepcionLugar: 'Quinta Gran Jardín',
           banco: 'BBVA', titular: esXV ? 'Familia de Sofía' : 'Bruno y Brisa', clabe: '012345678901234567',
+          pagoConfirmado: true,
         });
         setPlantillaActiva(templateFallback);
       } else {
@@ -123,6 +124,9 @@ export default function PaginaMaestraInvitacion() {
           amazonUrl: data.amazon_url, 
           liverpoolUrl: data.liverpool_url,
           
+          pagoConfirmado: data.pago_confirmado || false,
+          planTipo: data.plan_tipo || 'premium',
+
           ceremoniaHora: data.itinerario_misa,
           recepcionHora: data.itinerario_fiesta,
           horaBaile: data.hora_baile,
@@ -220,6 +224,29 @@ export default function PaginaMaestraInvitacion() {
       <style dangerouslySetInnerHTML={{__html: `@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Great+Vibes&family=Jost:wght@300;400;500&family=Lora:ital,wght@0,400;1,400&display=swap'); .font-clasica { font-family: 'Cormorant Garamond', serif; } .font-cursiva { font-family: 'Great Vibes', cursive; } .font-editorial { font-family: 'Cinzel', serif; letter-spacing: 0.15em; text-transform: uppercase; } .font-minimalista { font-family: 'Jost', sans-serif; font-weight: 300; } .font-boho { font-family: 'Lora', serif; font-style: italic; }`}} />
       
       {weddingData?.musicUrl && <audio ref={audioRef} src={weddingData.musicUrl} loop />}
+
+      {/* 🔒 Candado de publicación: se ve completa, pero marcada hasta que se pague. */}
+      {!esModoVentas && weddingData && !weddingData.pagoConfirmado && sobreAbierto && (
+        <motion.div
+          initial={{ y: -60 }}
+          animate={{ y: 0 }}
+          transition={{ delay: 0.8 }}
+          className="fixed top-0 left-0 right-0 z-[300] bg-stone-950/95 backdrop-blur-md text-white px-4 py-2.5 flex items-center justify-between gap-3 font-sans shadow-lg"
+        >
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-widest font-bold text-amber-400">Vista previa</p>
+            <p className="text-[11px] text-stone-300 font-light truncate">
+              Solo tú la ves. Publícala para compartirla.
+            </p>
+          </div>
+          <a
+            href={`/checkout?slug=${weddingData.slug}&plan=${weddingData.planTipo || 'premium'}`}
+            className="shrink-0 bg-amber-600 hover:bg-amber-500 text-white text-[10px] uppercase tracking-widest font-bold px-4 py-2.5 rounded-full transition-colors"
+          >
+            Publicar
+          </a>
+        </motion.div>
+      )}
 
       {/* 🚀 HEADER TIPO TABS (PESTAÑAS) */}
       {esModoVentas && (
@@ -359,7 +386,11 @@ export default function PaginaMaestraInvitacion() {
         </div>
         
         <footer className="text-center py-12 bg-transparent text-stone-400 text-[9px] uppercase tracking-widest font-sans">
-          {esModoVentas ? 'Demostración de plataforma interactiva' : <>Creado en <a href="https://clickypapel.com" target="_blank" className="font-bold hover:text-[#9a7b5c]">ClickyPapel</a></>}
+          {esModoVentas
+            ? 'Demostración de plataforma interactiva'
+            : weddingData && !weddingData.pagoConfirmado
+              ? 'Vista previa · Invitación sin publicar'
+              : <>Creado en <a href="https://clickypapel.com" target="_blank" className="font-bold hover:text-[#9a7b5c]">ClickyPapel</a></>}
         </footer>
       </div>
     </main>

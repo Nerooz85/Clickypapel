@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { obtenerPlan, calcularTotal, formatearPesos, enlaceDePago } from '@/lib/precios';
 
 function CheckoutContent() {
   const searchParams = useSearchParams();
@@ -12,27 +13,13 @@ function CheckoutContent() {
 
   const [procesando, setProcesando] = useState(false);
 
-  // Mapeo de Precios Oficiales de ClickyPapel
-  const precios = { basicos: 890, premium: 1490, vip: 2490 };
-  const precioBase = precios[plan] || 1490;
-  const precioMusica = musicaExtra ? 350 : 0;
-  const total = precioBase + precioMusica;
-
-  // 🔑 ENLACES REALES DE TU CUENTA DE STRIPE CON EL IDENTIFICADOR DINÁMICO
-  const enlacesDePagoStripe = {
-    basicos: `https://buy.stripe.com/14A28rd9NgZ14jd8jC6J201?client_reference_id=${slug}`,
-    premium: `https://buy.stripe.com/3cIcN5fhV5gjbLF43m6J200?client_reference_id=${slug}`,
-    vip: `https://buy.stripe.com/fZucN52v98sv8zt9nG6J202?client_reference_id=${slug}`
-  };
+  // Precios y enlaces de Stripe: todo sale de lib/precios.js
+  const planInfo = obtenerPlan(plan);
+  const total = calcularTotal(plan, musicaExtra);
 
   const handleRedireccionStripe = () => {
     setProcesando(true);
-    
-    // Si el plan es "basicos", "premium" o "vip", usamos el mapeo correspondiente
-    const urlDestino = enlacesDePagoStripe[plan] || enlacesDePagoStripe.premium;
-    
-    // Redirigir al entorno seguro de Stripe
-    window.location.href = urlDestino;
+    window.location.href = enlaceDePago(plan, slug);
   };
 
   // Disparar la redirección automática tras 2.5 segundos de carga elegante
@@ -54,8 +41,8 @@ function CheckoutContent() {
       </div>
 
       <div className="space-y-2">
-        <h1 className="font-serif text-xl text-stone-900 font-medium">Conectando con la Pasarela de Pago</h1>
-        <p className="text-xs text-stone-400 font-light leading-relaxed">Estamos preparando tu entorno de cobro cifrado con Stripe. No cierres ni recargues esta ventana.</p>
+        <h1 className="font-serif text-xl text-stone-900 font-medium">Te llevamos al pago seguro</h1>
+        <p className="text-xs text-stone-400 font-light leading-relaxed">Stripe procesa el cobro. No cierres esta ventana.</p>
       </div>
 
       {/* Resumen de Cuenta visual para dar seguridad al cliente */}
@@ -63,7 +50,7 @@ function CheckoutContent() {
         <div className="flex justify-between font-medium">
           <span className="text-stone-500">Plan contratado:</span>
           <span className="text-stone-900 uppercase font-mono font-bold">
-            {plan === 'basicos' ? 'Digital Esencial' : plan === 'vip' ? 'VIP Celestial' : 'Gran Día Premium'}
+            {planInfo.nombre}
           </span>
         </div>
         
@@ -82,7 +69,7 @@ function CheckoutContent() {
         <hr className="border-stone-200/60 my-1" />
         <div className="flex justify-between items-baseline pt-1">
           <span className="font-bold text-stone-800">Total a liquidar:</span>
-          <span className="text-xl font-mono font-black text-stone-900">${total.toLocaleString('es-MX')} MXN</span>
+          <span className="text-xl font-mono font-black text-stone-900">{formatearPesos(total)} MXN</span>
         </div>
       </div>
 

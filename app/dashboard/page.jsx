@@ -3,7 +3,6 @@ import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { limiteFotos } from '@/lib/precios';
 
 function NoviosDashboard() {
   const router = useRouter();
@@ -348,7 +347,7 @@ function NoviosDashboard() {
   const handleGuardarPaso4 = async () => {
     setGuardando(true);
     try {
-      const fotosLimpias = galeriaFotos.filter(url => url && url.trim() !== '');
+      const fotosLimpias = galeriaFotos.filter(url => url.trim() !== '');
       await supabase.from('bodas').update({ 
         cover_image: coverImage.trim(), music_url: musicUrl, gallery_images: fotosLimpias,
         ceremonia_foto: ceremoniaFoto.trim(), recepcion_foto: recepcionFoto.trim()
@@ -382,11 +381,6 @@ function NoviosDashboard() {
   const totalPasesAsignados = invitados.reduce((acc, curr) => acc + (curr.pases_totales || 0), 0);
   const totalConfirmados = invitados.reduce((acc, curr) => acc + (curr.pases_confirmados || 0), 0);
   const pendientes = invitados.filter(inv => inv.estado === 'pendiente').length;
-
-  // Estas dos se usaban en el paso de Multimedia sin estar declaradas:
-  // por eso la pestaña tronaba con "client-side exception".
-  const maxFotosPermitidas = limiteFotos(planContratado);
-  const fotosSubidasCount = galeriaFotos.filter((url) => url && url.trim() !== '').length;
 
   if (cargando) return (
     <div className="min-h-screen bg-[#fcfbfa] flex flex-col items-center justify-center space-y-4">

@@ -1,425 +1,512 @@
 "use client";
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { PLANES, ORDEN_PLANES, formatearPesos } from '@/lib/precios';
 
-export default function ClickyPapelHome() {
-  const [showIntro, setShowIntro] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(false);
+/* Paleta ClickyPapel — papelería fina, no plantilla genérica */
+const TINTA = '#1C1A24';
+const PAPEL = '#FBF9F5';
+const LINO = '#EDE7DC';
+const SELLO = '#A8324A';
+const ORO = '#B08D3F';
+
+const CELEBRACIONES = [
+  { id: 'boda', nombre: 'Bodas', linea: 'Pases por familia y mesa de regalos.' },
+  { id: 'xvanos', nombre: 'XV años', linea: 'Galería, vals y código de vestimenta.' },
+  { id: 'baby', nombre: 'Baby shower', linea: 'Colores suaves y confirmación rápida.' },
+  { id: 'bautizo', nombre: 'Bautizos', linea: 'Misa, festejo y ubicación en un link.' },
+  { id: 'despedida', nombre: 'Despedidas', linea: 'Para la última fiesta de soltera.' },
+];
+
+const PASOS = [
+  { n: '01', t: 'Elige tu celebración', d: 'Boda, XV años, baby shower, bautizo o despedida.' },
+  { n: '02', t: 'Escribe tus datos', d: 'Nombres, fecha y el estilo que te lata. Tres pantallas.' },
+  { n: '03', t: 'Míralo y decide', d: 'Ves tu invitación completa. Pagas solo si la quieres compartir.' },
+];
+
+const PREGUNTAS = [
+  { q: '¿De verdad es gratis?', a: 'Sí. Armas tu invitación completa y la ves funcionando sin pagar nada. El cobro es solo cuando quieres compartirla con tus invitados.' },
+  { q: '¿Mis invitados necesitan instalar algo?', a: 'No. Les mandas un link por WhatsApp y se abre solo en cualquier celular.' },
+  { q: '¿Puedo cambiarla después de publicarla?', a: 'Todas las veces que quieras. El link no cambia, así que no tienes que reenviarlo.' },
+  { q: '¿Cómo sé quién va a ir?', a: 'Cada invitado confirma desde la misma invitación y tú ves la lista en vivo desde tu panel.' },
+  { q: '¿Cuánto tarda?', a: 'Lo básico queda en unos minutos. Los detalles los vas llenando con calma.' },
+];
+
+export default function Home() {
+  const [abierto, setAbierto] = useState(false);
+  const [sonando, setSonando] = useState(false);
+  const [restante, setRestante] = useState(null);
+  const [preguntaAbierta, setPreguntaAbierta] = useState(null);
   const audioRef = useRef(null);
+  const sinMovimiento = useReducedMotion();
 
-  // 🎨 Estados interactivos
-  const [pestanaEsencia, setPestanaEsencia] = useState('mision');
-  const [eventoSeleccionado, setEventoSeleccionado] = useState('bodas'); 
+  /* Contador del sobre demo. Se calcula en el navegador para no pelearse con el render del servidor. */
+  useEffect(() => {
+    const objetivo = new Date();
+    objetivo.setDate(objetivo.getDate() + 128);
 
-  const handleOpenExperience = () => {
-    setShowIntro(false);
-    setIsPlaying(true);
+    const tick = () => {
+      const diff = objetivo - new Date();
+      setRestante({
+        d: Math.floor(diff / 86400000),
+        h: Math.floor((diff / 3600000) % 24),
+        m: Math.floor((diff / 60000) % 60),
+        s: Math.floor((diff / 1000) % 60),
+      });
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const abrirSobre = () => {
+    setAbierto(true);
     if (audioRef.current) {
-      audioRef.current.play().catch(err => console.log("Audio play blocked:", err));
+      audioRef.current.volume = 0.5;
+      audioRef.current.play().then(() => setSonando(true)).catch(() => {});
     }
   };
 
-  const togglePlay = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.2 } }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
-  };
-
-  const planes = [
-    {
-      name: "💍 Digital Esencial",
-      priceBefore: "$1,599", 
-      price: "$1,199",       
-      desc: "El gancho perfecto. Una invitación impecable, automatizada y lista para compartir al instante.",
-      features: [
-        "URL personalizada (tugrandia.icu/tu-evento)",
-        "Cuenta regresiva animada",
-        "Itinerario del evento con mapas GPS",
-        "Imagen de Portada / Temática elegida",
-        "Galería de fotos (Máximo 3 recuerdos)",
-        "RSVP estándar por buscador básico"
-      ],
-      popular: false,
-      button: "Comenzar Esencial"
-    },
-    {
-      name: "🌟 Gran Día Premium",
-      priceBefore: "$1,999", 
-      price: "$1,599",       
-      desc: "El Rey de las Ventas. El control absoluto de tu evento e invitados en tiempo real.",
-      features: [
-        "Todo lo incluido en el Plan Esencial",
-        "Galería extendida (Hasta 6 fotografías)",
-        "Mesa de Regalos activa o Clabe Efectivo",
-        "Música de fondo premium (Temas curados)",
-        "Filtro inteligente anti-colados",
-        "Control de pases exactos por familia",
-        "📊 Panel de confirmaciones en vivo en tu Dashboard"
-      ],
-      popular: true,
-      button: "Elegir Premium"
-    },
-    {
-      name: "👑 VIP Celestial Boutique",
-      priceBefore: "$4,599", 
-      price: "$3,899",       
-      desc: "Experiencia de lujo sin preocupaciones. Nosotros nos encargamos de maquetar tu visión.",
-      features: [
-        "Todo lo incluido en el Plan Premium",
-        "Asesoría 1 a 1 para recabado de información",
-        "Maquetación y diseño boutique por nuestro equipo",
-        "Galería extendida premium (6 a 12 fotografías)",
-        "Música 100% personalizada (Tu canción especial)",
-        "Secciones personalizadas a petición del cliente",
-        "Soporte prioritario VIP para cambios de último minuto"
-      ],
-      popular: false,
-      button: "Contratar Servicio VIP"
-    }
-  ];
-
-  const contenidoEsencia = {
-    mision: {
-      titulo: "Nuestra Misión",
-      parrafo: "Diseñar invitaciones únicas y personalizadas para todo tipo de eventos sociales. Nos comprometemos a brindar a nuestros clientes una experiencia profesional creando diseños que reflejen la esencia de cada celebración."
-    },
-    vision: {
-      titulo: "Nuestra Visión",
-      parrafo: "Ser la empresa líder y reconocida en el mercado de las invitaciones digitales multi-evento. Buscamos convertirnos en la primera opción de nuestros clientes dando siempre un excelente servicio."
-    },
-    valores: {
-      titulo: "Nuestros Valores",
-      lista: [
-        { t: "Creatividad", d: "Diseños de invitaciones originales que reflejen la personalidad y esencia de cada evento." },
-        { t: "Compromiso", d: "Trabajamos con dedicación y responsabilidad para cumplir y superar las expectativas de nuestros clientes." },
-        { t: "Pasión", d: "Amamos formar parte de cada momento especial y dejamos un toque de corazón en cada proyecto." }
-      ]
-    }
-  };
-
-  const nichosMercado = {
-    bodas: {
-      title: "💍 Bodas & Enlace Civil",
-      desc: "La antesala de tu gran día. Diseños sofisticados, control de pases riguroso por familia, itinerarios de iglesia/salón y mesa de regalos integrada para iniciar su nueva vida.",
-      img: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800"
-    },
-    xvaños: {
-      title: "👑 XV Años Fest",
-      desc: "Modernidad y estilo para tu fiesta. Formatos dinámicos con galerías de fotos de la quinceañera, sección para el libro de firmas digital, código de vestimenta y contador regresivo.",
-      img: "https://images.unsplash.com/photo-1549417229-aa67d3263c09?q=80&w=800"
-    },
-    baby: {
-      title: "🍼 Baby Shower & Revelación",
-      desc: "¡La dulce espera! Colores pastel u orgánicos, dinámicas lúdicas informativas, mesa de regalos para los pañales o artículos de bebé y confirmación rápida de tus amigas por WhatsApp.",
-      img: "https://images.unsplash.com/photo-1519689680058-324335c77eba?q=80&w=800"
-    },
-    showers: {
-      title: "🎉 Despedidas & Bautizos",
-      desc: "Para los momentos que unen a la familia y amigos. Simplifica la logística de pases y ubicaciones compartiendo un link elegante y divertido en tus grupos de mensajería.",
-      img: "https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=800"
-    }
+  const alternarMusica = () => {
+    if (!audioRef.current) return;
+    if (sonando) audioRef.current.pause();
+    else audioRef.current.play().catch(() => {});
+    setSonando(!sonando);
   };
 
   return (
-    <div className="min-h-screen bg-[#faf9f6] font-sans text-stone-800 selection:bg-amber-100 overflow-x-hidden relative">
-      <audio ref={audioRef} src="/boda-music.mp3" loop />
+    <div style={{ backgroundColor: PAPEL, color: TINTA }} className="min-h-screen font-ui antialiased overflow-x-hidden">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap');
+        .font-display { font-family: 'Cormorant Garamond', Georgia, serif; }
+        .font-ui { font-family: 'Jost', system-ui, sans-serif; }
+        .etiqueta { font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; font-weight: 600; }
+        .regla-oro { height: 1px; background: linear-gradient(90deg, transparent, ${ORO}, transparent); }
+        a:focus-visible, button:focus-visible { outline: 2px solid ${SELLO}; outline-offset: 3px; border-radius: 4px; }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+      `}} />
 
-      {/* PANTALLA SOBRE PRE-EXPERIENCIA */}
-      <AnimatePresence>
-        {showIntro && (
-          <motion.div 
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 1.05 }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
-            className="fixed inset-0 z-50 bg-stone-900 flex flex-col items-center justify-center p-6 select-none"
-          >
-            <div className="absolute inset-0 opacity-20 bg-cover bg-center mix-blend-overlay"
-                 style={{ backgroundImage: `url('https://images.unsplash.com/photo-1607190074257-dd4b7af0309f')` }} />
-            
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, ease: "easeOut" }}
-              className="relative max-w-sm w-full bg-[#fcfbfa] p-10 rounded-2xl shadow-2xl border border-stone-200/50 text-center space-y-8 flex flex-col items-center"
-            >
-              <div className="absolute inset-4 border border-stone-200/40 rounded-xl pointer-events-none" />
-              <div className="space-y-2">
-                <span className="font-serif text-amber-800 font-medium italic block text-base">Estás invitado a descubrir</span>
-                <h2 className="font-serif text-3xl tracking-widest text-stone-900 font-light uppercase">ClickyPapel</h2>
-              </div>
+      <audio ref={audioRef} src="/boda-music.mp3" loop preload="none" />
 
-              <motion.button
-                onClick={handleOpenExperience}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="relative w-20 h-20 bg-amber-700 rounded-full flex items-center justify-center shadow-lg text-white font-serif text-2xl transition-colors hover:bg-amber-800 cursor-pointer group"
+      {/* ---------------------------------------------------- NAV */}
+      <nav className="sticky top-0 z-50 backdrop-blur-md border-b" style={{ backgroundColor: 'rgba(251,249,245,.88)', borderColor: LINO }}>
+        <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
+          <Link href="/" className="font-display text-2xl tracking-wide" style={{ color: TINTA }}>
+            clicky<span style={{ color: SELLO }}>papel</span>
+          </Link>
+
+          <div className="hidden md:flex items-center gap-9 etiqueta" style={{ color: '#6B6577' }}>
+            <a href="#celebraciones" className="hover:opacity-60 transition-opacity">Celebraciones</a>
+            <a href="#como" className="hover:opacity-60 transition-opacity">Cómo funciona</a>
+            <a href="#precios" className="hover:opacity-60 transition-opacity">Precios</a>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Link href="/login" className="etiqueta hover:opacity-60 transition-opacity hidden sm:block" style={{ color: '#6B6577' }}>
+              Entrar
+            </Link>
+            <Link href="/crear" className="etiqueta text-white px-5 py-2.5 rounded-full transition-transform hover:scale-[1.03]" style={{ backgroundColor: TINTA }}>
+              Crear gratis
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* ---------------------------------------------------- HERO */}
+      <header style={{ backgroundColor: TINTA }} className="relative overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.06] pointer-events-none"
+          style={{ backgroundImage: `radial-gradient(${ORO} 1px, transparent 1px)`, backgroundSize: '28px 28px' }}
+        />
+
+        <div className="relative max-w-6xl mx-auto px-5 pt-16 pb-20 md:pt-24 md:pb-28 grid md:grid-cols-[1fr_auto] gap-14 md:gap-16 items-center">
+
+          <div className="space-y-7 text-center md:text-left">
+            <span className="etiqueta inline-block px-4 py-2 rounded-full border" style={{ color: ORO, borderColor: 'rgba(176,141,63,.35)' }}>
+              Gratis hasta que la publiques
+            </span>
+
+            <h1 className="font-display font-light leading-[0.95] text-[3.25rem] sm:text-6xl md:text-7xl" style={{ color: PAPEL }}>
+              Se abre,<br />suena<br />
+              <span className="italic" style={{ color: ORO }}>y confirma sola.</span>
+            </h1>
+
+            <p className="text-base md:text-lg font-light leading-relaxed max-w-md mx-auto md:mx-0" style={{ color: '#B5AFC0' }}>
+              Tus invitados tocan el sello, escuchan su canción y apartan su lugar.
+              Tú ves quién viene sin perseguir a nadie por WhatsApp.
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center gap-3 pt-1 justify-center md:justify-start">
+              <Link
+                href="/crear"
+                className="w-full sm:w-auto text-center etiqueta text-white px-9 py-4 rounded-full transition-transform hover:scale-[1.03]"
+                style={{ backgroundColor: SELLO }}
               >
-                <span className="absolute inset-0 rounded-full bg-amber-700/30 animate-ping group-hover:animate-none" />
-                ✨
-              </motion.button>
-              <p className="text-stone-400 font-light text-xs tracking-wider uppercase">Haz click en el sello para abrir la experiencia</p>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* NAVBAR */}
-      <motion.nav initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5 }} className="fixed top-0 w-full bg-[#faf9f6]/80 backdrop-blur-md border-b border-stone-200/30 z-40 px-6 py-4">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <Link href="/" className="font-serif text-2xl tracking-wide text-stone-900 font-light">
-            clicky<span className="font-normal text-amber-700">papel</span>
-          </Link>
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-stone-600">
-            <a href="#concept" className="hover:text-stone-900 transition-colors">El Concepto</a>
-            <a href="#mercado" className="hover:text-stone-900 transition-colors">Celebraciones</a>
-            <a href="#esencia" className="hover:text-stone-900 transition-colors">Saber Más</a>
-            <a href="#pricing" className="hover:text-stone-900 transition-colors">Precios</a>
+                Crear la mía gratis
+              </Link>
+              <span className="text-xs font-light" style={{ color: '#7A7488' }}>
+                Sin tarjeta · Lista hoy
+              </span>
+            </div>
           </div>
-          <Link href="/login" className="bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold px-5 py-2.5 rounded-full transition-all uppercase tracking-wider shadow-xs hover:scale-105 transform duration-200">
-            Portal de Novios →
-          </Link>
-        </div>
-      </motion.nav>
 
-      {/* HERO SECTION CINEMATOGRÁFICO MULTI-EVENTO */}
-      <header className="relative h-screen w-full flex items-center justify-center text-center px-6 overflow-hidden z-10">
-        <div className="absolute inset-0 z-0">
-          <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url('https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?q=80&w=1920')` }} />
-          <div className="absolute inset-0 bg-gradient-to-b from-stone-950/50 via-stone-900/40 to-[#faf9f6]" />
-        </div>
+          {/* ---- FIRMA: el sobre que se abre ---- */}
+          <div className="flex flex-col items-center gap-5">
+            <div className="relative w-[280px] sm:w-[320px] h-[380px] sm:h-[420px]">
 
-        <motion.div className="absolute bottom-10 right-6 md:right-12 z-30 flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2.5 rounded-full shadow-lg">
-          <div className="flex gap-[3px] items-end h-3 w-4">
-            {[1, 2, 3, 4].map((bar) => (
-              <motion.span key={bar} animate={isPlaying ? { height: ["20%", "100%", "20%"] } : { height: "30%" }} transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut", delay: bar * 0.15 }} className="w-[2px] bg-amber-400 block rounded-full" />
-            ))}
+              <AnimatePresence>
+                {!abierto && (
+                  <motion.button
+                    type="button"
+                    onClick={abrirSobre}
+                    exit={{ opacity: 0, scale: 0.94 }}
+                    transition={{ duration: 0.5 }}
+                    aria-label="Abrir el sobre de ejemplo"
+                    className="absolute inset-0 rounded-sm cursor-pointer group"
+                    style={{ backgroundColor: LINO, boxShadow: '0 30px 60px -20px rgba(0,0,0,.55)' }}
+                  >
+                    <div
+                      className="absolute top-0 left-0 right-0 origin-top"
+                      style={{
+                        height: '52%',
+                        backgroundColor: '#E3DCCE',
+                        clipPath: 'polygon(0 0, 100% 0, 50% 100%)',
+                      }}
+                    />
+                    <div className="absolute inset-3 border pointer-events-none" style={{ borderColor: 'rgba(176,141,63,.3)' }} />
+
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-5">
+                      <div
+                        className="w-20 h-20 rounded-full flex items-center justify-center transition-transform duration-500 group-hover:scale-105"
+                        style={{ backgroundColor: SELLO, boxShadow: '0 8px 20px -6px rgba(168,50,74,.7)' }}
+                      >
+                        <span className="font-display text-2xl" style={{ color: '#F3D9A0' }}>C</span>
+                      </div>
+                      {!sinMovimiento && (
+                        <motion.span
+                          animate={{ opacity: [0.45, 1, 0.45] }}
+                          transition={{ duration: 2.4, repeat: Infinity }}
+                          className="etiqueta"
+                          style={{ color: '#8A8070' }}
+                        >
+                          Toca el sello
+                        </motion.span>
+                      )}
+                    </div>
+                  </motion.button>
+                )}
+              </AnimatePresence>
+
+              {abierto && (
+                <motion.div
+                  initial={{ opacity: 0, y: 26 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                  className="absolute inset-0 flex flex-col items-center justify-center text-center px-7 rounded-sm"
+                  style={{ backgroundColor: PAPEL, boxShadow: '0 30px 60px -20px rgba(0,0,0,.55)' }}
+                >
+                  <div className="absolute inset-3 border pointer-events-none" style={{ borderColor: 'rgba(176,141,63,.35)' }} />
+
+                  <span className="etiqueta" style={{ color: ORO }}>Nos casamos</span>
+                  <p className="font-display text-5xl font-light leading-tight mt-4" style={{ color: TINTA }}>
+                    Brisa<br /><span className="italic text-3xl" style={{ color: SELLO }}>y</span><br />Bruno
+                  </p>
+
+                  <div className="regla-oro w-20 my-6" />
+
+                  {restante && (
+                    <div className="flex gap-4">
+                      {[['d', restante.d], ['h', restante.h], ['m', restante.m], ['s', restante.s]].map(([k, v]) => (
+                        <div key={k} className="flex flex-col items-center">
+                          <span className="font-display text-2xl" style={{ color: TINTA }}>
+                            {String(v).padStart(2, '0')}
+                          </span>
+                          <span className="etiqueta" style={{ color: '#9A93A5', fontSize: 9 }}>{k}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <p className="text-[11px] font-light mt-7" style={{ color: '#9A93A5' }}>
+                    Así se ve una invitación de verdad
+                  </p>
+                </motion.div>
+              )}
+            </div>
+
+            {abierto && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="flex items-center gap-4">
+                <button
+                  type="button"
+                  onClick={alternarMusica}
+                  className="etiqueta flex items-center gap-2 hover:opacity-70 transition-opacity"
+                  style={{ color: ORO }}
+                >
+                  <span className="flex gap-[2px] items-end h-3 w-4" aria-hidden="true">
+                    {[0, 1, 2, 3].map((b) => (
+                      <motion.span
+                        key={b}
+                        animate={sonando && !sinMovimiento ? { height: ['25%', '100%', '25%'] } : { height: '30%' }}
+                        transition={{ duration: 0.7, repeat: Infinity, delay: b * 0.14 }}
+                        className="w-[2px] block rounded-full"
+                        style={{ backgroundColor: ORO }}
+                      />
+                    ))}
+                  </span>
+                  {sonando ? 'Pausar música' : 'Reanudar música'}
+                </button>
+
+                <Link href="/bruno-y-brisa" className="etiqueta hover:opacity-70 transition-opacity" style={{ color: '#7A7488' }}>
+                  Ver completa →
+                </Link>
+              </motion.div>
+            )}
           </div>
-          <button onClick={togglePlay} className="text-white text-xs font-medium tracking-wider uppercase hover:text-amber-300 transition-colors cursor-pointer">
-            {isPlaying ? "Pausar música" : "Activar música"}
-          </button>
-        </motion.div>
-
-        <motion.div initial="hidden" animate={!showIntro ? "visible" : "hidden"} variants={containerVariants} className="max-w-4xl mx-auto space-y-6 relative z-20 text-white">
-          <motion.span variants={itemVariants} className="text-xs uppercase tracking-widest text-amber-200 font-semibold bg-white/10 backdrop-blur-xs px-4 py-1.5 rounded-full border border-white/20 inline-block shadow-xs">
-            Invitaciones Inteligentes para tus Momentos Inolvidables
-          </motion.span>
-          <motion.h1 variants={itemVariants} className="text-4xl md:text-7xl font-serif font-light leading-tight md:leading-none tracking-tight text-white">
-            Toda gran celebración <br className="hidden md:block"/>
-            <span className="italic font-normal text-amber-200 block mt-2">comienza con un click.</span>
-          </motion.h1>
-          <motion.p variants={itemVariants} className="text-stone-200 font-light text-base md:text-xl max-w-xl mx-auto leading-relaxed opacity-90">
-            Invitaciones digitales interactivas premium para Bodas, XV Años, Civiles, Baby Showers y aniversarios. Sencillo para tus invitados, perfecto para ti.
-          </motion.p>
-          <motion.div variants={itemVariants} className="pt-6 flex flex-col sm:flex-row justify-center items-center gap-4">
-            <motion.a whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} href="#mercado" className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white font-medium text-sm px-8 py-3.5 rounded-xl transition-all shadow-md text-center">Ver Tipos de Eventos</motion.a>
-            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} className="w-full sm:w-auto">
-              <Link href="/bruno-y-brisa" target="_blank" className="block w-full bg-white/10 backdrop-blur-md hover:bg-white/20 text-white font-medium text-sm px-8 py-3.5 rounded-xl border border-white/30 transition-all text-center shadow-xs">✨ Probar Demo Interactiva</Link>
-            </motion.div>
-          </motion.div>
-        </motion.div>
+        </div>
       </header>
 
-      {/* SECCIÓN EL CONCEPTO */}
-      <section id="concept" className="py-24 px-6 bg-white border-t border-stone-100 relative z-10">
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-          <motion.div initial={{ opacity: 0, x: -40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="space-y-6">
-            <span className="font-serif text-amber-700 font-medium italic block text-lg">Especialistas en Eventos Sociales</span>
-            <h2 className="text-3xl md:text-4xl font-serif font-light text-stone-900 leading-snug">Invitaciones digitales que conectan emociones.</h2>
-            <p className="text-stone-500 font-light text-sm md:text-base leading-relaxed">Nuestro objetivo es ayudarte a compartir momentos especiales de una manera única y moderna. Más que una lista de datos, creamos una experiencia digital interactiva que prepara a tus seres queridos para festejar contigo.</p>
-            <div className="space-y-4 pt-2">
-              {[
-                { icon: "🖱️", title: "El Click Inteligente", desc: "Tus seres queridos buscan su nombre, conocen los pases asignados y confirman asistencia en tiempo real. Con mapas GPS directos y mesas virtuales." },
-                { icon: "✉️", title: "La Esencia Fina", desc: "Estilos visuales cuidados con tipografía editorial y música esmerilada que se adaptan estéticamente a la atmósfera de tu celebración." }
-              ].map((item, index) => (
-                <div key={index} className="flex gap-4 p-4 rounded-xl hover:bg-stone-50 transition-colors border border-transparent">
-                  <span className="flex-none w-10 h-10 bg-amber-50 text-amber-700 rounded-lg flex items-center justify-center font-medium shadow-xs">{item.icon}</span>
-                  <div>
-                    <h4 className="font-medium text-stone-800 text-sm md:text-base">{item.title}</h4>
-                    <p className="text-stone-400 font-light text-xs md:text-sm mt-0.5">{item.desc}</p>
-                  </div>
+      {/* ---------------------------------------------------- DIFERENCIA */}
+      <section className="max-w-6xl mx-auto px-5 py-20 md:py-28">
+        <div className="max-w-xl space-y-3 mb-14">
+          <span className="etiqueta" style={{ color: SELLO }}>La diferencia</span>
+          <h2 className="font-display text-4xl md:text-5xl font-light leading-tight">
+            Un PDF se ve bonito.<br />Esto además trabaja.
+          </h2>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-10 md:gap-8">
+          {[
+            { et: 'El sobre', t: 'Se abre frente a ellos', d: 'La animación y la música arrancan cuando tocan el sello. Nadie recuerda un archivo adjunto; esto sí lo enseñan.' },
+            { et: 'La lista', t: 'Cada quien busca su nombre', d: 'Ven cuántos lugares les tocan y confirman ahí mismo. Se acabó el "oye, ¿al final sí vienen?".' },
+            { et: 'El día', t: 'Llegan sin llamarte', d: 'Mapa directo, horarios, código de vestimenta y mesa de regalos. Todo en el mismo link.' },
+          ].map((f) => (
+            <div key={f.et} className="space-y-3">
+              <div className="regla-oro w-full" />
+              <span className="etiqueta block pt-1" style={{ color: ORO }}>{f.et}</span>
+              <h3 className="font-display text-2xl font-light">{f.t}</h3>
+              <p className="text-sm font-light leading-relaxed" style={{ color: '#5F5A6B' }}>{f.d}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ---------------------------------------------------- CELEBRACIONES */}
+      <section id="celebraciones" className="py-20 md:py-28" style={{ backgroundColor: LINO }}>
+        <div className="max-w-6xl mx-auto px-5">
+          <div className="max-w-xl space-y-3 mb-12">
+            <span className="etiqueta" style={{ color: SELLO }}>Celebraciones</span>
+            <h2 className="font-display text-4xl md:text-5xl font-light leading-tight">
+              Cada fiesta pide lo suyo.
+            </h2>
+          </div>
+
+          <div className="divide-y" style={{ borderColor: 'rgba(28,26,36,.12)' }}>
+            {CELEBRACIONES.map((c) => (
+              <Link
+                key={c.id}
+                href={`/crear?evento=${c.id}`}
+                className="group flex items-center justify-between gap-6 py-6 transition-opacity hover:opacity-60"
+                style={{ borderColor: 'rgba(28,26,36,.12)' }}
+              >
+                <div className="min-w-0">
+                  <h3 className="font-display text-3xl md:text-4xl font-light">{c.nombre}</h3>
+                  <p className="text-sm font-light mt-1" style={{ color: '#5F5A6B' }}>{c.linea}</p>
                 </div>
-              ))}
-            </div>
-          </motion.div>
-          <div className="relative h-[400px] md:h-[500px] bg-stone-100 rounded-3xl overflow-hidden shadow-xl border border-stone-200/40">
-            <img src="https://images.unsplash.com/photo-1607190074257-dd4b7af0309f" alt="Papelería fina" className="w-full h-full object-cover opacity-90" />
+                <span className="font-display text-3xl shrink-0 transition-transform group-hover:translate-x-1" style={{ color: SELLO }}>→</span>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* SECCIÓN DE EXPANSIÓN DE MERCADO: SELECTOR DE CELEBRACIONES */}
-      <section id="mercado" className="py-24 px-6 bg-stone-50 border-t border-stone-200/30 relative z-10">
-        <div className="max-w-5xl mx-auto space-y-12">
-          <div className="text-center space-y-2">
-            <span className="font-serif text-amber-700 font-medium italic block text-lg">Un Click para cada Etapa</span>
-            <h2 className="text-3xl font-serif font-light text-stone-900 tracking-tight">Cubrimos todas las celebraciones de tu vida</h2>
-            <p className="text-stone-500 font-light text-xs md:text-sm max-w-sm mx-auto">Selecciona tu tipo de evento y descubre cómo ClickyPapel lo transforma por completo.</p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
-            {Object.keys(nichosMercado).map((key) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setEventoSeleccionado(key)}
-                className={`py-3.5 px-4 rounded-xl text-xs uppercase tracking-wider font-bold transition-all border cursor-pointer ${
-                  eventoSeleccionado === key
-                    ? 'bg-stone-900 text-white border-stone-900 shadow-md'
-                    : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
-                }`}
-              >
-                {key === 'bodas' ? '💍 Bodas / Civil' : key === 'xvaños' ? '👑 XV Años' : key === 'baby' ? '🍼 Baby Shower' : '🎉 Showers / Bautizos'}
-              </button>
-            ))}
-          </div>
-
-          <div className="bg-white rounded-3xl border border-stone-200/60 shadow-xl overflow-hidden min-h-[320px] flex flex-col md:flex-row items-stretch">
-            <div className="p-8 md:p-12 flex-1 flex flex-col justify-center space-y-4 text-left">
-              <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-3 py-1 rounded-full uppercase tracking-wider font-mono self-start">Plataforma Lista</span>
-              <h3 className="font-serif text-2xl text-stone-950 font-medium">{nichosMercado[eventoSeleccionado].title}</h3>
-              <p className="text-stone-500 font-light text-sm md:text-base leading-relaxed">{nichosMercado[eventoSeleccionado].desc}</p>
-              <div className="pt-2">
-                <a href="#pricing" className="text-xs text-amber-700 font-bold tracking-wider uppercase hover:text-amber-800 transition-colors">Ver paquetes disponibles ➔</a>
-              </div>
-            </div>
-            <div className="w-full md:w-[380px] h-[240px] md:h-auto relative bg-stone-100 flex-none">
-              <AnimatePresence mode="wait">
-                <motion.img 
-                  key={eventoSeleccionado}
-                  initial={{ opacity: 0, scale: 1.02 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.4 }}
-                  src={nichosMercado[eventoSeleccionado].img} 
-                  alt={nichosMercado[eventoSeleccionado].title}
-                  className="w-full h-full object-cover"
-                />
-              </AnimatePresence>
-            </div>
-          </div>
+      {/* ---------------------------------------------------- CÓMO FUNCIONA */}
+      <section id="como" className="max-w-6xl mx-auto px-5 py-20 md:py-28">
+        <div className="max-w-xl space-y-3 mb-14">
+          <span className="etiqueta" style={{ color: SELLO }}>Cómo funciona</span>
+          <h2 className="font-display text-4xl md:text-5xl font-light leading-tight">
+            Tres pantallas y ya la estás viendo.
+          </h2>
         </div>
+
+        <ol className="grid md:grid-cols-3 gap-10 md:gap-8">
+          {PASOS.map((p) => (
+            <li key={p.n} className="space-y-3">
+              <span className="font-display text-5xl font-light" style={{ color: 'rgba(28,26,36,.18)' }}>{p.n}</span>
+              <h3 className="font-display text-2xl font-light">{p.t}</h3>
+              <p className="text-sm font-light leading-relaxed" style={{ color: '#5F5A6B' }}>{p.d}</p>
+            </li>
+          ))}
+        </ol>
       </section>
 
-      {/* SECCIÓN SOBRE NOSOTROS */}
-      <section id="esencia" className="py-24 px-6 bg-white border-t border-stone-100/80 relative z-10">
-        <div className="max-w-4xl mx-auto text-center space-y-12">
-          <div className="space-y-2">
-            <span className="font-serif text-amber-700 font-medium italic block text-lg">Sobre Nosotros</span>
-            <h2 className="text-3xl font-serif font-light text-stone-900 tracking-tight">Conoce el corazón detrás de ClickyPapel</h2>
-          </div>
-
-          <div className="flex justify-center border-b border-stone-200 max-w-sm mx-auto">
-            {Object.keys(contenidoEsencia).map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setPestanaEsencia(tab)}
-                className={`flex-1 pb-3 text-xs uppercase tracking-wider font-bold transition-all cursor-pointer ${
-                  pestanaEsencia === tab ? 'text-amber-700 border-b-2 border-amber-600 font-extrabold' : 'text-stone-400 hover:text-stone-600'
-                }`}
-              >
-                {tab === 'mision' ? 'Misión' : tab === 'vision' ? 'Visión' : 'Valores'}
-              </button>
-            ))}
-          </div>
-
-          <div className="min-h-[160px] flex items-center justify-center px-4">
-            <AnimatePresence mode="wait">
-              <motion.div key={pestanaEsencia} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }} className="max-w-2xl mx-auto">
-                {pestanaEsencia === 'valores' ? (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
-                    {contenidoEsencia.valores.lista.map((v, i) => (
-                      <div key={i} className="p-5 bg-stone-50 rounded-2xl border border-stone-200/40 space-y-1">
-                        <h4 className="font-serif text-base font-medium text-amber-900">{v.t}</h4>
-                        <p className="text-xs text-stone-500 font-light leading-relaxed">{v.d}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <h3 className="font-serif text-xl font-light text-stone-900 italic">{contenidoEsencia[pestanaEsencia].titulo}</h3>
-                    <p className="text-sm md:text-base text-stone-500 font-light leading-relaxed max-w-xl mx-auto">{contenidoEsencia[pestanaEsencia].parrafo}</p>
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          <div className="pt-6 max-w-xl mx-auto">
-            <p className="font-serif text-base md:text-lg text-stone-900 italic font-medium opacity-95 text-center leading-relaxed">
-              “Click y Papel transformamos momentos especiales en recuerdos inolvidables comenzando con una invitación única”
+      {/* ---------------------------------------------------- PRECIOS */}
+      <section id="precios" className="py-20 md:py-28" style={{ backgroundColor: TINTA }}>
+        <div className="max-w-6xl mx-auto px-5">
+          <div className="max-w-xl space-y-3 mb-14">
+            <span className="etiqueta" style={{ color: ORO }}>Precios</span>
+            <h2 className="font-display text-4xl md:text-5xl font-light leading-tight" style={{ color: PAPEL }}>
+              Un solo pago. Sin mensualidades.
+            </h2>
+            <p className="text-sm font-light" style={{ color: '#8A8397' }}>
+              Armas tu invitación completa gratis. Pagas cuando decidas compartirla.
             </p>
           </div>
-        </div>
-      </section>
 
-      {/* SECCIÓN PLANES Y PRECIOS */}
-      <section id="pricing" className="py-24 px-6 bg-stone-50 border-t border-stone-200/40 relative z-10">
-        <div className="max-w-6xl mx-auto text-center">
-          <span className="font-serif text-amber-700 font-medium italic block text-lg mb-2">Nuestros Planes</span>
-          <h2 className="text-3xl md:text-4xl font-serif font-light text-stone-900 mb-4">Diseñado para cada estilo de celebración</h2>
-          <p className="text-stone-500 font-light text-sm md:text-base max-w-md mx-auto mb-16">Precios especiales por temporada. Contrata hoy y congela tu tarifa sin cargos ocultos.</p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-            {planes.map((plan, index) => (
-              <motion.div 
-                key={index} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: index * 0.1 }} whileHover={{ y: -8 }} 
-                className={`relative bg-white rounded-3xl p-8 border flex flex-col justify-between shadow-xs transition-all ${plan.popular ? 'border-amber-500 ring-2 ring-amber-500/20' : 'border-stone-200/60'}`}
-              >
-                {plan.popular && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-600 text-white text-[10px] uppercase font-semibold tracking-widest px-3 py-1 rounded-full shadow-xs">¡El Más Recomendado!</span>}
-                <div className="space-y-4 text-left">
-                  <h4 className="font-serif text-xl text-stone-900 font-light">{plan.name}</h4>
-                  <div className="space-y-0.5">
-                    <p className="text-xs text-stone-400 line-through font-mono tracking-wide">{plan.priceBefore} MXN</p>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-3xl md:text-4xl font-serif font-medium text-stone-800">{plan.price}</span>
-                      <span className="text-[10px] text-amber-700 font-mono font-bold uppercase tracking-wider bg-amber-50 px-1.5 py-0.5 rounded-md">¡Oferta Activa!</span>
+          <div className="grid md:grid-cols-3 gap-5">
+            {ORDEN_PLANES.map((id) => {
+              const p = PLANES[id];
+              const destacado = !!p.destacado;
+              return (
+                <div
+                  key={id}
+                  className="relative rounded-sm p-8 flex flex-col justify-between border"
+                  style={{
+                    backgroundColor: destacado ? PAPEL : 'rgba(255,255,255,.04)',
+                    borderColor: destacado ? SELLO : 'rgba(255,255,255,.12)',
+                    color: destacado ? TINTA : PAPEL,
+                  }}
+                >
+                  {destacado && (
+                    <span className="etiqueta absolute -top-3 left-8 px-3 py-1.5 rounded-full text-white" style={{ backgroundColor: SELLO }}>
+                      El más elegido
+                    </span>
+                  )}
+
+                  <div className="space-y-5">
+                    <h3 className="font-display text-2xl font-light">{p.nombre}</h3>
+
+                    <div>
+                      <span className="text-xs line-through" style={{ color: destacado ? '#9A93A5' : '#6F6980' }}>
+                        {formatearPesos(p.precioAntes)}
+                      </span>
+                      <div className="font-display text-5xl font-light leading-none mt-1">
+                        {formatearPesos(p.precio)}
+                        <span className="etiqueta ml-2" style={{ color: destacado ? '#9A93A5' : '#6F6980' }}>mxn</span>
+                      </div>
                     </div>
+
+                    <p className="text-sm font-light leading-relaxed" style={{ color: destacado ? '#5F5A6B' : '#A49DB2' }}>
+                      {p.resumen}
+                    </p>
+
+                    <div className="regla-oro w-full" />
+
+                    <ul className="space-y-2.5">
+                      {p.incluye.map((f) => (
+                        <li key={f} className="flex gap-2.5 text-sm font-light leading-snug">
+                          <span style={{ color: ORO }}>·</span>
+                          <span style={{ color: destacado ? '#3D3849' : '#BDB7C7' }}>{f}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <p className="text-stone-400 font-light text-xs leading-relaxed min-h-[36px]">{plan.desc}</p>
-                  <hr className="border-stone-100 my-2" />
-                  <ul className="space-y-3 pt-2">
-                    {plan.features.map((feat, fIndex) => (
-                      <li key={fIndex} className="flex items-start gap-2 text-xs md:text-sm text-stone-600 font-light">
-                        <span className="text-amber-600 text-xs">✓</span> 
-                        <span>{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="pt-8">
-                  <Link href={`/registro?plan=${plan.name.includes('Premium') ? 'premium' : plan.name.includes('Esencial') ? 'basicos' : 'vip'}`} className={`block w-full text-center font-medium text-xs py-3 rounded-xl transition-all uppercase tracking-wider ${plan.popular ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-sm' : 'bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200'}`}>
-                    {plan.button}
+
+                  <Link
+                    href={`/crear?plan=${id}`}
+                    className="etiqueta text-center mt-9 py-4 rounded-full transition-transform hover:scale-[1.02]"
+                    style={{
+                      backgroundColor: destacado ? SELLO : 'transparent',
+                      color: destacado ? '#fff' : PAPEL,
+                      border: destacado ? 'none' : '1px solid rgba(255,255,255,.28)',
+                    }}
+                  >
+                    Empezar gratis
                   </Link>
                 </div>
-              </motion.div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="bg-stone-900 py-12 text-center text-xs text-stone-500 font-light relative z-10">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="font-serif text-lg text-white font-light tracking-wide">clicky<span className="text-amber-500">papel</span></p>
-          <p>© 2026 clickypapel.com - Todos los derechos reservados.</p>
+      {/* ---------------------------------------------------- PREGUNTAS */}
+      <section className="max-w-3xl mx-auto px-5 py-20 md:py-28">
+        <div className="space-y-3 mb-12">
+          <span className="etiqueta" style={{ color: SELLO }}>Preguntas</span>
+          <h2 className="font-display text-4xl md:text-5xl font-light leading-tight">Lo que más nos preguntan.</h2>
+        </div>
+
+        <div className="divide-y" style={{ borderColor: 'rgba(28,26,36,.12)' }}>
+          {PREGUNTAS.map((p, i) => (
+            <div key={p.q} style={{ borderColor: 'rgba(28,26,36,.12)' }}>
+              <button
+                type="button"
+                onClick={() => setPreguntaAbierta(preguntaAbierta === i ? null : i)}
+                aria-expanded={preguntaAbierta === i}
+                className="w-full flex items-center justify-between gap-6 py-5 text-left cursor-pointer"
+              >
+                <span className="font-display text-xl md:text-2xl font-light">{p.q}</span>
+                <span
+                  className="text-2xl font-light shrink-0 transition-transform duration-300"
+                  style={{ color: SELLO, transform: preguntaAbierta === i ? 'rotate(45deg)' : 'none' }}
+                  aria-hidden="true"
+                >
+                  +
+                </span>
+              </button>
+              <AnimatePresence initial={false}>
+                {preguntaAbierta === i && (
+                  <motion.p
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.28 }}
+                    className="overflow-hidden text-sm font-light leading-relaxed pb-6 pr-10"
+                    style={{ color: '#5F5A6B' }}
+                  >
+                    {p.a}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ---------------------------------------------------- CIERRE */}
+      <section className="py-20 md:py-28 text-center px-5" style={{ backgroundColor: LINO }}>
+        <div className="max-w-xl mx-auto space-y-7">
+          <div className="regla-oro w-24 mx-auto" />
+          <h2 className="font-display text-4xl md:text-5xl font-light leading-tight">
+            Ábrela tú primero.<br />
+            <span className="italic" style={{ color: SELLO }}>Decides después.</span>
+          </h2>
+          <p className="text-sm font-light" style={{ color: '#5F5A6B' }}>
+            No pedimos tarjeta. Solo pagas si te enamora.
+          </p>
+          <Link
+            href="/crear"
+            className="inline-block etiqueta text-white px-10 py-4 rounded-full transition-transform hover:scale-[1.03]"
+            style={{ backgroundColor: TINTA }}
+          >
+            Crear mi invitación
+          </Link>
+        </div>
+      </section>
+
+      {/* ---------------------------------------------------- PIE */}
+      <footer style={{ backgroundColor: TINTA, color: '#8A8397' }} className="py-14">
+        <div className="max-w-6xl mx-auto px-5 grid sm:grid-cols-2 gap-10">
+          <div className="space-y-3">
+            <span className="font-display text-2xl" style={{ color: PAPEL }}>
+              clicky<span style={{ color: ORO }}>papel</span>
+            </span>
+            <p className="text-xs font-light max-w-xs">
+              Invitaciones digitales para las celebraciones que sí se recuerdan.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:items-end gap-3 etiqueta">
+            <Link href="/crear" className="hover:opacity-70 transition-opacity">Crear invitación</Link>
+            <Link href="/login" className="hover:opacity-70 transition-opacity">Entrar a mi panel</Link>
+            <Link href="/privacidad" className="hover:opacity-70 transition-opacity">Aviso de privacidad</Link>
+            <Link href="/terminos" className="hover:opacity-70 transition-opacity">Términos</Link>
+          </div>
+        </div>
+
+        <div className="max-w-6xl mx-auto px-5 mt-12 pt-6 border-t text-[11px] font-light" style={{ borderColor: 'rgba(255,255,255,.1)' }}>
+          © {new Date().getFullYear()} ClickyPapel · Hecho en México
         </div>
       </footer>
     </div>
