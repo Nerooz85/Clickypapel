@@ -5,10 +5,7 @@ import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } fr
 import { PLANES, ORDEN_PLANES, formatearPesos } from '@/lib/precios';
 
 /* ────────────────────────────────────────────────
-   PALETA CLICKYPAPEL
-   Base blanco luminoso (Cloud Dancer, Pantone 2026)
-   + CEREZA como color firma. Nadie lo usa en
-   invitaciones digitales en México: es el hueco.
+   PALETA — blanco luminoso + CEREZA como color firma
    ──────────────────────────────────────────────── */
 const NIEVE = '#FDFCFA';
 const CREMA = '#F6F1E9';
@@ -19,12 +16,12 @@ const ORO = '#C2A15C';
 const ROSA = '#EBC9C5';
 const GRIS = '#6B6169';
 
-/* ⚠️ PARA CAMBIAR LAS FOTOS: solo edita este bloque.
-   Recomendación: en cuanto tengas fotos de bodas reales
-   tuyas o de tus clientas, sustitúyelas aquí. Le van a
-   pegar mucho más fuerte que cualquier banco de imágenes. */
+/* ⚠️ PARA CAMBIAR LAS FOTOS: edita solo este bloque.
+   Cuando tengas fotos de bodas reales, sustitúyelas aquí. */
 const FOTO = {
-  hero: 'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1400',
+  hero: 'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1600',
+  portada: 'https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?q=80&w=1600',
+  frase: 'https://images.unsplash.com/photo-1542042161784-26ab9e041e89?q=80&w=1600',
   momentoUno: 'https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?q=80&w=1400',
   momentoDos: 'https://images.unsplash.com/photo-1542042161784-26ab9e041e89?q=80&w=1400',
   momentoTres: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=1400',
@@ -38,8 +35,14 @@ const FOTO = {
   despedida: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=900',
 };
 
+const FRASES_FIJAS = [
+  { alta: 'Un año planeando.', baja: 'Un link para contarlo.' },
+  { alta: 'Nadie olvida', baja: 'cómo se enteró.' },
+  { alta: 'Que la espera', baja: 'también sea bonita.' },
+];
+
 const MOMENTOS = [
-  { img: FOTO.momentoUno, frase: 'La primera vez que lo ves', linea: 'Antes de eso, hay meses de espera. Que también sean bonitos.' },
+  { img: FOTO.momentoUno, frase: 'La primera vez que lo ves', linea: 'Antes de eso hay meses de espera. Que también sean bonitos.' },
   { img: FOTO.momentoDos, frase: 'Cuando por fin dicen sí', linea: 'Ese día ya lo tienes resuelto. Lo de antes, nosotros.' },
   { img: FOTO.momentoTres, frase: 'La canción que era de ustedes', linea: 'Suena desde el primer segundo que abren su invitación.' },
 ];
@@ -75,58 +78,90 @@ const PREGUNTAS = [
   { q: '¿Puedo poner mi canción?', a: 'Tenemos melodías listas incluidas, y en los planes superiores puedes subir la canción que ustedes elijan.' },
 ];
 
+/* ═══════ Aparece al entrar en pantalla ═══════ */
 function Reveal({ children, delay = 0, y = 34, className = '' }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y }} whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-70px' }}
       transition={{ duration: 0.9, delay, ease: [0.22, 1, 0.36, 1] }}
       className={className}
-    >
-      {children}
+    >{children}</motion.div>
+  );
+}
+
+/* ═══════ Foto que se mueve más lento que la página ═══════ */
+function FotoParallax({ src, alt, className = '', fuerza = 90 }) {
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
+  const y = useTransform(scrollYProgress, [0, 1], [-fuerza, fuerza]);
+  return (
+    <div ref={ref} className={`relative overflow-hidden ${className}`}>
+      <motion.img src={src} alt={alt} style={{ y, scale: 1.22 }} className="absolute inset-0 w-full h-full object-cover" />
+    </div>
+  );
+}
+
+/* ═══════ Una frase de la sección fijada ═══════ */
+function CapaFrase({ progreso, indice, total, frase }) {
+  const paso = 1 / total;
+  const inicio = indice * paso;
+  const opacity = useTransform(progreso,
+    [inicio - 0.06, inicio + 0.05, inicio + paso - 0.05, inicio + paso + 0.06], [0, 1, 1, 0]);
+  const y = useTransform(progreso, [inicio - 0.06, inicio + paso + 0.06], [50, -50]);
+  return (
+    <motion.div style={{ opacity, y }} className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
+      <span className="font-display font-light text-white leading-[1.05] text-4xl sm:text-6xl md:text-7xl">{frase.alta}</span>
+      <span className="font-script leading-tight mt-3 text-5xl sm:text-6xl md:text-7xl" style={{ color: ROSA }}>{frase.baja}</span>
     </motion.div>
   );
 }
 
-function Titular({ texto, className = '', style, delay = 0 }) {
+/* ═══════ Sección de frases fijada al scroll ═══════ */
+function FrasesFijas() {
+  const ref = useRef(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] });
+  const escala = useTransform(scrollYProgress, [0, 1], [1.18, 1.32]);
   return (
-    <span className={className} style={style}>
-      {texto.split(' ').map((palabra, i) => (
-        <span key={i} className="inline-block overflow-hidden align-bottom">
-          <motion.span
-            className="inline-block"
-            initial={{ y: '110%' }}
-            animate={{ y: 0 }}
-            transition={{ duration: 1, delay: delay + i * 0.08, ease: [0.22, 1, 0.36, 1] }}
-          >
-            {palabra}&nbsp;
-          </motion.span>
-        </span>
-      ))}
-    </span>
+    <section ref={ref} className="relative" style={{ height: '280vh' }}>
+      <div className="sticky top-0 h-screen overflow-hidden flex items-center justify-center">
+        <motion.img src={FOTO.frase} alt="" aria-hidden="true" style={{ scale: escala }} className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(26,20,24,.55), rgba(143,18,41,.7))' }} />
+        {FRASES_FIJAS.map((f, i) => (
+          <CapaFrase key={f.alta} progreso={scrollYProgress} indice={i} total={FRASES_FIJAS.length} frase={f} />
+        ))}
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 oro-linea w-24" />
+      </div>
+    </section>
   );
 }
 
 export default function Home() {
-  const [velo, setVelo] = useState(true);
+  const [portada, setPortada] = useState(true);
+  const [abriendoPortada, setAbriendoPortada] = useState(false);
   const [fase, setFase] = useState('cerrado');
   const [sonando, setSonando] = useState(false);
   const [restante, setRestante] = useState(null);
   const [faq, setFaq] = useState(null);
+
   const audioRef = useRef(null);
   const heroRef = useRef(null);
+  const fadeRef = useRef(null);
   const sinMovimiento = useReducedMotion();
+  const VOLUMEN = 0.42;
 
   const { scrollYProgress } = useScroll();
   const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
-  const heroY = useTransform(heroProgress, [0, 1], [0, 90]);
-  const fotoY = useTransform(heroProgress, [0, 1], [0, -60]);
+  const heroY = useTransform(heroProgress, [0, 1], [0, 110]);
+  const heroOpacidad = useTransform(heroProgress, [0, 0.75], [1, 0]);
+  const fotoHeroY = useTransform(heroProgress, [0, 1], [0, -70]);
 
+  /* Si ya entró en esta sesión, no repetimos la portada. */
   useEffect(() => {
-    const t = setTimeout(() => setVelo(false), sinMovimiento ? 100 : 1700);
-    return () => clearTimeout(t);
-  }, [sinMovimiento]);
+    try {
+      if (sessionStorage.getItem('cp_entro') === '1') setPortada(false);
+    } catch (_) {}
+  }, []);
 
   useEffect(() => {
     const objetivo = new Date();
@@ -134,10 +169,8 @@ export default function Home() {
     const tick = () => {
       const d = objetivo - new Date();
       setRestante({
-        d: Math.floor(d / 86400000),
-        h: Math.floor((d / 3600000) % 24),
-        m: Math.floor((d / 60000) % 60),
-        s: Math.floor((d / 1000) % 60),
+        d: Math.floor(d / 86400000), h: Math.floor((d / 3600000) % 24),
+        m: Math.floor((d / 60000) % 60), s: Math.floor((d / 1000) % 60),
       });
     };
     tick();
@@ -145,21 +178,46 @@ export default function Home() {
     return () => clearInterval(id);
   }, []);
 
+  useEffect(() => () => clearInterval(fadeRef.current), []);
+
+  /* La música no arranca: aparece. Sube de 0 al volumen final en ~1.5s. */
+  const encenderMusica = () => {
+    const a = audioRef.current;
+    if (!a) return;
+    a.muted = false;
+    a.volume = 0;
+    a.play().then(() => {
+      setSonando(true);
+      clearInterval(fadeRef.current);
+      let v = 0;
+      fadeRef.current = setInterval(() => {
+        v = Math.min(VOLUMEN, v + 0.015);
+        a.volume = v;
+        if (v >= VOLUMEN) clearInterval(fadeRef.current);
+      }, 45);
+    }).catch(() => {});
+  };
+
+  const entrar = (conMusica) => {
+    if (abriendoPortada) return;
+    setAbriendoPortada(true);
+    if (conMusica) encenderMusica();
+    try { sessionStorage.setItem('cp_entro', '1'); } catch (_) {}
+    setTimeout(() => setPortada(false), sinMovimiento ? 100 : 1900);
+  };
+
   const abrirSobre = () => {
     if (fase !== 'cerrado') return;
     setFase('abriendo');
-    if (audioRef.current) {
-      audioRef.current.volume = 0.45;
-      audioRef.current.play().then(() => setSonando(true)).catch(() => {});
-    }
+    if (!sonando) encenderMusica();
     setTimeout(() => setFase('abierto'), 900);
   };
 
   const alternarMusica = () => {
-    if (!audioRef.current) return;
-    if (sonando) audioRef.current.pause();
-    else audioRef.current.play().catch(() => {});
-    setSonando(!sonando);
+    const a = audioRef.current;
+    if (!a) return;
+    if (sonando) { a.pause(); setSonando(false); }
+    else encenderMusica();
   };
 
   const petalos = [
@@ -179,31 +237,97 @@ export default function Home() {
         .oro-linea { height: 1px; background: linear-gradient(90deg, transparent, ${ORO}, transparent); }
         .tarjeta-foto img { transition: transform 1.2s cubic-bezier(.22,1,.36,1); }
         .tarjeta-foto:hover img { transform: scale(1.08); }
-        .perspectiva { perspective: 1400px; }
+        .perspectiva { perspective: 1500px; }
         @keyframes kenburns { 0% { transform: scale(1) translate(0,0); } 100% { transform: scale(1.13) translate(-1.5%,-1.5%); } }
         .kenburns { animation: kenburns 28s ease-in-out infinite alternate; }
         a:focus-visible, button:focus-visible { outline: 2px solid ${CEREZA}; outline-offset: 3px; border-radius: 4px; }
         @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; } }
       `}} />
 
-      <audio ref={audioRef} src="/boda-music.mp3" loop preload="none" />
+      <audio ref={audioRef} src="/boda-music.mp3" loop preload="auto" />
 
-      {/* ═══════════ VELO DE ENTRADA */}
+      {/* ═══════════════════ PORTADA: el sobre que abre la película */}
       <AnimatePresence>
-        {velo && !sinMovimiento && (
-          <motion.div className="fixed inset-0 z-[200] pointer-events-none" exit={{ opacity: 0 }} transition={{ duration: .5 }}>
-            <motion.div className="absolute inset-x-0 top-0 h-1/2" style={{ backgroundColor: TINTA }}
-              initial={{ y: 0 }} exit={{ y: '-100%' }} transition={{ duration: 1, ease: [0.76, 0, 0.24, 1] }} />
-            <motion.div className="absolute inset-x-0 bottom-0 h-1/2" style={{ backgroundColor: TINTA }}
-              initial={{ y: 0 }} exit={{ y: '100%' }} transition={{ duration: 1, ease: [0.76, 0, 0.24, 1] }} />
-            <motion.div className="absolute inset-0 flex flex-col items-center justify-center gap-4" exit={{ opacity: 0 }} transition={{ duration: .4 }}>
-              <motion.span className="font-display text-4xl md:text-5xl text-white tracking-wide"
-                initial={{ opacity: 0, letterSpacing: '.5em' }} animate={{ opacity: 1, letterSpacing: '.08em' }}
-                transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}>
+        {portada && (
+          <motion.div
+            className="fixed inset-0 z-[300] flex flex-col items-center justify-center overflow-hidden"
+            style={{ backgroundColor: TINTA }}
+            exit={{ opacity: 0 }} transition={{ duration: .8, delay: .9 }}
+          >
+            <motion.img
+              src={FOTO.portada} alt="" aria-hidden="true"
+              className="absolute inset-0 w-full h-full object-cover"
+              initial={{ scale: 1.25, opacity: .3 }}
+              animate={abriendoPortada ? { scale: 1.6, opacity: .1 } : { scale: 1.12, opacity: .32 }}
+              transition={{ duration: abriendoPortada ? 1.9 : 6, ease: [0.22, 1, 0.36, 1] }}
+            />
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(26,20,24,.72), rgba(143,18,41,.55))' }} />
+
+            <motion.div
+              className="relative flex flex-col items-center gap-8 px-6 text-center"
+              animate={abriendoPortada ? { scale: 1.35, opacity: 0, y: -40 } : {}}
+              transition={{ duration: 1.5, ease: [0.65, 0, 0.35, 1] }}
+            >
+              <motion.span
+                className="font-display text-3xl md:text-4xl text-white tracking-wide"
+                initial={{ opacity: 0, letterSpacing: '.5em' }} animate={{ opacity: 1, letterSpacing: '.1em' }}
+                transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }}
+              >
                 clicky<span style={{ color: ROSA }}>papel</span>
               </motion.span>
-              <motion.div className="h-[2px]" style={{ backgroundColor: CEREZA }}
-                initial={{ width: 0 }} animate={{ width: 130 }} transition={{ duration: 1.3, delay: .3 }} />
+
+              {/* El sobre */}
+              <motion.div
+                className="relative w-[210px] h-[150px] perspectiva"
+                initial={{ opacity: 0, y: 26 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.1, delay: .5 }}
+              >
+                <div className="absolute inset-0 rounded-sm" style={{ backgroundColor: CREMA, boxShadow: '0 30px 60px -20px rgba(0,0,0,.7)' }}>
+                  <div className="absolute inset-2 border" style={{ borderColor: 'rgba(194,161,92,.45)' }} />
+                </div>
+                <motion.div
+                  className="absolute inset-x-0 top-0 origin-top" style={{ height: 92, transformStyle: 'preserve-3d' }}
+                  animate={{ rotateX: abriendoPortada ? -172 : 0 }}
+                  transition={{ duration: 1, ease: [0.65, 0, 0.35, 1] }}
+                >
+                  <div className="absolute inset-0" style={{ backgroundColor: '#EFE8DC', clipPath: 'polygon(0 0, 100% 0, 50% 100%)' }} />
+                </motion.div>
+                <motion.div
+                  className="absolute left-1/2 -translate-x-1/2 w-14 h-14 rounded-full flex items-center justify-center"
+                  style={{ top: 62, backgroundColor: CEREZA, zIndex: 5, boxShadow: '0 8px 22px -6px rgba(196,30,58,.9)' }}
+                  animate={abriendoPortada ? { opacity: 0, scale: .5 } : sinMovimiento ? {} : { scale: [1, 1.06, 1] }}
+                  transition={abriendoPortada ? { duration: .4 } : { duration: 2.6, repeat: Infinity }}
+                >
+                  <span className="font-script text-2xl text-white">C</span>
+                </motion.div>
+              </motion.div>
+
+              <motion.p
+                className="font-display font-light text-white text-2xl md:text-3xl leading-snug max-w-sm"
+                initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.2, delay: .9 }}
+              >
+                Hay cosas que no se mandan
+                <span className="italic block" style={{ color: ROSA }}>por mensaje.</span>
+              </motion.p>
+
+              <motion.div
+                className="flex flex-col items-center gap-4"
+                initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 1.4 }}
+              >
+                <button
+                  type="button" onClick={() => entrar(true)}
+                  className="etiqueta text-white px-10 rounded-full transition-transform hover:scale-[1.06]"
+                  style={{ backgroundColor: CEREZA, paddingTop: '1.15rem', paddingBottom: '1.15rem', boxShadow: '0 18px 44px -16px rgba(196,30,58,.9)' }}
+                >
+                  Empezar mi gran día
+                </button>
+                <button
+                  type="button" onClick={() => entrar(false)}
+                  className="etiqueta transition-opacity hover:opacity-100"
+                  style={{ color: 'rgba(255,255,255,.5)', fontSize: 9 }}
+                >
+                  Entrar sin sonido
+                </button>
+              </motion.div>
             </motion.div>
           </motion.div>
         )}
@@ -211,7 +335,7 @@ export default function Home() {
 
       <motion.div className="fixed top-0 left-0 right-0 h-[3px] origin-left z-[120]" style={{ backgroundColor: CEREZA, scaleX: scrollYProgress }} />
 
-      {/* ═══════════ NAV — barra clara, separada del hero */}
+      {/* ═══════════════════ NAV */}
       <nav className="sticky top-0 z-[110] border-b" style={{ backgroundColor: 'rgba(253,252,250,.92)', backdropFilter: 'blur(14px)', borderColor: 'rgba(26,20,24,.08)' }}>
         <div className="max-w-7xl mx-auto px-5 h-[76px] flex items-center justify-between">
           <Link href="/" className="font-display text-3xl tracking-wide" style={{ color: TINTA }}>
@@ -219,13 +343,22 @@ export default function Home() {
           </Link>
           <div className="hidden md:flex items-center gap-10 etiqueta" style={{ color: GRIS }}>
             {[['#momentos', 'Momentos'], ['#plantillas', 'Plantillas'], ['#como', 'Cómo funciona'], ['#precios', 'Precios']].map(([h, t]) => (
-              <a key={h} href={h} className="relative group py-1 hover:opacity-100 transition-opacity">
+              <a key={h} href={h} className="relative group py-1">
                 {t}
                 <span className="absolute left-0 -bottom-0.5 h-[1.5px] w-0 group-hover:w-full transition-all duration-400" style={{ backgroundColor: CEREZA }} />
               </a>
             ))}
           </div>
           <div className="flex items-center gap-4">
+            {sonando && (
+              <button type="button" onClick={alternarMusica} aria-label="Pausar la música" className="hidden sm:flex items-end gap-[2.5px] h-4">
+                {[0, 1, 2].map((b) => (
+                  <motion.span key={b} animate={sinMovimiento ? {} : { height: ['30%', '100%', '30%'] }}
+                    transition={{ duration: 1, repeat: Infinity, delay: b * .18 }}
+                    className="w-[2.5px] block rounded-full" style={{ backgroundColor: CEREZA }} />
+                ))}
+              </button>
+            )}
             <Link href="/login" className="etiqueta hidden sm:block hover:opacity-60 transition-opacity" style={{ color: GRIS }}>Entrar</Link>
             <Link href="/crear" className="etiqueta text-white px-6 py-3 rounded-full transition-transform hover:scale-[1.05]" style={{ backgroundColor: CEREZA }}>
               Crear gratis
@@ -234,11 +367,9 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* ═══════════ HERO — mitad luz, mitad foto */}
+      {/* ═══════════════════ HERO */}
       <header ref={heroRef} className="relative grid lg:grid-cols-[1fr_1.05fr]" style={{ minHeight: 'calc(100svh - 76px)', backgroundColor: NIEVE }}>
-
-        {/* Lado luminoso */}
-        <motion.div style={{ y: heroY }} className="relative flex items-center px-5 sm:px-10 lg:pl-16 lg:pr-14 py-16 lg:py-0 order-2 lg:order-1">
+        <motion.div style={{ y: heroY, opacity: heroOpacidad }} className="relative flex items-center px-5 sm:px-10 lg:pl-16 lg:pr-14 py-16 lg:py-0 order-2 lg:order-1">
           {!sinMovimiento && (
             <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
               {petalos.map((p, i) => (
@@ -251,55 +382,60 @@ export default function Home() {
           )}
 
           <div className="relative max-w-xl space-y-8 text-center lg:text-left mx-auto lg:mx-0">
-            <motion.span initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .8, delay: 1.9 }}
-              className="etiqueta inline-flex items-center gap-2.5 px-4 py-2 rounded-full border"
-              style={{ borderColor: 'rgba(196,30,58,.3)', color: CEREZA, backgroundColor: 'rgba(196,30,58,.05)' }}>
-              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: CEREZA }} />
-              Gratis hasta que la publiques
-            </motion.span>
+            <Reveal y={16}>
+              <span className="etiqueta inline-flex items-center gap-2.5 px-4 py-2 rounded-full border"
+                style={{ borderColor: 'rgba(196,30,58,.3)', color: CEREZA, backgroundColor: 'rgba(196,30,58,.05)' }}>
+                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: CEREZA }} />
+                Gratis hasta que la publiques
+              </span>
+            </Reveal>
 
-            <h1 className="leading-[.95]">
-              <motion.span className="font-script block text-5xl sm:text-6xl mb-3" style={{ color: CEREZA }}
-                initial={{ opacity: 0, y: 26 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1.4, delay: 2, ease: [0.22, 1, 0.36, 1] }}>
-                Tu gran día
-              </motion.span>
-              <Titular texto="Hay cosas que no se mandan" className="font-display font-light block text-4xl sm:text-5xl lg:text-[4.2rem]" style={{ color: TINTA }} delay={2.25} />
-              <Titular texto="por mensaje." className="font-display font-light italic block text-4xl sm:text-5xl lg:text-[4.2rem]" style={{ color: CEREZA_OSCURO }} delay={2.6} />
-            </h1>
+            <Reveal delay={0.1}>
+              <h1 className="leading-[.95]">
+                <span className="font-script block text-5xl sm:text-6xl mb-3" style={{ color: CEREZA }}>Tu gran día</span>
+                <span className="font-display font-light block text-4xl sm:text-5xl lg:text-[4.2rem]" style={{ color: TINTA }}>
+                  Hay cosas que no se mandan
+                </span>
+                <span className="font-display font-light italic block text-4xl sm:text-5xl lg:text-[4.2rem]" style={{ color: CEREZA_OSCURO }}>
+                  por mensaje.
+                </span>
+              </h1>
+            </Reveal>
 
-            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.2, delay: 2.95 }}
-              className="text-base md:text-lg font-light leading-relaxed max-w-md mx-auto lg:mx-0" style={{ color: GRIS }}>
-              Una invitación que se abre como sobre, suena con su canción
-              y confirma a los invitados sola. La armas hoy y decides después.
-            </motion.p>
+            <Reveal delay={0.2}>
+              <p className="text-base md:text-lg font-light leading-relaxed max-w-md mx-auto lg:mx-0" style={{ color: GRIS }}>
+                Una invitación que se abre como sobre, suena con su canción
+                y confirma a los invitados sola. La armas hoy y decides después.
+              </p>
+            </Reveal>
 
-            <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 3.2 }}
-              className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
-              <Link href="/crear" className="w-full sm:w-auto text-center etiqueta text-white px-10 rounded-full transition-all hover:scale-[1.05]"
-                style={{ backgroundColor: CEREZA, paddingTop: '1.15rem', paddingBottom: '1.15rem', boxShadow: '0 18px 40px -18px rgba(196,30,58,.65)' }}>
-                Crear mi invitación gratis
-              </Link>
-              <a href="#momentos" className="etiqueta pb-1 border-b transition-opacity hover:opacity-60" style={{ color: TINTA, borderColor: ORO }}>
-                Ver ejemplos
-              </a>
-            </motion.div>
+            <Reveal delay={0.3}>
+              <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
+                <Link href="/crear" className="w-full sm:w-auto text-center etiqueta text-white px-10 rounded-full transition-all hover:scale-[1.05]"
+                  style={{ backgroundColor: CEREZA, paddingTop: '1.15rem', paddingBottom: '1.15rem', boxShadow: '0 18px 40px -18px rgba(196,30,58,.65)' }}>
+                  Crear mi invitación gratis
+                </Link>
+                <a href="#momentos" className="etiqueta pb-1 border-b transition-opacity hover:opacity-60" style={{ color: TINTA, borderColor: ORO }}>
+                  Ver ejemplos
+                </a>
+              </div>
+            </Reveal>
 
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 3.45 }}
-              className="flex flex-wrap items-center gap-x-6 gap-y-2 justify-center lg:justify-start etiqueta" style={{ fontSize: 9, color: '#A79FA6' }}>
-              <span>Sin tarjeta</span><span>·</span><span>Un solo pago</span><span>·</span><span>Cambios ilimitados</span>
-            </motion.div>
+            <Reveal delay={0.4}>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 justify-center lg:justify-start etiqueta" style={{ fontSize: 9, color: '#A79FA6' }}>
+                <span>Sin tarjeta</span><span>·</span><span>Un solo pago</span><span>·</span><span>Cambios ilimitados</span>
+              </div>
+            </Reveal>
           </div>
         </motion.div>
 
-        {/* Lado fotográfico con el sobre encima */}
         <div className="relative overflow-hidden order-1 lg:order-2 min-h-[62svh] lg:min-h-0">
-          <motion.img style={{ y: fotoY }} src={FOTO.hero} alt="" aria-hidden="true" className="kenburns absolute inset-0 w-full h-full object-cover" />
+          <motion.img style={{ y: fotoHeroY }} src={FOTO.hero} alt="" aria-hidden="true" className="kenburns absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0" style={{ background: 'linear-gradient(100deg, rgba(253,252,250,.95) 0%, rgba(253,252,250,.25) 22%, transparent 48%)' }} />
           <div className="absolute inset-0 lg:hidden" style={{ background: 'linear-gradient(180deg, transparent 45%, rgba(253,252,250,.9) 100%)' }} />
 
           <motion.div initial={{ opacity: 0, scale: .9, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 1.3, delay: 2.4, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 1.3, delay: .4, ease: [0.22, 1, 0.36, 1] }}
             className="relative h-full flex flex-col items-center justify-center gap-6 py-14">
 
             <div className="relative w-[270px] sm:w-[300px] h-[430px] sm:h-[460px] perspectiva">
@@ -379,7 +515,10 @@ export default function Home() {
         </div>
       </header>
 
-      {/* ═══════════ TIRA CEREZA */}
+      {/* ═══════════════════ FRASES FIJADAS AL SCROLL */}
+      <FrasesFijas />
+
+      {/* ═══════════════════ TIRA CEREZA */}
       <section style={{ backgroundColor: CEREZA }} className="py-8">
         <div className="max-w-6xl mx-auto px-5 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           {[['5', 'tipos de celebración'], ['1', 'solo pago, sin mensualidades'], ['∞', 'cambios después de publicar'], ['0', 'apps que instalar']].map(([n, t], i) => (
@@ -391,7 +530,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════════ MOMENTOS — el corazón emocional */}
+      {/* ═══════════════════ MOMENTOS con parallax */}
       <section id="momentos" className="py-24 md:py-32">
         <div className="max-w-6xl mx-auto px-5">
           <Reveal className="text-center space-y-3 mb-20">
@@ -402,20 +541,14 @@ export default function Home() {
             </h2>
           </Reveal>
 
-          <div className="space-y-20 md:space-y-28">
+          <div className="space-y-24 md:space-y-32">
             {MOMENTOS.map((m, i) => (
               <div key={m.frase} className={`grid md:grid-cols-2 gap-10 md:gap-16 items-center ${i % 2 ? 'md:[direction:rtl]' : ''}`}>
-                <Reveal y={50} className="md:[direction:ltr]">
-                  <div className="tarjeta-foto relative aspect-[4/5] md:aspect-[3/4] overflow-hidden rounded-sm">
-                    <img src={m.img} alt={m.frase} className="w-full h-full object-cover" />
-                    <div className="absolute inset-4 border pointer-events-none" style={{ borderColor: 'rgba(253,252,250,.4)' }} />
-                  </div>
-                </Reveal>
-
-                <Reveal delay={0.15} className="md:[direction:ltr] space-y-5 text-center md:text-left">
-                  <span className="font-display text-6xl md:text-7xl font-light block leading-none" style={{ color: 'rgba(196,30,58,.16)' }}>
-                    0{i + 1}
-                  </span>
+                <div className="md:[direction:ltr]">
+                  <FotoParallax src={m.img} alt={m.frase} className="aspect-[4/5] md:aspect-[3/4] rounded-sm" fuerza={70} />
+                </div>
+                <Reveal delay={0.12} className="md:[direction:ltr] space-y-5 text-center md:text-left">
+                  <span className="font-display text-6xl md:text-7xl font-light block leading-none" style={{ color: 'rgba(196,30,58,.16)' }}>0{i + 1}</span>
                   <h3 className="font-script text-4xl md:text-5xl" style={{ color: CEREZA }}>{m.frase}</h3>
                   <div className="oro-linea w-24 mx-auto md:mx-0" />
                   <p className="font-display text-2xl md:text-3xl font-light leading-snug" style={{ color: TINTA }}>{m.linea}</p>
@@ -426,7 +559,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════════ ASÍ SE VE */}
+      {/* ═══════════════════ ASÍ SE VE */}
       <section className="py-24 md:py-32" style={{ backgroundColor: CREMA }}>
         <div className="max-w-6xl mx-auto px-5 grid lg:grid-cols-2 gap-16 items-center">
           <div className="order-2 lg:order-1 space-y-8">
@@ -434,7 +567,6 @@ export default function Home() {
               <span className="etiqueta block" style={{ color: CEREZA }}>Así lo viven tus invitados</span>
               <h2 className="font-display text-4xl md:text-5xl font-light leading-tight">Se abre, suena<br />y confirma sola.</h2>
             </Reveal>
-
             {[
               { t: 'Tocan el sello y se abre', d: 'La animación arranca y la música empieza a sonar. Nadie olvida esa entrada.' },
               { t: 'Buscan su nombre', d: 'Ven cuántos lugares les tocan y confirman ahí mismo, sin formularios eternos.' },
@@ -448,7 +580,6 @@ export default function Home() {
                 </div>
               </Reveal>
             ))}
-
             <Reveal delay={0.5}>
               <Link href="/bruno-y-brisa" className="inline-block etiqueta pb-1 border-b transition-opacity hover:opacity-60" style={{ color: CEREZA, borderColor: CEREZA }}>
                 Abrir un ejemplo real →
@@ -486,15 +617,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════════ PLANTILLAS */}
+      {/* ═══════════════════ PLANTILLAS */}
       <section id="plantillas" className="py-24 md:py-32">
         <div className="max-w-7xl mx-auto px-5">
           <Reveal className="text-center space-y-3 mb-14">
             <span className="etiqueta block" style={{ color: CEREZA }}>Elige tu favorita</span>
             <h2 className="font-display text-4xl md:text-5xl font-light">Diseños para cada estilo</h2>
-            <p className="text-sm font-light max-w-md mx-auto" style={{ color: GRIS }}>
-              Todas se adaptan a tus colores, tu tipografía y tus fotos.
-            </p>
+            <p className="text-sm font-light max-w-md mx-auto" style={{ color: GRIS }}>Todas se adaptan a tus colores, tu tipografía y tus fotos.</p>
           </Reveal>
 
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
@@ -521,14 +650,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════════ CELEBRACIONES */}
+      {/* ═══════════════════ CELEBRACIONES */}
       <section className="py-24 md:py-32" style={{ backgroundColor: CREMA }}>
         <div className="max-w-7xl mx-auto px-5">
           <Reveal className="text-center space-y-3 mb-14">
             <span className="etiqueta block" style={{ color: CEREZA }}>Para toda ocasión</span>
             <h2 className="font-display text-4xl md:text-5xl font-light">Cada fiesta pide lo suyo</h2>
           </Reveal>
-
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
             {CELEBRACIONES.map((c, i) => (
               <Reveal key={c.id} delay={i * 0.09} y={40}>
@@ -545,14 +673,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════════ CÓMO FUNCIONA */}
+      {/* ═══════════════════ CÓMO FUNCIONA */}
       <section id="como" className="py-24 md:py-32">
         <div className="max-w-6xl mx-auto px-5">
           <Reveal className="text-center space-y-3 mb-16">
             <span className="etiqueta block" style={{ color: CEREZA }}>Es más fácil de lo que crees</span>
             <h2 className="font-display text-4xl md:text-5xl font-light">Tres pasos y ya la estás viendo</h2>
           </Reveal>
-
           <ol className="grid md:grid-cols-3 gap-12 md:gap-10">
             {PASOS.map((p, i) => (
               <Reveal key={p.n} delay={i * 0.16} y={40}>
@@ -564,7 +691,6 @@ export default function Home() {
               </Reveal>
             ))}
           </ol>
-
           <Reveal delay={0.3} className="text-center mt-16">
             <Link href="/crear" className="inline-block etiqueta text-white px-10 py-4 rounded-full transition-transform hover:scale-[1.05]" style={{ backgroundColor: CEREZA }}>
               Empezar ahora
@@ -573,16 +699,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════════ RESEÑAS
-          ⚠️ REEMPLAZA CON RESEÑAS REALES ANTES DE PUBLICAR.
-          Publicar testimonios inventados es engañoso y te puede costar caro. */}
+      {/* ═══════════════════ RESEÑAS
+          ⚠️ REEMPLAZA CON RESEÑAS REALES ANTES DE PUBLICAR. */}
       <section className="py-24 md:py-32" style={{ backgroundColor: CREMA }}>
         <div className="max-w-6xl mx-auto px-5">
           <Reveal className="text-center space-y-3 mb-14">
             <span className="etiqueta block" style={{ color: CEREZA }}>Lo que dicen</span>
             <h2 className="font-display text-4xl md:text-5xl font-light">Novias que ya la usaron</h2>
           </Reveal>
-
           <div className="grid md:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
               <Reveal key={i} delay={i * 0.13} y={40}>
@@ -600,15 +724,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════════ PRECIOS */}
+      {/* ═══════════════════ PRECIOS */}
       <section id="precios" className="py-24 md:py-32">
         <div className="max-w-6xl mx-auto px-5">
           <Reveal className="text-center space-y-3 mb-14">
             <span className="etiqueta block" style={{ color: CEREZA }}>Nuestros planes</span>
             <h2 className="font-display text-4xl md:text-5xl font-light">Un solo pago, sin mensualidades</h2>
-            <p className="text-sm font-light max-w-md mx-auto" style={{ color: GRIS }}>
-              Arma tu invitación completa gratis. Pagas cuando decidas compartirla.
-            </p>
+            <p className="text-sm font-light max-w-md mx-auto" style={{ color: GRIS }}>Arma tu invitación completa gratis. Pagas cuando decidas compartirla.</p>
           </Reveal>
 
           <div className="grid md:grid-cols-3 gap-6 items-stretch">
@@ -661,13 +783,12 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════════ PREGUNTAS */}
+      {/* ═══════════════════ PREGUNTAS */}
       <section className="max-w-3xl mx-auto px-5 py-24 md:py-32">
         <Reveal className="text-center space-y-3 mb-12">
           <span className="etiqueta block" style={{ color: CEREZA }}>Dudas frecuentes</span>
           <h2 className="font-display text-4xl md:text-5xl font-light">Lo que más nos preguntan</h2>
         </Reveal>
-
         <div className="divide-y" style={{ borderColor: 'rgba(26,20,24,.1)' }}>
           {PREGUNTAS.map((p, i) => (
             <Reveal key={p.q} delay={i * 0.07} y={20}>
@@ -692,15 +813,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════════ CIERRE */}
+      {/* ═══════════════════ CIERRE */}
       <section className="relative py-28 md:py-36 text-center px-5 overflow-hidden" style={{ backgroundColor: CEREZA }}>
         <img src={FOTO.momentoUno} alt="" aria-hidden="true" className="kenburns absolute inset-0 w-full h-full object-cover opacity-[.16]" />
         <Reveal className="relative max-w-xl mx-auto space-y-7">
           <div className="oro-linea w-24 mx-auto" />
           <span className="font-script text-5xl block text-white">Ábrela tú primero</span>
-          <h2 className="font-display text-4xl md:text-5xl font-light leading-tight" style={{ color: 'rgba(255,255,255,.92)' }}>
-            Decides después de verla.
-          </h2>
+          <h2 className="font-display text-4xl md:text-5xl font-light leading-tight" style={{ color: 'rgba(255,255,255,.92)' }}>Decides después de verla.</h2>
           <p className="text-sm font-light" style={{ color: 'rgba(255,255,255,.7)' }}>No pedimos tarjeta. Solo pagas si te enamora.</p>
           <Link href="/crear" className="inline-block etiqueta px-12 rounded-full transition-transform hover:scale-[1.05]"
             style={{ backgroundColor: NIEVE, color: CEREZA, paddingTop: '1.15rem', paddingBottom: '1.15rem' }}>
@@ -709,7 +828,7 @@ export default function Home() {
         </Reveal>
       </section>
 
-      {/* ═══════════ PIE */}
+      {/* ═══════════════════ PIE */}
       <footer style={{ backgroundColor: TINTA, color: 'rgba(255,255,255,.55)' }} className="py-16">
         <div className="max-w-6xl mx-auto px-5 grid sm:grid-cols-2 gap-10">
           <div className="space-y-3">
@@ -728,7 +847,7 @@ export default function Home() {
         </div>
       </footer>
 
-      <motion.div initial={{ y: 90 }} animate={{ y: 0 }} transition={{ delay: 3.6, duration: .7 }}
+      <motion.div initial={{ y: 90 }} animate={{ y: 0 }} transition={{ delay: 1.2, duration: .7 }}
         className="md:hidden fixed bottom-0 left-0 right-0 z-[100] px-4 py-3 backdrop-blur-md border-t"
         style={{ backgroundColor: 'rgba(253,252,250,.96)', borderColor: 'rgba(26,20,24,.1)' }}>
         <Link href="/crear" className="block text-center etiqueta text-white py-4 rounded-full" style={{ backgroundColor: CEREZA }}>
