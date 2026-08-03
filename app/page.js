@@ -93,7 +93,7 @@ function Reveal({ children, delay = 0, y = 34, className = '' }) {
 /* ═══════ Foto que se mueve más lento que la página ═══════ */
 function FotoParallax({ src, alt, className = '', fuerza = 90 }) {
   const ref = useRef(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'], layoutEffect: false });
   const y = useTransform(scrollYProgress, [0, 1], [-fuerza, fuerza]);
   return (
     <div ref={ref} className={`relative overflow-hidden ${className}`}>
@@ -106,9 +106,13 @@ function FotoParallax({ src, alt, className = '', fuerza = 90 }) {
 function CapaFrase({ progreso, indice, total, frase }) {
   const paso = 1 / total;
   const inicio = indice * paso;
-  const opacity = useTransform(progreso,
-    [inicio - 0.06, inicio + 0.05, inicio + paso - 0.05, inicio + paso + 0.06], [0, 1, 1, 0]);
-  const y = useTransform(progreso, [inicio - 0.06, inicio + paso + 0.06], [50, -50]);
+  // Los cuatro puntos deben ir siempre de menor a mayor, o framer-motion truena.
+  const a = Math.max(0, inicio - 0.05);
+  const b = Math.min(1, a + 0.06);
+  const d = Math.min(1, Math.max(b + 0.02, inicio + paso - 0.05));
+  const e = Math.min(1, Math.max(d + 0.02, inicio + paso + 0.05));
+  const opacity = useTransform(progreso, [a, b, d, e], [0, 1, 1, 0]);
+  const y = useTransform(progreso, [a, e], [50, -50]);
   return (
     <motion.div style={{ opacity, y }} className="absolute inset-0 flex flex-col items-center justify-center text-center px-6">
       <span className="font-display font-light text-white leading-[1.05] text-4xl sm:text-6xl md:text-7xl">{frase.alta}</span>
@@ -120,7 +124,7 @@ function CapaFrase({ progreso, indice, total, frase }) {
 /* ═══════ Sección de frases fijada al scroll ═══════ */
 function FrasesFijas() {
   const ref = useRef(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] });
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'], layoutEffect: false });
   const escala = useTransform(scrollYProgress, [0, 1], [1.18, 1.32]);
   return (
     <section ref={ref} className="relative" style={{ height: '280vh' }}>
@@ -151,7 +155,7 @@ export default function Home() {
   const VOLUMEN = 0.42;
 
   const { scrollYProgress } = useScroll();
-  const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
+  const { scrollYProgress: heroProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'], layoutEffect: false });
   const heroY = useTransform(heroProgress, [0, 1], [0, 110]);
   const heroOpacidad = useTransform(heroProgress, [0, 0.75], [1, 0]);
   const fotoHeroY = useTransform(heroProgress, [0, 1], [0, -70]);
@@ -353,9 +357,9 @@ export default function Home() {
             {sonando && (
               <button type="button" onClick={alternarMusica} aria-label="Pausar la música" className="hidden sm:flex items-end gap-[2.5px] h-4">
                 {[0, 1, 2].map((b) => (
-                  <motion.span key={b} animate={sinMovimiento ? {} : { height: ['30%', '100%', '30%'] }}
+                  <motion.span key={b} animate={sinMovimiento ? {} : { scaleY: [0.3, 1, 0.3] }}
                     transition={{ duration: 1, repeat: Infinity, delay: b * .18 }}
-                    className="w-[2.5px] block rounded-full" style={{ backgroundColor: CEREZA }} />
+                    className="w-[2.5px] h-full block rounded-full origin-bottom" style={{ backgroundColor: CEREZA }} />
                 ))}
               </button>
             )}
@@ -375,7 +379,7 @@ export default function Home() {
               {petalos.map((p, i) => (
                 <motion.span key={i} className="absolute rounded-full"
                   style={{ left: p.l, width: p.s, height: p.s, backgroundColor: i % 2 ? CEREZA : ROSA, opacity: .28 }}
-                  initial={{ top: '-6%' }} animate={{ top: '108%', x: [0, 22, -16, 10, 0], rotate: 360 }}
+                  animate={{ top: ['-6%', '108%'], x: [0, 22, -16, 10, 0], rotate: [0, 360] }}
                   transition={{ duration: p.dur, delay: p.d, repeat: Infinity, ease: 'linear' }} />
               ))}
             </div>
@@ -481,12 +485,25 @@ export default function Home() {
                   <motion.button type="button" onClick={abrirSobre} aria-label="Abrir el sobre de ejemplo"
                     className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 cursor-pointer"
                     style={{ top: 228, zIndex: 6 }} exit={{ opacity: 0, scale: .6 }} transition={{ duration: .4 }}>
-                    <motion.span className="w-24 h-24 rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: CEREZA, boxShadow: '0 12px 34px -8px rgba(196,30,58,.85)' }}
-                      animate={sinMovimiento ? {} : { scale: [1, 1.07, 1], boxShadow: ['0 0 0 0 rgba(196,30,58,.45)', '0 0 0 24px rgba(196,30,58,0)', '0 0 0 0 rgba(196,30,58,0)'] }}
-                      transition={{ duration: 2.6, repeat: Infinity }}>
-                      <span className="font-script text-4xl text-white">C</span>
-                    </motion.span>
+                    <span className="relative w-24 h-24 flex items-center justify-center">
+                      {!sinMovimiento && (
+                        <motion.span
+                          className="absolute inset-0 rounded-full pointer-events-none"
+                          style={{ border: `2px solid ${CEREZA}` }}
+                          animate={{ scale: [1, 1.55], opacity: [0.55, 0] }}
+                          transition={{ duration: 2.6, repeat: Infinity, ease: 'easeOut' }}
+                          aria-hidden="true"
+                        />
+                      )}
+                      <motion.span
+                        className="relative w-24 h-24 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: CEREZA, boxShadow: '0 12px 34px -8px rgba(196,30,58,.85)' }}
+                        animate={sinMovimiento ? {} : { scale: [1, 1.07, 1] }}
+                        transition={{ duration: 2.6, repeat: Infinity }}
+                      >
+                        <span className="font-script text-4xl text-white">C</span>
+                      </motion.span>
+                    </span>
                     <span className="etiqueta px-3 py-1.5 rounded-full" style={{ color: TINTA, backgroundColor: 'rgba(253,252,250,.85)' }}>Toca el sello</span>
                   </motion.button>
                 )}
@@ -500,9 +517,9 @@ export default function Home() {
                   <button type="button" onClick={alternarMusica} className="etiqueta flex items-center gap-2 hover:opacity-60 transition-opacity" style={{ color: TINTA }}>
                     <span className="flex gap-[2px] items-end h-3 w-4" aria-hidden="true">
                       {[0, 1, 2, 3].map((b) => (
-                        <motion.span key={b} animate={sonando && !sinMovimiento ? { height: ['25%', '100%', '25%'] } : { height: '30%' }}
+                        <motion.span key={b} animate={sonando && !sinMovimiento ? { scaleY: [0.25, 1, 0.25] } : { scaleY: 0.3 }}
                           transition={{ duration: .7, repeat: Infinity, delay: b * .14 }}
-                          className="w-[2px] block rounded-full" style={{ backgroundColor: CEREZA }} />
+                          className="w-[2px] h-full block rounded-full origin-bottom" style={{ backgroundColor: CEREZA }} />
                       ))}
                     </span>
                     {sonando ? 'Pausar' : 'Reanudar'}
