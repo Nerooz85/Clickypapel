@@ -1,9 +1,132 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Great+Vibes&family=Jost:wght@300;400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ────────────────────────────────────────────────
+   Click & Papel — paleta de la imagen de marca de Juan
+   6 tonos aclarados un nivel hacia el beige.
+   En oscuro el fondo sube a taupe beige luminoso,
+   nunca casi negro.
+   ──────────────────────────────────────────────── */
+:root {
+  --nieve: #FDFCFA;
+  --crema: #F1E7DE;
+  --arena: #F8F1EA;
+  --tinta: #43302B;
+  --tinta-suave: #6B534C;
+  --terracota: #D8B29E;
+  --cafe: #A67A68;
+  --dorado: #C2A15C;
+  --p1: #D9C4BA;
+  --p2: #CFB0A4;
+  --p3: #DFC0B4;
+  --p4: #F1E7DE;
+  --p5: #D7BCB7;
+  --p6: #C79888;
+  --fondo-seccion: #F8F1EA;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --nieve: #6B5B4B;
+    --crema: #7A6A5C;
+    --arena: #65564A;
+    --tinta: #FFF6EC;
+    --tinta-suave: #E8D9CC;
+    --terracota: #D8B29E;
+    --cafe: #C9A58F;
+    --dorado: #D9BC7E;
+    --fondo-seccion: #5C4941;
+  }
+}
+
 body {
-  color: #292524; /* color stone-800 de Tailwind */
-  background-color: #f5f5f4; /* color stone-100 */
+  color: var(--tinta);
+  background-color: var(--nieve);
   font-family: var(--font-sans), sans-serif;
+}
+
+/* Tipografías y utilidades compartidas por la landing
+   y por las páginas de invitación (InvitationHeroV3/XV). */
+.font-display { font-family: 'Cormorant Garamond', Georgia, serif; }
+.font-script { font-family: 'Great Vibes', cursive; }
+.font-ui { font-family: 'Jost', system-ui, sans-serif; }
+.etiqueta { font-size: 10px; letter-spacing: .26em; text-transform: uppercase; font-weight: 600; }
+.oro-linea { height: 1px; background: linear-gradient(90deg, transparent, var(--dorado), transparent); }
+.tarjeta-foto img { transition: transform 1.2s cubic-bezier(.22,1,.36,1); }
+.tarjeta-foto:hover img { transform: scale(1.08); }
+.perspectiva { perspective: 1500px; }
+
+/* El header fijo nunca tapa los títulos al saltar. */
+section[id] { scroll-margin-top: 96px; }
+@media (max-width: 768px) {
+  section[id] { scroll-margin-top: 138px; }
+}
+
+/* ── Fondo vivo: degradado que fluye + orbes + pétalos ── */
+@keyframes fondoFluye {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes deriva {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(40px, -30px) scale(1.12); }
+  66% { transform: translate(-30px, 25px) scale(.94); }
+}
+@keyframes subePetalo {
+  0% { transform: translateY(105vh) rotate(0deg); opacity: 0; }
+  8% { opacity: .5; }
+  90% { opacity: .4; }
+  100% { transform: translateY(-8vh) rotate(320deg); opacity: 0; }
+}
+@keyframes kenburns {
+  0% { transform: scale(1) translate(0, 0); }
+  100% { transform: scale(1.13) translate(-1.5%, -1.5%); }
+}
+.kenburns { animation: kenburns 28s ease-in-out infinite alternate; }
+
+/* ── Marquesina recta, ciclo parejo ── */
+@keyframes marquesina {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquesina-pista { animation: marquesina 32s linear infinite; }
+
+/* ── Brillo final de la fecha rascable ── */
+@keyframes brilloFinal {
+  0% { opacity: 0; transform: scale(.6) rotate(-8deg); }
+  60% { opacity: 1; transform: scale(1.15) rotate(4deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+.brillo-final { animation: brilloFinal .8s cubic-bezier(.22, 1, .36, 1) both; }
+
+/* ── Confeti que cae ── */
+@keyframes confetiCae {
+  0% { transform: translateY(-12px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(230px) rotate(540deg); opacity: 0; }
+}
+
+/* ── El sello se rompe ── */
+@keyframes selloRompe {
+  0% { transform: scale(1) rotate(0deg); opacity: 1; }
+  40% { transform: scale(1.12) rotate(-6deg); opacity: 1; }
+  100% { transform: scale(.4) rotate(14deg); opacity: 0; }
+}
+.sello-rompe { animation: selloRompe .5s ease-in forwards; }
+
+a:focus-visible, button:focus-visible {
+  outline: 2px solid var(--cafe);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition-duration: .01ms !important;
+  }
+  .kenburns, .marquesina-pista { animation: none !important; }
 }
