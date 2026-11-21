@@ -27,7 +27,7 @@ export default function InvitationHeroXV_V3({ weddingData }) {
   }, [weddingData?.eventDate]);
 
   return (
-    <section className="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden bg-[#faf7f2]">
+    <section className="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden bg-[var(--arena)]">
       
       {/* 🌸 FONDO PASTEL Y FOTOGRAFÍA ENMARCADA */}
       <div className="absolute inset-0 z-0 flex items-center justify-center">
@@ -43,8 +43,8 @@ export default function InvitationHeroXV_V3({ weddingData }) {
             className="w-full h-full object-cover opacity-90"
           />
           {/* Overlay suave vintage */}
-          <div className="absolute inset-0 bg-[#f9f5f0]/30 mix-blend-overlay" />
-          <div className="absolute inset-0 bg-gradient-to-t from-stone-900/60 via-stone-900/10 to-transparent" />
+          <div className="absolute inset-0 bg-[var(--nieve)]/30 mix-blend-overlay" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[var(--tinta)]/60 via-[var(--tinta)]/10 to-transparent" />
         </motion.div>
       </div>
 
@@ -56,7 +56,7 @@ export default function InvitationHeroXV_V3({ weddingData }) {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 1, delay: 0.3 }}
         >
-          <span className="text-[11px] md:text-sm tracking-[0.4em] text-white/90 uppercase font-serif drop-shadow-md">
+          <span className="etiqueta text-white/90 drop-shadow-md">
             Mis XV Años
           </span>
         </motion.div>
@@ -66,7 +66,7 @@ export default function InvitationHeroXV_V3({ weddingData }) {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 1.2, delay: 0.5 }}
-          className="text-7xl md:text-9xl font-cursiva text-white drop-shadow-xl mt-2 mb-4"
+          className="text-7xl md:text-9xl font-script text-white drop-shadow-xl mt-2 mb-4"
         >
           {weddingData?.brideName || "Sofía"}
         </motion.h1>
@@ -75,7 +75,7 @@ export default function InvitationHeroXV_V3({ weddingData }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className="font-serif italic text-sm md:text-base text-white/90 max-w-sm drop-shadow-md"
+          className="font-display italic text-base md:text-lg text-white/90 max-w-sm drop-shadow-md"
         >
           "{weddingData?.welcomePhrase || 'Celebrando la magia de un nuevo comienzo.'}"
         </motion.p>
@@ -94,10 +94,10 @@ export default function InvitationHeroXV_V3({ weddingData }) {
             { label: 'Seg', value: timeLeft.seconds }
           ].map((item, idx) => (
             <div key={idx} className="flex flex-col items-center">
-              <span className="text-3xl md:text-4xl font-serif text-white drop-shadow-md">
+              <span className="font-display text-3xl md:text-4xl font-light text-white drop-shadow-md">
                 {item.value < 10 ? `0${item.value}` : item.value}
               </span>
-              <span className="text-[9px] md:text-[10px] tracking-widest text-white/80 uppercase mt-2 font-light">
+              <span className="etiqueta text-white/80 mt-2 font-light">
                 {item.label}
               </span>
             </div>
