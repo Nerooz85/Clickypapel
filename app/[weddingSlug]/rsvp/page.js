@@ -98,11 +98,11 @@ function RSVPContenido() {
   };
 
   return (
-    <main className="min-h-screen bg-[#faf9f6] flex items-center justify-center p-6 font-sans">
-      <div className="max-w-md w-full bg-white rounded-[2rem] p-8 shadow-2xl border border-stone-100 text-center space-y-8">
+    <main className="min-h-screen bg-[var(--nieve)] flex items-center justify-center p-6 font-ui">
+      <div className="max-w-md w-full bg-[var(--nieve)] rounded-[2rem] p-8 shadow-[0_20px_50px_-20px_rgba(67,48,43,0.35)] border border-[var(--terracota)]/40 text-center space-y-8">
 
         {error && (
-          <div className="bg-rose-50 border border-rose-200 text-rose-700 p-3 rounded-xl text-xs font-medium">
+          <div className="bg-rose-50 border border-rose-200 text-rose-700 p-3 rounded-2xl text-xs font-medium">
             {error}
           </div>
         )}
@@ -110,14 +110,16 @@ function RSVPContenido() {
         {mensaje ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-10 space-y-4">
             <div className="text-4xl">✨</div>
-            <p className="font-serif text-xl text-stone-800">{mensaje}</p>
+            <p className="font-display text-2xl font-light text-[var(--tinta)]">{mensaje}</p>
+            <div className="oro-linea w-24 mx-auto" aria-hidden="true" />
           </motion.div>
         ) : invitado ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-            <h2 className="font-serif text-xl">¡Hola, {invitado.nombre_invitado}!</h2>
-            <p className="text-sm text-stone-500">
+            <p className="font-script text-3xl text-[var(--cafe)]">¡Te esperamos!</p>
+            <h2 className="font-display text-2xl font-light text-[var(--tinta)]">¡Hola, {invitado.nombre_invitado}!</h2>
+            <p className="text-sm text-[var(--tinta-suave)]">
               Apartamos{' '}
-              <span className="font-bold text-stone-900">
+              <span className="font-bold text-[var(--tinta)]">
                 {invitado.pases_totales} {invitado.pases_totales === 1 ? 'lugar' : 'lugares'}
               </span>{' '}
               para ustedes.
@@ -128,7 +130,7 @@ function RSVPContenido() {
                 type="button"
                 onClick={() => confirmarAsistencia('confirmado')}
                 disabled={cargando}
-                className="w-full bg-stone-900 text-white py-4 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-[#9a7b5c] transition-all disabled:opacity-60 cursor-pointer"
+                className="w-full bg-[var(--cafe)] hover:bg-[var(--tinta)] text-[var(--nieve)] py-4 rounded-full etiqueta transition-all disabled:opacity-60 cursor-pointer"
               >
                 Confirmar asistencia
               </button>
@@ -136,7 +138,7 @@ function RSVPContenido() {
                 type="button"
                 onClick={() => confirmarAsistencia('declinado')}
                 disabled={cargando}
-                className="w-full bg-stone-100 text-stone-600 py-4 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-stone-200 transition-all disabled:opacity-60 cursor-pointer"
+                className="w-full bg-[var(--arena)] hover:bg-[var(--crema)] text-[var(--tinta-suave)] py-4 rounded-full etiqueta border border-[var(--terracota)]/40 transition-all disabled:opacity-60 cursor-pointer"
               >
                 No podré asistir
               </button>
@@ -146,7 +148,7 @@ function RSVPContenido() {
               <button
                 type="button"
                 onClick={() => { setInvitado(null); setBusqueda(''); setCoincidencias([]); }}
-                className="text-[10px] uppercase tracking-widest text-stone-400 underline cursor-pointer"
+                className="etiqueta text-[var(--tinta-suave)] hover:text-[var(--cafe)] underline cursor-pointer"
               >
                 No soy yo
               </button>
@@ -154,8 +156,10 @@ function RSVPContenido() {
           </motion.div>
         ) : (
           <div className="space-y-6">
-            <h1 className="font-serif text-2xl text-stone-900">Confirmar asistencia</h1>
-            <p className="text-sm text-stone-500 font-light">
+            <p className="font-script text-3xl text-[var(--cafe)]">¡Te esperamos!</p>
+            <h1 className="font-display text-3xl font-light text-[var(--tinta)]">Confirmar asistencia</h1>
+            <div className="oro-linea w-24 mx-auto" aria-hidden="true" />
+            <p className="text-sm text-[var(--tinta-suave)] font-light">
               Escribe tu nombre o el de tu familia para encontrar tu lugar.
             </p>
 
@@ -164,12 +168,12 @@ function RSVPContenido() {
               value={busqueda}
               placeholder="Ej. Familia García"
               aria-label="Buscar tu nombre en la lista"
-              className="w-full px-4 py-4 border rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30"
+              className="w-full px-5 py-4 border border-[var(--terracota)]/40 rounded-full text-sm bg-[var(--nieve)] text-[var(--tinta)] placeholder:text-[var(--tinta-suave)]/60 focus:outline-none focus:ring-2 focus:ring-[var(--cafe)]/30 focus:border-[var(--cafe)]"
               onChange={(e) => setBusqueda(e.target.value)}
             />
 
             {cargando && (
-              <p className="text-[10px] uppercase tracking-widest text-amber-700 animate-pulse">
+              <p className="etiqueta text-[var(--cafe)] animate-pulse">
                 Buscando en la lista…
               </p>
             )}
@@ -181,10 +185,10 @@ function RSVPContenido() {
                     key={persona.id}
                     type="button"
                     onClick={() => setInvitado(persona)}
-                    className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-stone-200 hover:border-[#9a7b5c] hover:bg-stone-50 transition-all text-sm cursor-pointer"
+                    className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-2xl border border-[var(--terracota)]/40 hover:border-[var(--cafe)] hover:bg-[var(--arena)] transition-all text-sm cursor-pointer"
                   >
-                    <span className="font-medium text-stone-800">{persona.nombre_invitado}</span>
-                    <span className="text-[10px] uppercase tracking-widest text-stone-400">
+                    <span className="font-medium text-[var(--tinta)]">{persona.nombre_invitado}</span>
+                    <span className="etiqueta text-[var(--tinta-suave)]">
                       {persona.pases_totales} {persona.pases_totales === 1 ? 'pase' : 'pases'}
                     </span>
                   </button>
@@ -193,7 +197,7 @@ function RSVPContenido() {
             )}
 
             {buscoAlgo && !cargando && coincidencias.length === 0 && (
-              <p className="text-xs text-stone-500 leading-relaxed">
+              <p className="text-xs text-[var(--tinta-suave)] leading-relaxed">
                 No encontramos ese nombre en la lista. Revisa cómo viene escrito en tu invitación
                 o escríbele directamente a los anfitriones.
               </p>
@@ -209,8 +213,8 @@ export default function RSVPPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#faf9f6] flex items-center justify-center">
-          <div className="w-8 h-8 border-2 border-[#9a7b5c] border-t-transparent rounded-full animate-spin" />
+        <div className="min-h-screen bg-[var(--nieve)] flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-[var(--cafe)] border-t-transparent rounded-full animate-spin" />
         </div>
       }
     >

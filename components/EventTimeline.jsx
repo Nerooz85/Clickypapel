@@ -5,9 +5,9 @@ export default function EventTimeline({ weddingData, diseño }) {
   if (!weddingData) return null;
 
   // Clases dinámicas para las tarjetas de logística según el diseño
-  const cardStyle = diseño?.colorCard || 'bg-white border-stone-200 shadow-md text-stone-700';
-  const labelStyle = diseño?.textAcento || 'text-stone-400';
-  const btnStyle = diseño?.btn || 'bg-stone-900 hover:bg-stone-800 text-white';
+  const cardStyle = diseño?.colorCard || 'bg-[var(--nieve)] border-[var(--terracota)]/40 shadow-[0_20px_50px_-20px_rgba(67,48,43,0.35)] text-[var(--tinta)]';
+  const labelStyle = diseño?.textAcento || 'text-[var(--cafe)]';
+  const btnStyle = diseño?.btn || 'bg-[var(--cafe)] hover:bg-[var(--tinta)] text-[var(--nieve)]';
 
   // 👇 Sincronización en caliente con el Paso 6 del Dashboard (LAS 5 HORAS)
   const horaMisa = weddingData?.ceremoniaHora || "17:00 hrs";
@@ -38,23 +38,24 @@ export default function EventTimeline({ weddingData, diseño }) {
       
       {/* ================= SECCIÓN 1: MAPAS Y UBICACIONES ================= */}
       <div className="space-y-12">
-        <div className="text-center space-y-2">
-          <span className={`text-[10px] uppercase tracking-widest font-semibold ${labelStyle}`}>
+        <div className="text-center space-y-3">
+          <span className={`etiqueta ${labelStyle}`}>
             Logística del Evento
           </span>
-          <h2 className="text-3xl font-serif">Horarios y Ubicaciones</h2>
+          <h2 className="font-display text-4xl font-light text-[var(--tinta)]">Horarios y Ubicaciones</h2>
+          <div className="oro-linea w-24 mx-auto" aria-hidden="true" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           {/* TARJETA CEREMONIA */}
-          <div className={`p-8 rounded-3xl border shadow-xs space-y-4 transition-colors duration-500 ${cardStyle}`}>
+          <div className={`p-8 rounded-[2rem] border space-y-4 transition-colors duration-500 ${cardStyle}`}>
             <div className="space-y-1">
               <span className="text-2xl block">⛪</span>
-              <h3 className="text-xl font-serif">Ceremonia Religiosa</h3>
+              <h3 className="font-display text-2xl font-light">Ceremonia Religiosa</h3>
             </div>
-            <div className="text-xs space-y-2 font-light">
-              <p><strong className="font-semibold">Lugar:</strong> {weddingData?.ceremoniaLugar || "Templo del Evento"}</p>
+            <div className="text-sm space-y-2 font-light text-[var(--tinta-suave)]">
+              <p><strong className="font-semibold text-[var(--tinta)]">Lugar:</strong> {weddingData?.ceremoniaLugar || "Templo del Evento"}</p>
             </div>
             
             {(weddingData?.ceremoniaMapsUrl && weddingData.ceremoniaMapsUrl !== '#' && weddingData.ceremoniaMapsUrl !== '') && (
@@ -62,7 +63,7 @@ export default function EventTimeline({ weddingData, diseño }) {
                 href={weddingData.ceremoniaMapsUrl} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className={`inline-block w-full text-center py-2.5 rounded-xl text-xs uppercase tracking-wider font-semibold transition-all shadow-sm mt-2 ${btnStyle}`}
+                className={`inline-block w-full text-center py-3 rounded-full etiqueta transition-all shadow-sm mt-2 ${btnStyle}`}
               >
                 📍 Ver Mapa GPS
               </a>
@@ -70,13 +71,13 @@ export default function EventTimeline({ weddingData, diseño }) {
           </div>
 
           {/* TARJETA RECEPCIÓN */}
-          <div className={`p-8 rounded-3xl border shadow-xs space-y-4 transition-colors duration-500 ${cardStyle}`}>
+          <div className={`p-8 rounded-[2rem] border space-y-4 transition-colors duration-500 ${cardStyle}`}>
             <div className="space-y-1">
               <span className="text-2xl block">🥂</span>
-              <h3 className="text-xl font-serif">Recepción / Fiesta</h3>
+              <h3 className="font-display text-2xl font-light">Recepción / Fiesta</h3>
             </div>
-            <div className="text-xs space-y-2 font-light">
-              <p><strong className="font-semibold">Lugar:</strong> {weddingData?.recepcionLugar || "Salón de Eventos"}</p>
+            <div className="text-sm space-y-2 font-light text-[var(--tinta-suave)]">
+              <p><strong className="font-semibold text-[var(--tinta)]">Lugar:</strong> {weddingData?.recepcionLugar || "Salón de Eventos"}</p>
             </div>
             
             {(weddingData?.recepcionMapsUrl && weddingData.recepcionMapsUrl !== '#' && weddingData.recepcionMapsUrl !== '') && (
@@ -84,7 +85,7 @@ export default function EventTimeline({ weddingData, diseño }) {
                 href={weddingData.recepcionMapsUrl} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className={`inline-block w-full text-center py-2.5 rounded-xl text-xs uppercase tracking-wider font-semibold transition-all shadow-sm mt-2 ${btnStyle}`}
+                className={`inline-block w-full text-center py-3 rounded-full etiqueta transition-all shadow-sm mt-2 ${btnStyle}`}
               >
                 📍 Ver Mapa GPS
               </a>
@@ -95,15 +96,16 @@ export default function EventTimeline({ weddingData, diseño }) {
 
       {/* ================= SECCIÓN 2: ITINERARIO VERTICAL (NUEVO) ================= */}
       <div className="max-w-md mx-auto relative pt-4 pb-4">
-        <div className="text-center mb-16">
-          <h2 className={`text-4xl font-serif ${labelStyle} drop-shadow-sm`}>
+        <div className="text-center mb-16 space-y-3">
+          <h2 className="font-display text-4xl font-light text-[var(--tinta)] drop-shadow-sm">
             Itinerario
           </h2>
+          <div className="oro-linea w-24 mx-auto" aria-hidden="true" />
         </div>
 
         <div className="relative">
           {/* Línea central */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 w-[2px] h-full bg-stone-300/60"></div>
+          <div className="absolute left-1/2 transform -translate-x-1/2 w-[2px] h-full bg-[var(--terracota)]/60"></div>
 
           <div className="space-y-12">
             {itinerario.map((item, index) => {
@@ -118,7 +120,7 @@ export default function EventTimeline({ weddingData, diseño }) {
                   className="relative flex items-center justify-between w-full"
                 >
                   {/* Nodo central */}
-                  <div className={`absolute left-1/2 transform -translate-x-1/2 w-3.5 h-3.5 rounded-full border-4 shadow-sm z-10 ${diseño?.id === 'obsidian' ? 'bg-stone-400 border-stone-800' : 'bg-stone-300 border-white'}`}></div>
+                  <div className={`absolute left-1/2 transform -translate-x-1/2 w-3.5 h-3.5 rounded-full border-4 shadow-sm z-10 ${diseño?.id === 'obsidian' ? 'bg-stone-400 border-stone-800' : 'bg-[var(--dorado)] border-[var(--nieve)]'}`}></div>
 
                   {/* Lado Izquierdo */}
                   <div className={`w-5/12 flex ${isLeft ? 'justify-end pr-4 md:pr-8' : 'justify-start pl-4 md:pl-8 opacity-0'}`}>
@@ -126,8 +128,8 @@ export default function EventTimeline({ weddingData, diseño }) {
                       <div className="flex items-center gap-3 text-right">
                         {item.icon && <span className="text-2xl opacity-70">{item.icon}</span>}
                         <div>
-                          <p className="text-base md:text-lg font-serif text-stone-700">{item.time}</p>
-                          <p className="text-sm md:text-base font-light italic text-stone-500 mt-0.5">{item.title}</p>
+                          <p className="font-display text-base md:text-lg text-[var(--tinta)]">{item.time}</p>
+                          <p className="font-display text-sm md:text-base font-light italic text-[var(--tinta-suave)] mt-0.5">{item.title}</p>
                         </div>
                       </div>
                     )}
@@ -138,8 +140,8 @@ export default function EventTimeline({ weddingData, diseño }) {
                     {!isLeft && (
                       <div className="flex items-center gap-3 text-left">
                         <div>
-                          <p className="text-base md:text-lg font-serif text-stone-700">{item.time}</p>
-                          <p className="text-sm md:text-base font-light italic text-stone-500 mt-0.5">{item.title}</p>
+                          <p className="font-display text-base md:text-lg text-[var(--tinta)]">{item.time}</p>
+                          <p className="font-display text-sm md:text-base font-light italic text-[var(--tinta-suave)] mt-0.5">{item.title}</p>
                         </div>
                         {item.icon && <span className="text-2xl opacity-70">{item.icon}</span>}
                       </div>
@@ -153,15 +155,15 @@ export default function EventTimeline({ weddingData, diseño }) {
       </div>
 
       {/* ================= SECCIÓN 3: CÓDIGO DE VESTIMENTA ================= */}
-      <div className={`p-6 rounded-3xl text-center border max-w-sm mx-auto transition-colors duration-500 space-y-4 ${cardStyle}`}>
+      <div className={`p-6 rounded-[2rem] text-center border max-w-sm mx-auto transition-colors duration-500 space-y-4 ${cardStyle}`}>
         <div className="space-y-1">
-          <span className={`text-[10px] uppercase tracking-widest font-bold block ${labelStyle}`}>Código de Vestimenta</span>
-          <p className="text-sm font-medium tracking-wide capitalize">✨ {weddingData?.codigoVestimenta || "Formal / Gala"}</p>
+          <span className={`etiqueta block ${labelStyle}`}>Código de Vestimenta</span>
+          <p className="font-display text-lg tracking-wide capitalize">✨ {weddingData?.codigoVestimenta || "Formal / Gala"}</p>
         </div>
 
         {/* Círculos fluidos de paletas cromáticas */}
-        <div className="pt-3 border-t border-stone-200/50 border-dashed space-y-2.5">
-          <span className={`text-[9px] uppercase tracking-wider font-bold block ${labelStyle}`}>Paleta de Inspiración</span>
+        <div className="pt-3 border-t border-[var(--crema)] border-dashed space-y-2.5">
+          <span className={`etiqueta block ${labelStyle}`}>Paleta de Inspiración</span>
           <div className="flex justify-center items-center gap-1.5">
             {coloresMuestra.map((hex, i) => (
               <div 

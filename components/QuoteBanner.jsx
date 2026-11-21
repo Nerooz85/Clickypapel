@@ -6,8 +6,8 @@ export default function QuoteBanner({ weddingData, diseño }) {
     'romantico-clasico': {
       texto: "«Por encima de todo, vístanse de amor, que es el vínculo perfecto.»",
       autor: "Colosenses 3:14",
-      overlay: "bg-white/85 backdrop-blur-xs", // Capa clara + desenfoque sutil
-      textColor: "text-stone-800"
+      overlay: "bg-[var(--nieve)]/85 backdrop-blur-xs", // Capa clara + desenfoque sutil
+      textColor: "text-[var(--tinta)]"
     },
     'minimal-dark': {
       texto: "«TODAVÍA CREO EN LOS MILAGROS, PORQUE TE ENCONTRÉ A TI.»",
@@ -18,8 +18,8 @@ export default function QuoteBanner({ weddingData, diseño }) {
     'boho-rancho': {
       texto: "«Donde tú vayas, yo iré; donde tú vivas, yo viviré. Tu pueblo será mi pueblo y tu Dios será mi Dios.»",
       autor: "Rut 1:16",
-      overlay: "bg-[#f4efe6]/85 backdrop-blur-xs", // Capa cálida beige + desenfoque sutil
-      textColor: "text-amber-950"
+      overlay: "bg-[var(--arena)]/85 backdrop-blur-xs", // Capa cálida beige + desenfoque sutil
+      textColor: "text-[var(--tinta)]"
     }
   };
 
@@ -38,7 +38,7 @@ export default function QuoteBanner({ weddingData, diseño }) {
   const imagenFondo = weddingData?.coverImage || "https://images.unsplash.com/photo-1519741497674-611481863552";
 
   return (
-    <section className="relative w-full py-32 px-6 -my-px overflow-hidden border-y border-stone-200/10 shadow-xs transition-all duration-500 block">
+    <section className="relative w-full py-32 px-6 -my-px overflow-hidden border-y border-[var(--terracota)]/30 shadow-[0_20px_50px_-20px_rgba(67,48,43,0.35)] transition-all duration-500 block">
       
       {/* 🖼️ CAPA TRASERA INTERIOR: Aquí se queda la foto y el filtro aislados del mundo */}
       <div 
@@ -54,14 +54,14 @@ export default function QuoteBanner({ weddingData, diseño }) {
         {/* Un adorno sutil flotando */}
         <span className={`text-xl opacity-40 block ${config.textColor}`}>✦</span>
         
-        <p className={`text-xl md:text-2xl leading-relaxed tracking-wide font-medium ${diseño.fuenteTitulo} ${config.textColor}`}>
+        <p className={`font-display text-2xl md:text-3xl leading-relaxed tracking-wide font-light ${config.textColor}`}>
           {textoFinal}
         </p>
+
+        <div className="oro-linea w-24 mx-auto" aria-hidden="true" />
         
         {autorFinal && (
-          <span className={`text-[10px] uppercase tracking-widest font-bold block opacity-50 ${config.textColor} ${
-            diseño.id === 'minimal-dark' ? 'font-sans' : 'font-serif italic'
-          }`}>
+          <span className={`etiqueta block opacity-60 ${config.textColor}`}>
             — {autorFinal}
           </span>
         )}

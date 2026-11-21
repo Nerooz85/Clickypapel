@@ -31,30 +31,31 @@ export default function PhotoGallery({ weddingData }) {
       ];
 
   return (
-    <section className="py-16 px-4 bg-stone-50">
+    <section className="py-20 px-4 bg-[var(--arena)] rounded-[2rem]">
       <div className="max-w-2xl mx-auto text-center">
-        <span className="font-serif text-amber-600/80 tracking-widest text-xs uppercase block mb-2">
+        <span className="etiqueta text-[var(--cafe)] block mb-3">
           Nuestra Historia
         </span>
-        <h2 className="text-3xl font-serif text-stone-800 mb-10">Galería de Momentos</h2>
+        <h2 className="font-display text-4xl font-light text-[var(--tinta)] mb-3">Galería de Momentos</h2>
+        <div className="oro-linea w-24 mx-auto mb-10" aria-hidden="true" />
 
         {/* Grid estilo editorial / asimétrico premium */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 auto-rows-[150px]">
           {photos.map((photo, index) => (
             <div 
               key={index} 
-              className={`relative rounded-xl overflow-hidden shadow-xs group border border-stone-200/50 ${photo.gridClass}`}
+              className={`tarjeta-foto relative rounded-2xl overflow-hidden shadow-[0_10px_30px_-12px_rgba(67,48,43,0.3)] group border border-[var(--terracota)]/25 ${photo.gridClass}`}
             >
               <Image
                 src={photo.src}
                 alt={photo.alt}
                 fill
                 sizes="(max-w-768px) 100vw, 50vw"
-                className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                className="object-cover"
                 priority={index === 0} // Prioriza la carga de la primera imagen
               />
               {/* Efecto hover elegante */}
-              <div className="absolute inset-0 bg-stone-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-[var(--tinta)]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>
           ))}
         </div>
