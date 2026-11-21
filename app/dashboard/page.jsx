@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { limiteFotos } from '@/lib/precios';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function NoviosDashboard() {
@@ -85,6 +86,11 @@ function NoviosDashboard() {
   const [coverImage, setCoverImage] = useState(''); 
   const [musicUrl, setMusicUrl] = useState('/music/1-thousand-years.mp3');
   const [galeriaFotos, setGaleriaFotos] = useState(['', '', '', '', '', '']); 
+
+  // 🖼️ Galería (paso 4): el límite sale del plan contratado — lib/precios.js es la
+  // fuente única (Esencial 3, Premium 6, VIP 12) — y el contador, de las fotos ya subidas.
+  const maxFotosPermitidas = limiteFotos(planContratado);
+  const fotosSubidasCount = galeriaFotos.filter((url) => url && url.trim() !== '').length;
   const [ceremoniaFoto, setCeremoniaFoto] = useState('');
   const [recepcionFoto, setRecepcionFoto] = useState('');
   const [cancionSonando, setCancionSonando] = useState(null);
@@ -383,31 +389,33 @@ function NoviosDashboard() {
   const pendientes = invitados.filter(inv => inv.estado === 'pendiente').length;
 
   if (cargando) return (
-    <div className="min-h-screen bg-[#fcfbfa] flex flex-col items-center justify-center space-y-4">
-      <div className="w-12 h-12 border-2 border-[#9a7b5c] border-t-transparent rounded-full animate-spin" />
-      <p className="font-serif text-[#9a7b5c] tracking-widest uppercase text-xs">Cargando tu espacio...</p>
+    <div className="min-h-screen bg-[var(--nieve)] flex flex-col items-center justify-center space-y-4">
+      <div className="w-12 h-12 border-2 border-[var(--cafe)] border-t-transparent rounded-full animate-spin" />
+      <p className="font-script text-4xl text-[var(--dorado)]">Click & Papel</p>
+      <p className="font-display text-[var(--cafe)] tracking-widest uppercase text-xs">Cargando tu espacio...</p>
     </div>
   );
 
   // Tiene cuenta pero todavía no aparta ningún evento.
   if (sinEventos) return (
-    <div className="min-h-screen bg-[#fcfbfa] flex flex-col items-center justify-center px-6 text-center font-sans">
+    <div className="min-h-screen bg-[var(--nieve)] flex flex-col items-center justify-center px-6 text-center font-sans">
       <div className="max-w-sm space-y-5">
         <span className="text-4xl block">✉️</span>
-        <h1 className="font-serif text-2xl text-stone-900 font-light">Todavía no tienes un evento</h1>
-        <p className="text-sm text-stone-500 font-light leading-relaxed">
+        <h1 className="font-display text-2xl text-[var(--tinta)] font-light">Todavía no tienes un evento</h1>
+        <p className="text-sm text-[var(--tinta-suave)] font-light leading-relaxed">
           Aparta tu enlace y aquí mismo vas a poder llenar los datos, subir fotos y llevar el control de tus invitados.
         </p>
+        <div className="oro-linea w-24 mx-auto" />
         <a
           href="/registro"
-          className="inline-block bg-stone-900 hover:bg-[#9a7b5c] text-white text-xs uppercase font-bold tracking-widest px-8 py-3.5 rounded-xl transition-colors"
+          className="inline-block bg-[var(--cafe)] hover:bg-[var(--tinta)] text-white text-xs uppercase font-bold tracking-widest px-8 py-3.5 rounded-xl transition-colors"
         >
           Crear mi evento
         </a>
         <button
           type="button"
           onClick={cerrarSesion}
-          className="block mx-auto text-[10px] uppercase tracking-widest text-stone-400 underline cursor-pointer"
+          className="block mx-auto text-[10px] uppercase tracking-widest text-[var(--tinta-suave)] underline cursor-pointer"
         >
           Cerrar sesión
         </button>
@@ -424,19 +432,20 @@ function NoviosDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#fcfbfa] text-stone-800 flex font-sans overflow-hidden">
+    <div className="min-h-screen bg-[var(--nieve)] text-[var(--tinta)] flex font-ui overflow-hidden">
       <audio ref={audioPrevioRef} loop />
 
       {/* 🧭 SIDEBAR ELITE */}
-      <aside className="hidden lg:flex w-64 bg-stone-950 text-stone-300 flex-col py-8 px-6 border-r border-stone-800 relative z-20 shadow-2xl">
-        <div className="font-serif text-2xl tracking-widest font-light text-white mb-12">
-          clicky<span className="font-normal text-[#9a7b5c]">papel</span>
+      <aside className="hidden lg:flex w-64 bg-[#2E211C] text-[var(--crema)] flex-col py-8 px-6 border-r border-white/10 relative z-20 shadow-2xl">
+        <div className="font-display text-2xl tracking-widest font-light text-white mb-1">
+          clicky<span className="font-normal text-[var(--dorado)]">papel</span>
         </div>
+        <p className="font-script text-2xl leading-none text-[var(--dorado)] mb-10">tu historia, en papel</p>
         
         <div className="mb-8">
-          <p className="text-[10px] uppercase tracking-widest text-stone-500 font-bold mb-2">Tu Evento</p>
-          <div className="bg-stone-900 border border-stone-800 p-3 rounded-xl flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#9a7b5c]/20 flex items-center justify-center text-[#9a7b5c] font-serif">
+          <p className="text-[10px] uppercase tracking-widest text-[var(--dorado)] font-bold mb-2">Tu Evento</p>
+          <div className="bg-white/5 border border-white/10 p-3 rounded-xl flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-[var(--dorado)]/15 flex items-center justify-center text-[var(--dorado)] font-display">
               {brideName ? brideName.charAt(0) : 'E'}
             </div>
             <div className="overflow-hidden">
@@ -453,8 +462,8 @@ function NoviosDashboard() {
               onClick={() => setPasoActivo(step.id)} 
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
                 pasoActivo === step.id 
-                  ? 'bg-[#9a7b5c] text-white shadow-lg' 
-                  : 'text-stone-400 hover:bg-stone-900 hover:text-stone-200'
+                  ? 'bg-[var(--cafe)] text-white shadow-lg' 
+                  : 'text-[var(--p1)] hover:bg-white/5 hover:text-white'
               }`}
             >
               <span className="text-base">{step.icon}</span>
@@ -464,118 +473,120 @@ function NoviosDashboard() {
         </nav>
 
         <div className="mt-auto">
-          <a href={`https://tugrandia.icu/${weddingSlug}`} target="_blank" className="flex items-center justify-center gap-2 w-full bg-white text-stone-950 px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-stone-200 transition-colors">
+          <a href={`https://tugrandia.icu/${weddingSlug}`} target="_blank" className="flex items-center justify-center gap-2 w-full bg-[var(--dorado)] text-[#2E211C] px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider hover:brightness-110 transition-colors">
             Ver Invitación ➔
           </a>
         </div>
       </aside>
 
       {/* 🚀 CONTENIDO PRINCIPAL */}
-      <main className="flex-1 h-screen overflow-y-auto bg-[#fcfbfa] relative">
-        <div className="lg:hidden bg-stone-950 p-4 flex justify-between items-center text-white sticky top-0 z-30">
-          <div className="font-serif text-lg tracking-widest">clicky<span className="text-[#9a7b5c]">papel</span></div>
-          <a href={`https://tugrandia.icu/${weddingSlug}`} target="_blank" className="text-[10px] bg-[#9a7b5c] px-3 py-1.5 rounded-full uppercase font-bold">Ver Web</a>
+      <main className="flex-1 h-screen overflow-y-auto bg-[var(--nieve)] relative">
+        <div className="lg:hidden bg-[#2E211C] p-4 flex justify-between items-center text-white sticky top-0 z-30">
+          <div className="font-display text-lg tracking-widest">clicky<span className="text-[var(--dorado)]">papel</span></div>
+          <a href={`https://tugrandia.icu/${weddingSlug}`} target="_blank" className="text-[10px] bg-[var(--cafe)] px-3 py-1.5 rounded-full uppercase font-bold">Ver Web</a>
         </div>
 
         <div className="max-w-5xl mx-auto p-6 md:p-12 space-y-8">
           
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-stone-200 pb-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 pb-6">
             <div>
-              <h1 className="text-3xl font-serif text-stone-900 font-light">
+              <p className="etiqueta text-[var(--cafe)]">Panel de control</p>
+              <h1 className="font-display text-3xl md:text-4xl text-[var(--tinta)] font-light mt-1">
                 {steps.find(s => s.id === pasoActivo)?.name || 'Panel'}
               </h1>
-              <p className="text-sm text-stone-500 font-light mt-1">Configura cada detalle de tu experiencia digital.</p>
+              <p className="text-sm text-[var(--tinta-suave)] font-light mt-1">Configura cada detalle de tu experiencia digital.</p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] uppercase font-bold tracking-widest text-stone-400">Plan actual:</span>
-              <span className="text-[10px] bg-[#e3d5c8] text-[#7a5c43] px-3 py-1 rounded-full font-bold uppercase tracking-wider border border-[#d4c3b3]">
+              <span className="text-[10px] uppercase font-bold tracking-widest text-[var(--tinta-suave)]">Plan actual:</span>
+              <span className="text-[10px] bg-[var(--crema)] text-[var(--cafe)] px-3 py-1 rounded-full font-bold uppercase tracking-wider border border-[var(--p1)]">
                 {planContratado === 'basicos' ? '💍 Esencial' : planContratado === 'premium' ? '🌟 Premium' : '👑 VIP'}
               </span>
             </div>
           </div>
+          <div className="oro-linea" />
 
           <AnimatePresence mode="wait">
             <motion.div key={pasoActivo} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}>
               
               {pasoActivo === 2 && (
                 /* ---------------- PASO 2: DATOS BASE ---------------- */
-                <div className="bg-white rounded-[2rem] p-8 border border-stone-100 shadow-sm space-y-8">
+                <div className="bg-white rounded-[2rem] p-8 border border-[var(--p1)]/50 shadow-[0_2px_24px_rgba(67,48,43,0.05)] space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Festejado 1 / Novia</label>
-                      <input type="text" value={brideName} onChange={(e) => setBrideName(e.target.value)} className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30 focus:border-[#9a7b5c] transition-all" />
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)] ml-1">Festejado 1 / Novia</label>
+                      <input type="text" value={brideName} onChange={(e) => setBrideName(e.target.value)} className="w-full px-4 py-3 border border-[var(--p1)] rounded-xl text-sm bg-[var(--arena)] focus:outline-none focus:ring-2 focus:ring-[var(--cafe)]/30 focus:border-[var(--cafe)] transition-all" />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Festejado 2 / Novio</label>
-                      <input type="text" value={groomName} onChange={(e) => setGroomName(e.target.value)} className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30 focus:border-[#9a7b5c] transition-all" />
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)] ml-1">Festejado 2 / Novio</label>
+                      <input type="text" value={groomName} onChange={(e) => setGroomName(e.target.value)} className="w-full px-4 py-3 border border-[var(--p1)] rounded-xl text-sm bg-[var(--arena)] focus:outline-none focus:ring-2 focus:ring-[var(--cafe)]/30 focus:border-[var(--cafe)] transition-all" />
                     </div>
                     
                     <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Fecha del Evento</label>
-                      <input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30 focus:border-[#9a7b5c] transition-all" />
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)] ml-1">Fecha del Evento</label>
+                      <input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} className="w-full px-4 py-3 border border-[var(--p1)] rounded-xl text-sm bg-[var(--arena)] focus:outline-none focus:ring-2 focus:ring-[var(--cafe)]/30 focus:border-[var(--cafe)] transition-all" />
                     </div>
 
                     <div className="space-y-1.5 md:col-span-2">
-                      <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Frase del Banner (Portada)</label>
-                      <input type="text" value={welcomePhrase} onChange={(e) => setWelcomePhrase(e.target.value)} placeholder="Ej. El amor todo lo cree, todo lo espera, todo lo soporta." className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30 focus:border-[#9a7b5c] transition-all" />
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)] ml-1">Frase del Banner (Portada)</label>
+                      <input type="text" value={welcomePhrase} onChange={(e) => setWelcomePhrase(e.target.value)} placeholder="Ej. El amor todo lo cree, todo lo espera, todo lo soporta." className="w-full px-4 py-3 border border-[var(--p1)] rounded-xl text-sm bg-[var(--arena)] focus:outline-none focus:ring-2 focus:ring-[var(--cafe)]/30 focus:border-[var(--cafe)] transition-all" />
                     </div>
                     
-                    <div className="col-span-1 md:col-span-2 pt-4 border-t border-stone-100">
-                      <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1 block mb-3">
+                    <div className="col-span-1 md:col-span-2 pt-4 border-t border-[var(--p1)]/50">
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)] ml-1 block mb-3">
                         Selecciona el Diseño de tu Invitación
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <button type="button" onClick={() => setTemplateId('v1')} className={`p-5 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-3 relative overflow-hidden group cursor-pointer ${templateId === 'v1' ? 'border-[#9a7b5c] bg-[#9a7b5c]/5 shadow-md' : 'border-stone-200 bg-white hover:border-[#9a7b5c]/50'}`}>
+                        <button type="button" onClick={() => setTemplateId('v1')} className={`p-5 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-3 relative overflow-hidden group cursor-pointer ${templateId === 'v1' ? 'border-[var(--cafe)] bg-[var(--cafe)]/5 shadow-md' : 'border-[var(--p1)] bg-white hover:border-[var(--cafe)]/50'}`}>
                           {templateId === 'v1' && <div className="absolute top-2 right-2 text-xs">✅</div>}
                           <span className="text-3xl filter drop-shadow-sm group-hover:scale-110 transition-transform">✨</span>
                           <div className="text-center">
-                            <span className={`text-[10px] font-bold uppercase tracking-wider block ${templateId === 'v1' ? 'text-[#9a7b5c]' : 'text-stone-700'}`}>V1: Minimalista</span>
-                            <span className="text-[9px] text-stone-400 font-light tracking-wide">Clásica y limpia</span>
+                            <span className={`text-[10px] font-bold uppercase tracking-wider block ${templateId === 'v1' ? 'text-[var(--cafe)]' : 'text-[var(--tinta-suave)]'}`}>V1: Minimalista</span>
+                            <span className="text-[9px] text-[var(--tinta-suave)] font-light tracking-wide">Clásica y limpia</span>
                           </div>
                         </button>
-                        <button type="button" onClick={() => setTemplateId('v2')} className={`p-5 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-3 relative overflow-hidden group cursor-pointer ${templateId === 'v2' ? 'border-[#9a7b5c] bg-[#9a7b5c]/5 shadow-md' : 'border-stone-200 bg-white hover:border-[#9a7b5c]/50'}`}>
+                        <button type="button" onClick={() => setTemplateId('v2')} className={`p-5 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-3 relative overflow-hidden group cursor-pointer ${templateId === 'v2' ? 'border-[var(--cafe)] bg-[var(--cafe)]/5 shadow-md' : 'border-[var(--p1)] bg-white hover:border-[var(--cafe)]/50'}`}>
                           {templateId === 'v2' && <div className="absolute top-2 right-2 text-xs">✅</div>}
                           <span className="text-3xl filter drop-shadow-sm group-hover:scale-110 transition-transform">💎</span>
                           <div className="text-center">
-                            <span className={`text-[10px] font-bold uppercase tracking-wider block ${templateId === 'v2' ? 'text-[#9a7b5c]' : 'text-stone-700'}`}>V2: Editorial</span>
-                            <span className="text-[9px] text-stone-400 font-light tracking-wide">Elegante con cristal</span>
+                            <span className={`text-[10px] font-bold uppercase tracking-wider block ${templateId === 'v2' ? 'text-[var(--cafe)]' : 'text-[var(--tinta-suave)]'}`}>V2: Editorial</span>
+                            <span className="text-[9px] text-[var(--tinta-suave)] font-light tracking-wide">Elegante con cristal</span>
                           </div>
                         </button>
-                        <button type="button" onClick={() => setTemplateId('v3')} className={`p-5 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-3 relative overflow-hidden group cursor-pointer ${templateId === 'v3' ? 'border-[#9a7b5c] bg-[#9a7b5c]/5 shadow-md' : 'border-stone-200 bg-white hover:border-[#9a7b5c]/50'}`}>
+                        <button type="button" onClick={() => setTemplateId('v3')} className={`p-5 rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-3 relative overflow-hidden group cursor-pointer ${templateId === 'v3' ? 'border-[var(--cafe)] bg-[var(--cafe)]/5 shadow-md' : 'border-[var(--p1)] bg-white hover:border-[var(--cafe)]/50'}`}>
                           {templateId === 'v3' && <div className="absolute top-2 right-2 text-xs">✅</div>}
                           <span className="text-3xl filter drop-shadow-sm group-hover:scale-110 transition-transform">🌲</span>
                           <div className="text-center">
-                            <span className={`text-[10px] font-bold uppercase tracking-wider block ${templateId === 'v3' ? 'text-[#9a7b5c]' : 'text-stone-700'}`}>V3: Naturaleza</span>
-                            <span className="text-[9px] text-stone-400 font-light tracking-wide">Animación inmersiva</span>
+                            <span className={`text-[10px] font-bold uppercase tracking-wider block ${templateId === 'v3' ? 'text-[var(--cafe)]' : 'text-[var(--tinta-suave)]'}`}>V3: Naturaleza</span>
+                            <span className="text-[9px] text-[var(--tinta-suave)] font-light tracking-wide">Animación inmersiva</span>
                           </div>
                         </button>
                       </div>
                     </div>
                   </div>
 
-                  <hr className="border-stone-100" />
+                  <div className="oro-linea" />
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Nombre de la Ceremonia</label>
-                      <input type="text" value={ceremoniaLugar} onChange={(e) => setCeremoniaLugar(e.target.value)} className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)] ml-1">Nombre de la Ceremonia</label>
+                      <input type="text" value={ceremoniaLugar} onChange={(e) => setCeremoniaLugar(e.target.value)} className="w-full px-4 py-3 border border-[var(--p1)] rounded-xl text-sm bg-[var(--arena)] focus:outline-none focus:ring-2 focus:ring-[var(--cafe)]/30" />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Link de Google Maps (Ceremonia)</label>
-                      <input type="text" value={ceremoniaMaps} onChange={(e) => setCeremoniaMaps(e.target.value)} className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 font-mono text-stone-500 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)] ml-1">Link de Google Maps (Ceremonia)</label>
+                      <input type="text" value={ceremoniaMaps} onChange={(e) => setCeremoniaMaps(e.target.value)} className="w-full px-4 py-3 border border-[var(--p1)] rounded-xl text-sm bg-[var(--arena)] font-mono text-[var(--tinta-suave)] focus:outline-none focus:ring-2 focus:ring-[var(--cafe)]/30" />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Nombre de la Recepción</label>
-                      <input type="text" value={recepcionLugar} onChange={(e) => setRecepcionLugar(e.target.value)} className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)] ml-1">Nombre de la Recepción</label>
+                      <input type="text" value={recepcionLugar} onChange={(e) => setRecepcionLugar(e.target.value)} className="w-full px-4 py-3 border border-[var(--p1)] rounded-xl text-sm bg-[var(--arena)] focus:outline-none focus:ring-2 focus:ring-[var(--cafe)]/30" />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Link de Google Maps (Recepción)</label>
-                      <input type="text" value={recepcionMaps} onChange={(e) => setRecepcionMaps(e.target.value)} className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 font-mono text-stone-500 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
+                      <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)] ml-1">Link de Google Maps (Recepción)</label>
+                      <input type="text" value={recepcionMaps} onChange={(e) => setRecepcionMaps(e.target.value)} className="w-full px-4 py-3 border border-[var(--p1)] rounded-xl text-sm bg-[var(--arena)] font-mono text-[var(--tinta-suave)] focus:outline-none focus:ring-2 focus:ring-[var(--cafe)]/30" />
                     </div>
                   </div>
 
                   <div className="flex justify-end pt-4">
-                    <button type="button" disabled={guardando} onClick={handleGuardarYContinuar} className="bg-stone-900 hover:bg-[#9a7b5c] text-white px-8 py-3.5 rounded-xl text-xs uppercase tracking-widest font-bold transition-all shadow-md cursor-pointer">
+                    <button type="button" disabled={guardando} onClick={handleGuardarYContinuar} className="bg-[var(--cafe)] hover:bg-[var(--tinta)] text-white px-8 py-3.5 rounded-xl text-xs uppercase tracking-widest font-bold transition-all shadow-md cursor-pointer">
                       {guardando ? 'Guardando...' : 'Guardar y Continuar ➔'}
                     </button>
                   </div>
@@ -592,63 +603,63 @@ function NoviosDashboard() {
                       { t: "Confirmados", v: totalConfirmados, c: "bg-emerald-50 border-emerald-100 text-emerald-800" },
                       { t: "Pendientes", v: pendientes, c: "bg-amber-50 border-amber-100 text-amber-800" }
                     ].map((card, idx) => (
-                      <div key={idx} className={`${card.c} p-5 rounded-2xl border border-stone-100 shadow-sm flex flex-col justify-center`}>
-                        <span className="text-[10px] uppercase font-bold text-stone-400 mb-1">{card.t}</span>
-                        <span className="text-3xl font-light font-serif">{card.v}</span>
+                      <div key={idx} className={`${card.c} p-5 rounded-2xl border border-[var(--p1)]/50 shadow-sm flex flex-col justify-center`}>
+                        <span className="etiqueta text-[var(--tinta-suave)] mb-1">{card.t}</span>
+                        <span className="font-display text-3xl font-light text-[var(--tinta)]">{card.v}</span>
                       </div>
                     ))}
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                    <div className="bg-white rounded-[2rem] p-6 border border-stone-100 shadow-sm space-y-4">
-                      <h3 className="font-serif text-lg font-medium text-stone-900">Nuevo Pase</h3>
+                    <div className="bg-white rounded-[2rem] p-6 border border-[var(--p1)]/50 shadow-[0_2px_24px_rgba(67,48,43,0.05)] space-y-4">
+                      <h3 className="font-display text-lg font-medium text-[var(--tinta)]">Nuevo Pase</h3>
                       <form onSubmit={handleAgregarInvitado} className="space-y-4">
                         <div className="space-y-1.5">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500">Nombre (Familia o Persona)</label>
-                          <input type="text" value={nuevoNombre} onChange={(e) => setNuevoNombre(e.target.value)} required className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:border-[#9a7b5c]" />
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)]">Nombre (Familia o Persona)</label>
+                          <input type="text" value={nuevoNombre} onChange={(e) => setNuevoNombre(e.target.value)} required className="w-full px-4 py-3 border border-[var(--p1)] rounded-xl text-sm bg-[var(--arena)] focus:outline-none focus:border-[var(--cafe)]" />
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500">Número de Pases</label>
-                          <select value={nuevosPases} onChange={(e) => setNuevosPases(parseInt(e.target.value))} className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none font-medium">
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)]">Número de Pases</label>
+                          <select value={nuevosPases} onChange={(e) => setNuevosPases(parseInt(e.target.value))} className="w-full px-4 py-3 border border-[var(--p1)] rounded-xl text-sm bg-[var(--arena)] focus:outline-none font-medium">
                             {[1,2,3,4,5,6,7,8,9,10].map(n => <option key={n} value={n}>{n} {n===1?'Persona':'Personas'}</option>)}
                           </select>
                         </div>
-                        <button type="submit" className="w-full bg-stone-900 text-white text-xs uppercase tracking-widest font-bold py-3.5 rounded-xl transition-colors hover:bg-[#9a7b5c] cursor-pointer">
+                        <button type="submit" className="w-full bg-[var(--cafe)] text-white text-xs uppercase tracking-widest font-bold py-3.5 rounded-xl transition-colors hover:bg-[var(--tinta)] cursor-pointer">
                           Agregar a la Lista
                         </button>
                       </form>
                     </div>
 
-                    <div className="lg:col-span-2 bg-white rounded-[2rem] border border-stone-100 shadow-sm overflow-hidden">
+                    <div className="lg:col-span-2 bg-white rounded-[2rem] border border-[var(--p1)]/50 shadow-[0_2px_24px_rgba(67,48,43,0.05)] overflow-hidden">
                       <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm border-collapse">
                           <thead>
-                            <tr className="bg-stone-50 border-b border-stone-100 text-[10px] uppercase tracking-widest text-stone-400 font-bold">
+                            <tr className="bg-[var(--arena)] border-b border-[var(--p1)]/50 text-[10px] uppercase tracking-widest text-[var(--tinta-suave)] font-bold">
                               <th className="p-4 pl-6 font-medium">Invitado</th>
                               <th className="p-4 text-center font-medium">Pases</th>
                               <th className="p-4 text-center font-medium">Status</th>
                               <th className="p-4 text-center pr-6 font-medium">Acción</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-stone-100">
+                          <tbody className="divide-y divide-[var(--p1)]/50">
                             {invitados.map((inv) => (
-                              <tr key={inv.id} className="hover:bg-stone-50/50 transition-colors">
-                                <td className="p-4 pl-6 font-medium text-stone-800">{inv.nombre_invitado}</td>
-                                <td className="p-4 text-center font-mono text-stone-500">{inv.pases_totales}</td>
+                              <tr key={inv.id} className="hover:bg-[var(--arena)]/50 transition-colors">
+                                <td className="p-4 pl-6 font-medium text-[var(--tinta)]">{inv.nombre_invitado}</td>
+                                <td className="p-4 text-center font-mono text-[var(--tinta-suave)]">{inv.pases_totales}</td>
                                 <td className="p-4 text-center">
                                   <span className={`text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${inv.estado === 'confirmado' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : inv.estado === 'declinado' ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
                                     {inv.estado}
                                   </span>
                                 </td>
                                 <td className="p-4 text-center pr-6 flex items-center justify-center gap-2">
-                                  <button type="button" onClick={() => setInvitadoSeleccionado(inv)} className="bg-white border border-stone-200 text-stone-600 hover:text-[#9a7b5c] hover:border-[#9a7b5c] text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg transition-all shadow-sm cursor-pointer">
+                                  <button type="button" onClick={() => setInvitadoSeleccionado(inv)} className="bg-white border border-[var(--p1)] text-[var(--tinta-suave)] hover:text-[var(--cafe)] hover:border-[var(--cafe)] text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg transition-all shadow-sm cursor-pointer">
                                     Generar QR
                                   </button>
                                   <button type="button" onClick={() => handleEliminarInvitado(inv.id)} className="text-stone-300 hover:text-rose-500 p-1 transition-colors cursor-pointer">✕</button>
                                 </td>
                               </tr>
                             ))}
-                            {invitados.length === 0 && <tr><td colSpan="4" className="p-8 text-center text-stone-400 text-sm font-light italic">Tu lista de invitados está vacía.</td></tr>}
+                            {invitados.length === 0 && <tr><td colSpan="4" className="p-8 text-center text-[var(--tinta-suave)] text-sm font-light italic">Tu lista de invitados está vacía.</td></tr>}
                           </tbody>
                         </table>
                       </div>
@@ -662,16 +673,16 @@ function NoviosDashboard() {
                 <div className="space-y-8">
                   
                   {/* ✨ ÁLBUM PREMIUM BLINDADO Y UPSELL ✨ */}
-                  <div className="bg-stone-950 text-white rounded-[2rem] p-8 border border-stone-800 shadow-2xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#9a7b5c]/20 blur-3xl rounded-full pointer-events-none transform translate-x-1/2 -translate-y-1/2"></div>
+                  <div className="bg-[#2E211C] text-white rounded-[2rem] p-8 border border-white/10 shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--cafe)]/20 blur-3xl rounded-full pointer-events-none transform translate-x-1/2 -translate-y-1/2"></div>
                     
                     {planContratado === 'basicos' ? (
                       <div className="relative z-10 flex flex-col md:flex-row items-center text-center md:text-left gap-6">
                         <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center text-4xl shrink-0">🔒</div>
                         <div className="space-y-3">
                           <span className="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold px-3 py-1 rounded-full uppercase tracking-widest font-mono">Función Premium</span>
-                          <h3 className="font-serif text-3xl font-light">Álbum Colectivo Bloqueado</h3>
-                          <p className="text-sm text-stone-400 font-light leading-relaxed max-w-lg">
+                          <h3 className="font-display text-3xl font-light">Álbum Colectivo Bloqueado</h3>
+                          <p className="text-sm text-[var(--p1)] font-light leading-relaxed max-w-lg">
                             Tu plan actual (Esencial) no incluye la cámara en vivo para tus invitados. Desbloquea esta función y permite que todos suban fotos de tu fiesta escaneando un QR.
                           </p>
                           <button type="button" onClick={() => manejarUpgrade('album')} className="mt-2 bg-amber-600 hover:bg-amber-500 text-white px-6 py-3 rounded-xl text-xs uppercase tracking-widest font-bold transition-all shadow-lg cursor-pointer">
@@ -683,17 +694,17 @@ function NoviosDashboard() {
                       <div className="relative z-10">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                           <div className="space-y-2 max-w-xl">
-                            <span className="text-[9px] bg-[#9a7b5c]/20 text-[#e3d5c8] border border-[#9a7b5c]/40 font-bold px-3 py-1 rounded-full uppercase tracking-widest font-mono">Alta Costura Funcional</span>
-                            <h3 className="font-serif text-3xl font-light">Álbum Colectivo en Vivo</h3>
-                            <p className="text-sm text-stone-400 font-light leading-relaxed">Coloca este código QR en las mesas de tu evento. Tus invitados escanearán y subirán sus fotos directamente a este carrete digital que quedará para la historia.</p>
+                            <span className="text-[9px] bg-[var(--cafe)]/20 text-[var(--crema)] border border-[var(--cafe)]/40 font-bold px-3 py-1 rounded-full uppercase tracking-widest font-mono">Alta Costura Funcional</span>
+                            <h3 className="font-display text-3xl font-light">Álbum Colectivo en Vivo</h3>
+                            <p className="text-sm text-[var(--p1)] font-light leading-relaxed">Coloca este código QR en las mesas de tu evento. Tus invitados escanearán y subirán sus fotos directamente a este carrete digital que quedará para la historia.</p>
                           </div>
-                          <button type="button" onClick={toggleAlbumCompartido} className={`shrink-0 px-6 py-3 rounded-xl text-xs uppercase tracking-widest font-bold transition-all shadow-lg cursor-pointer border ${albumActivado ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-white text-stone-900 border-white hover:bg-stone-200'}`}>
+                          <button type="button" onClick={toggleAlbumCompartido} className={`shrink-0 px-6 py-3 rounded-xl text-xs uppercase tracking-widest font-bold transition-all shadow-lg cursor-pointer border ${albumActivado ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-white text-[var(--tinta)] border-white hover:bg-stone-200'}`}>
                             {albumActivado ? '✅ Función Activada' : 'Activar Carrete'}
                           </button>
                         </div>
 
                         {albumActivado && (
-                          <div className="mt-8 pt-8 border-t border-stone-800 flex flex-col md:flex-row gap-8 items-center md:items-start">
+                          <div className="mt-8 pt-8 border-t border-white/10 flex flex-col md:flex-row gap-8 items-center md:items-start">
                             <div className="flex flex-col items-center gap-3 shrink-0">
                               <div className="bg-white p-3 rounded-2xl shadow-xl w-32 h-32 flex items-center justify-center">
                                  <img 
@@ -712,12 +723,12 @@ function NoviosDashboard() {
                             </div>
 
                             <div className="w-full text-left">
-                              <h4 className="text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-4">Capturas del Evento ({fotosDelEvento.length})</h4>
+                              <h4 className="text-[10px] font-bold uppercase tracking-widest text-[var(--p1)] mb-4">Capturas del Evento ({fotosDelEvento.length})</h4>
                               {fotosDelEvento.length === 0 ? (
-                                <div className="w-full h-24 border border-dashed border-stone-800 rounded-xl flex items-center justify-center text-xs text-stone-500 font-light">Esperando la primera foto de tus invitados...</div>
+                                <div className="w-full h-24 border border-dashed border-white/15 rounded-xl flex items-center justify-center text-xs text-[var(--p1)] font-light">Esperando la primera foto de tus invitados...</div>
                               ) : (
                                 <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
-                                  {fotosDelEvento.map((url, i) => <div key={i} className="w-20 h-20 shrink-0 bg-stone-800 rounded-xl overflow-hidden border border-stone-700"><img src={url} className="w-full h-full object-cover" /></div>)}
+                                  {fotosDelEvento.map((url, i) => <div key={i} className="w-20 h-20 shrink-0 bg-white/10 rounded-xl overflow-hidden border border-white/10"><img src={url} className="w-full h-full object-cover" /></div>)}
                                 </div>
                               )}
                             </div>
@@ -729,36 +740,36 @@ function NoviosDashboard() {
 
                   {/* LÓGICA CONDICIONAL V2 */}
                   {templateId === 'v2' && (
-                    <div className="bg-white rounded-[2rem] p-8 border border-[#9a7b5c]/30 shadow-sm space-y-6 bg-gradient-to-br from-white to-[#f5f0ea]/30">
+                    <div className="bg-white rounded-[2rem] p-8 border border-[var(--cafe)]/40 shadow-[0_2px_24px_rgba(67,48,43,0.05)] space-y-6 bg-gradient-to-br from-white to-[var(--arena)]/30">
                       <div className="space-y-1">
-                        <span className="text-[9px] bg-[#9a7b5c] text-white font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Requisito V2 Editorial</span>
-                        <h3 className="font-serif text-2xl font-light text-stone-900">Fotografías de las Locaciones</h3>
-                        <p className="text-xs text-stone-500 font-light">Como elegiste el diseño de Alta Costura, sube las fotos de tu iglesia y salón para que luzcan a pantalla dividida en el itinerario.</p>
+                        <span className="text-[9px] bg-[var(--cafe)] text-white font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono">Requisito V2 Editorial</span>
+                        <h3 className="font-display text-2xl font-light text-[var(--tinta)]">Fotografías de las Locaciones</h3>
+                        <p className="text-xs text-[var(--tinta-suave)] font-light">Como elegiste el diseño de Alta Costura, sube las fotos de tu iglesia y salón para que luzcan a pantalla dividida en el itinerario.</p>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-3">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500">Foto Ceremonia / Misa</label>
-                          <div className="relative w-full aspect-video bg-stone-100 rounded-xl overflow-hidden border border-stone-200 flex items-center justify-center group">
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)]">Foto Ceremonia / Misa</label>
+                          <div className="relative w-full aspect-video bg-stone-100 rounded-xl overflow-hidden border border-[var(--p1)] flex items-center justify-center group">
                             {ceremoniaFoto ? (
                               <img src={ceremoniaFoto} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                             ) : (
-                              <span className="text-stone-400 font-light text-xs">Sin imagen</span>
+                              <span className="text-[var(--tinta-suave)] font-light text-xs">Sin imagen</span>
                             )}
-                            <label className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm text-stone-900 text-[9px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full shadow-lg cursor-pointer hover:bg-white transition-colors">
+                            <label className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm text-[var(--tinta)] text-[9px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full shadow-lg cursor-pointer hover:bg-white transition-colors">
                               {subiendoIndex === 'ceremonia' ? 'Cargando...' : 'Subir Foto'}
                               <input type="file" accept="image/*" onChange={(e) => handleSubirArchivo(e, null, 'ceremonia')} className="hidden" />
                             </label>
                           </div>
                         </div>
                         <div className="space-y-3">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500">Foto Recepción / Banquete</label>
-                          <div className="relative w-full aspect-video bg-stone-100 rounded-xl overflow-hidden border border-stone-200 flex items-center justify-center group">
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)]">Foto Recepción / Banquete</label>
+                          <div className="relative w-full aspect-video bg-stone-100 rounded-xl overflow-hidden border border-[var(--p1)] flex items-center justify-center group">
                             {recepcionFoto ? (
                               <img src={recepcionFoto} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                             ) : (
-                              <span className="text-stone-400 font-light text-xs">Sin imagen</span>
+                              <span className="text-[var(--tinta-suave)] font-light text-xs">Sin imagen</span>
                             )}
-                            <label className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm text-stone-900 text-[9px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full shadow-lg cursor-pointer hover:bg-white transition-colors">
+                            <label className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-sm text-[var(--tinta)] text-[9px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full shadow-lg cursor-pointer hover:bg-white transition-colors">
                               {subiendoIndex === 'recepcion' ? 'Cargando...' : 'Subir Foto'}
                               <input type="file" accept="image/*" onChange={(e) => handleSubirArchivo(e, null, 'recepcion')} className="hidden" />
                             </label>
@@ -770,45 +781,45 @@ function NoviosDashboard() {
 
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* ✨ AUDIO STUDIO CON UPSELL DE MÚSICA ✨ */}
-                    <div className="bg-white rounded-[2rem] p-8 border border-stone-100 shadow-sm space-y-6">
+                    <div className="bg-white rounded-[2rem] p-8 border border-[var(--p1)]/50 shadow-[0_2px_24px_rgba(67,48,43,0.05)] space-y-6">
                       <div className="space-y-1">
-                        <h3 className="font-serif text-2xl font-light text-stone-900">Diseño Sonoro</h3>
-                        <p className="text-xs font-light text-stone-500">Selecciona la pista de audio que acompañará la lectura de tu invitación.</p>
+                        <h3 className="font-display text-2xl font-light text-[var(--tinta)]">Diseño Sonoro</h3>
+                        <p className="text-xs font-light text-[var(--tinta-suave)]">Selecciona la pista de audio que acompañará la lectura de tu invitación.</p>
                       </div>
                       
                       <div className="space-y-3">
                         {cancionesCatalogo.map((track) => (
-                          <div key={track.id} className={`group flex items-center justify-between p-4 rounded-xl border transition-all ${musicUrl === track.url ? 'border-[#9a7b5c] bg-[#faf9f6]' : 'border-stone-100 hover:border-stone-300'}`}>
+                          <div key={track.id} className={`group flex items-center justify-between p-4 rounded-xl border transition-all ${musicUrl === track.url ? 'border-[var(--cafe)] bg-[var(--arena)]' : 'border-[var(--p1)]/50 hover:border-stone-300'}`}>
                             <div className="flex items-center gap-4">
-                              <button type="button" onClick={() => escucharCancion(track.url)} className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors cursor-pointer ${cancionSonando === track.url ? 'bg-[#9a7b5c] text-white shadow-md' : 'bg-stone-100 text-stone-500 group-hover:bg-stone-200'}`}>
+                              <button type="button" onClick={() => escucharCancion(track.url)} className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors cursor-pointer ${cancionSonando === track.url ? 'bg-[var(--cafe)] text-white shadow-md' : 'bg-[var(--arena)] text-[var(--tinta-suave)] group-hover:bg-[var(--crema)]'}`}>
                                 {cancionSonando === track.url ? '⏸' : '▶'}
                               </button>
                               <div>
-                                <p className="text-sm font-medium text-stone-800">{track.titulo}</p>
-                                <p className="text-[10px] text-stone-400 font-mono mt-0.5">{track.bpm} • Stereo Mix</p>
+                                <p className="text-sm font-medium text-[var(--tinta)]">{track.titulo}</p>
+                                <p className="text-[10px] text-[var(--tinta-suave)] font-mono mt-0.5">{track.bpm} • Stereo Mix</p>
                               </div>
                             </div>
-                            <input type="radio" name="audioTrack" checked={musicUrl === track.url} onChange={() => setMusicUrl(track.url)} className="w-4 h-4 accent-[#9a7b5c] cursor-pointer" />
+                            <input type="radio" name="audioTrack" checked={musicUrl === track.url} onChange={() => setMusicUrl(track.url)} className="w-4 h-4 accent-[var(--cafe)] cursor-pointer" />
                           </div>
                         ))}
                       </div>
 
                       {/* ZONA DE CANCIÓN PERSONALIZADA ($299) */}
-                      <div className="mt-6 pt-6 border-t border-stone-100">
+                      <div className="mt-6 pt-6 border-t border-[var(--p1)]/50">
                         {tieneMusicaPersonalizada ? (
                           <div className="space-y-3">
                             <label className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 block">✨ Tu Canción MP3 Personalizada</label>
-                            <label className="flex items-center justify-center w-full p-4 border-2 border-dashed border-[#9a7b5c] rounded-xl cursor-pointer hover:bg-[#faf9f6] transition-colors">
-                              <span className="text-xs font-bold text-[#9a7b5c] uppercase tracking-widest">
+                            <label className="flex items-center justify-center w-full p-4 border-2 border-dashed border-[var(--cafe)] rounded-xl cursor-pointer hover:bg-[var(--arena)] transition-colors">
+                              <span className="text-xs font-bold text-[var(--cafe)] uppercase tracking-widest">
                                 {subiendoMusica ? 'Subiendo audio...' : '📤 Cargar archivo .mp3'}
                               </span>
                               <input type="file" accept="audio/mp3,audio/mpeg" onChange={handleSubirMusica} className="hidden" />
                             </label>
                           </div>
                         ) : (
-                          <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 text-center space-y-3">
-                            <p className="text-xs text-stone-500 font-medium">¿Tienes una canción especial que significa mucho para ustedes?</p>
-                            <button type="button" onClick={() => manejarUpgrade('musica')} className="bg-stone-900 text-white px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-[#9a7b5c] transition-colors cursor-pointer shadow-md">
+                          <div className="bg-[var(--arena)] p-4 rounded-xl border border-[var(--p1)] text-center space-y-3">
+                            <p className="text-xs text-[var(--tinta-suave)] font-medium">¿Tienes una canción especial que significa mucho para ustedes?</p>
+                            <button type="button" onClick={() => manejarUpgrade('musica')} className="bg-[var(--cafe)] text-white px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-[var(--tinta)] transition-colors cursor-pointer shadow-md">
                               Subir mi propia canción (+$299 MXN)
                             </button>
                           </div>
@@ -817,15 +828,15 @@ function NoviosDashboard() {
                     </div>
 
                     {/* Portada */}
-                    <div className="bg-white rounded-[2rem] p-8 border border-stone-100 shadow-sm space-y-6">
-                      <h3 className="font-serif text-2xl font-light text-stone-900">Fotografía Principal</h3>
-                      <div className="relative w-full aspect-[4/3] bg-stone-100 rounded-2xl overflow-hidden border border-stone-200 group flex items-center justify-center">
+                    <div className="bg-white rounded-[2rem] p-8 border border-[var(--p1)]/50 shadow-[0_2px_24px_rgba(67,48,43,0.05)] space-y-6">
+                      <h3 className="font-display text-2xl font-light text-[var(--tinta)]">Fotografía Principal</h3>
+                      <div className="relative w-full aspect-[4/3] bg-stone-100 rounded-2xl overflow-hidden border border-[var(--p1)] group flex items-center justify-center">
                         {coverImage ? (
                           <img src={coverImage} alt="Portada" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                         ) : (
-                          <span className="text-stone-400 font-light text-sm">Sin imagen de portada</span>
+                          <span className="text-[var(--tinta-suave)] font-light text-sm">Sin imagen de portada</span>
                         )}
-                        <label className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm text-stone-900 text-[10px] uppercase tracking-widest font-bold px-4 py-2 rounded-full shadow-lg cursor-pointer hover:bg-white transition-colors">
+                        <label className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm text-[var(--tinta)] text-[10px] uppercase tracking-widest font-bold px-4 py-2 rounded-full shadow-lg cursor-pointer hover:bg-white transition-colors">
                           {subiendoIndex === 'portada' ? 'Cargando...' : 'Cambiar Foto'}
                           <input type="file" accept="image/*" onChange={(e) => handleSubirArchivo(e, null, 'portada')} className="hidden" />
                         </label>
@@ -833,32 +844,32 @@ function NoviosDashboard() {
                     </div>
                     
                     {/* GALERÍA DINÁMICA */}
-                    <div className="lg:col-span-2 bg-white rounded-[2rem] p-8 border border-stone-100 shadow-sm space-y-6">
+                    <div className="lg:col-span-2 bg-white rounded-[2rem] p-8 border border-[var(--p1)]/50 shadow-[0_2px_24px_rgba(67,48,43,0.05)] space-y-6">
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4">
                         <div className="space-y-1">
-                          <h3 className="font-serif text-2xl font-light text-stone-900">Galería Fotográfica Base</h3>
-                          <p className="text-xs font-light text-stone-500">Estas fotos aparecerán en la cuadrícula de tu invitación.</p>
+                          <h3 className="font-display text-2xl font-light text-[var(--tinta)]">Galería Fotográfica Base</h3>
+                          <p className="text-xs font-light text-[var(--tinta-suave)]">Estas fotos aparecerán en la cuadrícula de tu invitación.</p>
                         </div>
-                        <span className="text-[10px] bg-stone-100 text-stone-500 px-3 py-1.5 rounded-full font-bold uppercase tracking-widest shrink-0">
+                        <span className="text-[10px] bg-[var(--arena)] text-[var(--tinta-suave)] px-3 py-1.5 rounded-full font-bold uppercase tracking-widest shrink-0">
                           {fotosSubidasCount} de {maxFotosPermitidas} Fotos
                         </span>
                       </div>
 
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                         {Array.from({ length: maxFotosPermitidas }).map((_, index) => (
-                          <div key={index} className="relative aspect-[4/5] bg-stone-50 rounded-xl overflow-hidden border border-stone-200 group flex flex-col items-center justify-center">
+                          <div key={index} className="relative aspect-[4/5] bg-[var(--arena)] rounded-xl overflow-hidden border border-[var(--p1)] group flex flex-col items-center justify-center">
                             {galeriaFotos[index] ? (
                               <>
                                 <img src={galeriaFotos[index]} alt={`Galeria ${index + 1}`} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                                <label className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm text-stone-900 text-[9px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full shadow-lg cursor-pointer hover:bg-white transition-colors">
+                                <label className="absolute bottom-2 right-2 bg-white/90 backdrop-blur-sm text-[var(--tinta)] text-[9px] uppercase tracking-widest font-bold px-3 py-1.5 rounded-full shadow-lg cursor-pointer hover:bg-white transition-colors">
                                   {subiendoIndex === index ? '...' : 'Editar'}
                                   <input type="file" accept="image/*" onChange={(e) => handleSubirArchivo(e, index, 'galeria')} className="hidden" />
                                 </label>
                               </>
                             ) : (
-                              <label className="flex flex-col items-center justify-center w-full h-full cursor-pointer hover:bg-stone-100 transition-colors">
+                              <label className="flex flex-col items-center justify-center w-full h-full cursor-pointer hover:bg-[var(--crema)] transition-colors">
                                 <span className="text-2xl mb-2 opacity-20">📷</span>
-                                <span className="text-[9px] uppercase font-bold text-stone-400 tracking-widest">
+                                <span className="text-[9px] uppercase font-bold text-[var(--tinta-suave)] tracking-widest">
                                   {subiendoIndex === index ? 'Subiendo...' : 'Agregar Foto'}
                                 </span>
                                 <input type="file" accept="image/*" onChange={(e) => handleSubirArchivo(e, index, 'galeria')} className="hidden" />
@@ -871,7 +882,7 @@ function NoviosDashboard() {
                   </div>
 
                   <div className="flex justify-end pt-4">
-                    <button type="button" disabled={guardando} onClick={handleGuardarPaso4} className="bg-stone-900 hover:bg-[#9a7b5c] text-white px-8 py-3.5 rounded-xl text-xs uppercase tracking-widest font-bold transition-all shadow-md cursor-pointer">
+                    <button type="button" disabled={guardando} onClick={handleGuardarPaso4} className="bg-[var(--cafe)] hover:bg-[var(--tinta)] text-white px-8 py-3.5 rounded-xl text-xs uppercase tracking-widest font-bold transition-all shadow-md cursor-pointer">
                        Guardar y Avanzar ➔
                     </button>
                   </div>
@@ -882,39 +893,39 @@ function NoviosDashboard() {
               {pasoActivo === 5 && (
                 /* ---------------- PASO 5: REGALOS ---------------- */
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="bg-white rounded-[2rem] p-8 border border-stone-100 shadow-sm space-y-6">
-                    <h3 className="font-serif text-2xl font-light text-stone-900">Transferencias / Efectivo</h3>
+                  <div className="bg-white rounded-[2rem] p-8 border border-[var(--p1)]/50 shadow-[0_2px_24px_rgba(67,48,43,0.05)] space-y-6">
+                    <h3 className="font-display text-2xl font-light text-[var(--tinta)]">Transferencias / Efectivo</h3>
                     <div className="space-y-4">
                       <div className="space-y-1.5">
-                        <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Institución Bancaria</label>
-                        <input type="text" value={banco} onChange={(e) => setBanco(e.target.value)} placeholder="Ej. BBVA o Santander" className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)] ml-1">Institución Bancaria</label>
+                        <input type="text" value={banco} onChange={(e) => setBanco(e.target.value)} placeholder="Ej. BBVA o Santander" className="w-full px-4 py-3 border border-[var(--p1)] rounded-xl text-sm bg-[var(--arena)] focus:outline-none focus:ring-2 focus:ring-[var(--cafe)]/30" />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Nombre del Titular</label>
-                        <input type="text" value={titular} onChange={(e) => setTitular(e.target.value)} className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)] ml-1">Nombre del Titular</label>
+                        <input type="text" value={titular} onChange={(e) => setTitular(e.target.value)} className="w-full px-4 py-3 border border-[var(--p1)] rounded-xl text-sm bg-[var(--arena)] focus:outline-none focus:ring-2 focus:ring-[var(--cafe)]/30" />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">CLABE Interbancaria (18 dígitos)</label>
-                        <input type="text" maxLength={18} value={clabe} onChange={(e) => setClabe(e.target.value)} className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 font-mono focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)] ml-1">CLABE Interbancaria (18 dígitos)</label>
+                        <input type="text" maxLength={18} value={clabe} onChange={(e) => setClabe(e.target.value)} className="w-full px-4 py-3 border border-[var(--p1)] rounded-xl text-sm bg-[var(--arena)] font-mono focus:outline-none focus:ring-2 focus:ring-[var(--cafe)]/30" />
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-[2rem] p-8 border border-stone-100 shadow-sm space-y-6 flex flex-col">
-                    <h3 className="font-serif text-2xl font-light text-stone-900">Mesas de Regalos Online</h3>
+                  <div className="bg-white rounded-[2rem] p-8 border border-[var(--p1)]/50 shadow-[0_2px_24px_rgba(67,48,43,0.05)] space-y-6 flex flex-col">
+                    <h3 className="font-display text-2xl font-light text-[var(--tinta)]">Mesas de Regalos Online</h3>
                     <div className="space-y-4 flex-1">
                       <div className="space-y-1.5">
-                        <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Enlace Mesa Amazon</label>
-                        <input type="url" value={amazonUrl} onChange={(e) => setAmazonUrl(e.target.value)} placeholder="https://amazon.com.mx/..." className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 font-mono text-stone-500 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)] ml-1">Enlace Mesa Amazon</label>
+                        <input type="url" value={amazonUrl} onChange={(e) => setAmazonUrl(e.target.value)} placeholder="https://amazon.com.mx/..." className="w-full px-4 py-3 border border-[var(--p1)] rounded-xl text-sm bg-[var(--arena)] font-mono text-[var(--tinta-suave)] focus:outline-none focus:ring-2 focus:ring-[var(--cafe)]/30" />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Enlace Mesa Liverpool / Palacio</label>
-                        <input type="url" value={liverpoolUrl} onChange={(e) => setLiverpoolUrl(e.target.value)} placeholder="https://liverpool.com.mx/..." className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 font-mono text-stone-500 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
+                        <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)] ml-1">Enlace Mesa Liverpool / Palacio</label>
+                        <input type="url" value={liverpoolUrl} onChange={(e) => setLiverpoolUrl(e.target.value)} placeholder="https://liverpool.com.mx/..." className="w-full px-4 py-3 border border-[var(--p1)] rounded-xl text-sm bg-[var(--arena)] font-mono text-[var(--tinta-suave)] focus:outline-none focus:ring-2 focus:ring-[var(--cafe)]/30" />
                       </div>
                     </div>
                     
                     <div className="flex justify-end pt-4">
-                      <button type="button" disabled={guardando} onClick={handleGuardarPaso5} className="bg-stone-900 hover:bg-[#9a7b5c] text-white px-8 py-3.5 rounded-xl text-xs uppercase tracking-widest font-bold transition-all shadow-md cursor-pointer">
+                      <button type="button" disabled={guardando} onClick={handleGuardarPaso5} className="bg-[var(--cafe)] hover:bg-[var(--tinta)] text-white px-8 py-3.5 rounded-xl text-xs uppercase tracking-widest font-bold transition-all shadow-md cursor-pointer">
                          Guardar Regalos ➔
                       </button>
                     </div>
@@ -924,66 +935,66 @@ function NoviosDashboard() {
 
               {pasoActivo === 6 && (
                 /* 👇 AQUÍ ESTÁN POR FIN LAS 5 HORAS COMPLETAS EN PANTALLA 👇 */
-                <div className="bg-white rounded-[2rem] p-8 border border-stone-100 shadow-sm space-y-8">
+                <div className="bg-white rounded-[2rem] p-8 border border-[var(--p1)]/50 shadow-[0_2px_24px_rgba(67,48,43,0.05)] space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     
                     <div className="space-y-6">
                       <div className="space-y-2">
-                        <h3 className="font-serif text-2xl font-light text-stone-900">Cronograma</h3>
-                        <p className="text-xs text-stone-500 font-light">Establece los horarios clave para guiar a tus invitados.</p>
+                        <h3 className="font-display text-2xl font-light text-[var(--tinta)]">Cronograma</h3>
+                        <p className="text-xs text-[var(--tinta-suave)] font-light">Establece los horarios clave para guiar a tus invitados.</p>
                       </div>
                       <div className="space-y-4">
                         <div className="space-y-1.5">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">⛪ Hora de la Ceremonia (Misa)</label>
-                          <input type="text" value={itinerarioMisa} onChange={(e) => setItinerarioMisa(e.target.value)} placeholder="Ej. 17:00 hrs" className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)] ml-1">⛪ Hora de la Ceremonia (Misa)</label>
+                          <input type="text" value={itinerarioMisa} onChange={(e) => setItinerarioMisa(e.target.value)} placeholder="Ej. 17:00 hrs" className="w-full px-4 py-3 border border-[var(--p1)] rounded-xl text-sm bg-[var(--arena)] focus:outline-none focus:ring-2 focus:ring-[var(--cafe)]/30" />
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">🥂 Hora de la Recepción (Banquete)</label>
-                          <input type="text" value={itinerarioFiesta} onChange={(e) => setItinerarioFiesta(e.target.value)} placeholder="Ej. 19:30 hrs" className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)] ml-1">🥂 Hora de la Recepción (Banquete)</label>
+                          <input type="text" value={itinerarioFiesta} onChange={(e) => setItinerarioFiesta(e.target.value)} placeholder="Ej. 19:30 hrs" className="w-full px-4 py-3 border border-[var(--p1)] rounded-xl text-sm bg-[var(--arena)] focus:outline-none focus:ring-2 focus:ring-[var(--cafe)]/30" />
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">✨ Baile / Vals</label>
-                          <input type="text" value={horaBaile} onChange={(e) => setHoraBaile(e.target.value)} placeholder="Ej. 21:00 hrs" className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)] ml-1">✨ Baile / Vals</label>
+                          <input type="text" value={horaBaile} onChange={(e) => setHoraBaile(e.target.value)} placeholder="Ej. 21:00 hrs" className="w-full px-4 py-3 border border-[var(--p1)] rounded-xl text-sm bg-[var(--arena)] focus:outline-none focus:ring-2 focus:ring-[var(--cafe)]/30" />
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">🎉 Fiesta</label>
-                          <input type="text" value={horaShow} onChange={(e) => setHoraShow(e.target.value)} placeholder="Ej. 22:00 hrs" className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)] ml-1">🎉 Fiesta</label>
+                          <input type="text" value={horaShow} onChange={(e) => setHoraShow(e.target.value)} placeholder="Ej. 22:00 hrs" className="w-full px-4 py-3 border border-[var(--p1)] rounded-xl text-sm bg-[var(--arena)] focus:outline-none focus:ring-2 focus:ring-[var(--cafe)]/30" />
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">🕛 Fin de fiesta</label>
-                          <input type="text" value={horaFin} onChange={(e) => setHoraFin(e.target.value)} placeholder="Ej. 02:00 am" className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)] ml-1">🕛 Fin de fiesta</label>
+                          <input type="text" value={horaFin} onChange={(e) => setHoraFin(e.target.value)} placeholder="Ej. 02:00 am" className="w-full px-4 py-3 border border-[var(--p1)] rounded-xl text-sm bg-[var(--arena)] focus:outline-none focus:ring-2 focus:ring-[var(--cafe)]/30" />
                         </div>
                       </div>
                     </div>
 
                     <div className="space-y-6">
                       <div className="space-y-2">
-                        <h3 className="font-serif text-2xl font-light text-stone-900">Protocolo</h3>
-                        <p className="text-xs text-stone-500 font-light">Comunica el vestuario y la paleta de colores del evento.</p>
+                        <h3 className="font-display text-2xl font-light text-[var(--tinta)]">Protocolo</h3>
+                        <p className="text-xs text-[var(--tinta-suave)] font-light">Comunica el vestuario y la paleta de colores del evento.</p>
                       </div>
                       <div className="space-y-4">
                         <div className="space-y-1.5">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Código de Vestimenta</label>
-                          <select value={codigoVestimentaText} onChange={(e) => setCodigoVestimentaText(e.target.value)} className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30 font-medium text-stone-700 cursor-pointer">
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)] ml-1">Código de Vestimenta</label>
+                          <select value={codigoVestimentaText} onChange={(e) => setCodigoVestimentaText(e.target.value)} className="w-full px-4 py-3 border border-[var(--p1)] rounded-xl text-sm bg-[var(--arena)] focus:outline-none focus:ring-2 focus:ring-[var(--cafe)]/30 font-medium text-[var(--tinta-suave)] cursor-pointer">
                             <option value="formal">Gala / Etiqueta Formal</option>
                             <option value="coctel">Vestimenta de Cóctel</option>
                             <option value="guayabera">Guayabera / Playa Chic</option>
                           </select>
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-stone-500 ml-1">Paleta de Colores Sugerida</label>
-                          <input type="text" value={paletaColores} onChange={(e) => setPaletaColores(e.target.value)} placeholder="Ej. Tonos terracota y verde olivo" className="w-full px-4 py-3 border border-stone-200 rounded-xl text-sm bg-stone-50 focus:outline-none focus:ring-2 focus:ring-[#9a7b5c]/30" />
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-[var(--tinta-suave)] ml-1">Paleta de Colores Sugerida</label>
+                          <input type="text" value={paletaColores} onChange={(e) => setPaletaColores(e.target.value)} placeholder="Ej. Tonos terracota y verde olivo" className="w-full px-4 py-3 border border-[var(--p1)] rounded-xl text-sm bg-[var(--arena)] focus:outline-none focus:ring-2 focus:ring-[var(--cafe)]/30" />
                         </div>
                       </div>
                     </div>
 
                   </div>
 
-                  <hr className="border-stone-100" />
+                  <div className="oro-linea" />
                   
                   <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2">
-                    <p className="text-xs text-stone-400 font-light">Al guardar, los cambios se reflejarán instantáneamente en la invitación en vivo.</p>
-                    <button type="button" disabled={guardando} onClick={handleGuardarPaso6} className="w-full sm:w-auto bg-[#9a7b5c] hover:bg-stone-900 text-white px-8 py-4 rounded-xl text-xs uppercase tracking-widest font-bold transition-all shadow-lg cursor-pointer">
+                    <p className="text-xs text-[var(--tinta-suave)] font-light">Al guardar, los cambios se reflejarán instantáneamente en la invitación en vivo.</p>
+                    <button type="button" disabled={guardando} onClick={handleGuardarPaso6} className="w-full sm:w-auto bg-[var(--cafe)] hover:bg-[var(--tinta)] text-white px-8 py-4 rounded-xl text-xs uppercase tracking-widest font-bold transition-all shadow-lg cursor-pointer">
                       {guardando ? 'Sincronizando...' : '🚀 Publicar Cambios'}
                     </button>
                   </div>
@@ -998,10 +1009,11 @@ function NoviosDashboard() {
       <AnimatePresence>
         {invitadoSeleccionado && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }} className="bg-white rounded-[2rem] p-8 text-center space-y-6 max-w-sm w-full shadow-2xl border border-stone-100">
-              <h4 className="font-serif text-xl font-light text-stone-900">Tarjeta de Acceso</h4>
-              <div className="bg-[#fcfbfa] border border-stone-200 rounded-2xl p-6 space-y-5 shadow-inner">
-                <h5 className="font-serif text-lg text-[#9a7b5c]">{brideName || 'Evento'} & {groomName}</h5>
+            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }} className="bg-white rounded-[2rem] p-8 text-center space-y-6 max-w-sm w-full shadow-2xl border border-[var(--p1)]/50">
+              <h4 className="font-display text-xl font-light text-[var(--tinta)]">Tarjeta de Acceso</h4>
+              <div className="oro-linea w-16 mx-auto" />
+              <div className="bg-[var(--nieve)] border border-[var(--p1)] rounded-2xl p-6 space-y-5 shadow-inner">
+                <h5 className="font-display text-lg text-[var(--cafe)]">{brideName || 'Evento'} & {groomName}</h5>
                 <div className="w-40 h-40 mx-auto bg-white p-3 rounded-2xl border shadow-sm flex items-center justify-center">
                   <img 
                     src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`https://tugrandia.icu/${weddingSlug}/rsvp?id=${invitadoSeleccionado.id}`)}&margin=10`} 
@@ -1010,13 +1022,13 @@ function NoviosDashboard() {
                   />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-stone-800">{invitadoSeleccionado.nombre_invitado}</p>
-                  <p className="text-[10px] uppercase tracking-widest text-stone-500 mt-1">
-                    Pases Autorizados: <span className="font-bold text-stone-900">{invitadoSeleccionado.pases_totales}</span>
+                  <p className="text-sm font-bold text-[var(--tinta)]">{invitadoSeleccionado.nombre_invitado}</p>
+                  <p className="text-[10px] uppercase tracking-widest text-[var(--tinta-suave)] mt-1">
+                    Pases Autorizados: <span className="font-bold text-[var(--tinta)]">{invitadoSeleccionado.pases_totales}</span>
                   </p>
                 </div>
               </div>
-              <button type="button" onClick={() => setInvitadoSeleccionado(null)} className="w-full bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold uppercase tracking-widest py-3.5 rounded-xl transition-colors cursor-pointer">
+              <button type="button" onClick={() => setInvitadoSeleccionado(null)} className="w-full bg-[var(--arena)] hover:bg-[var(--crema)] text-[var(--tinta-suave)] text-xs font-bold uppercase tracking-widest py-3.5 rounded-xl transition-colors cursor-pointer">
                 Cerrar Boleto
               </button>
             </motion.div>
@@ -1031,8 +1043,8 @@ function NoviosDashboard() {
 export default function DashboardPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#fcfbfa] flex items-center justify-center">
-        <div className="w-12 h-12 border-2 border-[#9a7b5c] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[var(--nieve)] flex items-center justify-center">
+        <div className="w-12 h-12 border-2 border-[var(--cafe)] border-t-transparent rounded-full animate-spin" />
       </div>
     }>
       <NoviosDashboard />

@@ -62,6 +62,7 @@ export default function InvitationHero({ weddingData }) {
         />
       </motion.div>
       <div className="absolute inset-0 bg-black/40 z-10" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50 z-10" />
 
       {/* ✨ Contenido Emocional de la Invitación (Animado) */}
       <motion.div 
@@ -70,36 +71,38 @@ export default function InvitationHero({ weddingData }) {
         initial="hidden"
         animate="show"
       >
-        <motion.span variants={itemVariants} className="font-serif tracking-widest text-xs uppercase mb-4 text-amber-200/90">
+        <motion.span variants={itemVariants} className="etiqueta mb-4 text-[var(--dorado)] drop-shadow-md">
           ¡Nos Casamos!
         </motion.span>
         
         {/* Nombres */}
-        <motion.h1 variants={itemVariants} className="text-5xl md:text-7xl font-serif font-light my-2 tracking-wide drop-shadow-md">
-          {brideName} <span className="text-amber-300 font-normal">&</span> {groomName}
+        <motion.h1 variants={itemVariants} className="font-display text-5xl md:text-7xl font-light my-2 tracking-wide drop-shadow-md">
+          {brideName} <span className="font-script text-[var(--dorado)] font-normal">&</span> {groomName}
         </motion.h1>
         
-        <motion.p variants={itemVariants} className="font-light italic text-sm md:text-base text-gray-200/90 mt-4 max-w-md px-4 drop-shadow-md">
+        <motion.p variants={itemVariants} className="font-display font-light italic text-base md:text-lg text-white/90 mt-4 max-w-md px-4 drop-shadow-md">
           "{welcomePhrase || 'El amor todo lo cree, todo lo espera, todo lo soporta.'}"
         </motion.p>
 
+        <motion.div variants={itemVariants} className="oro-linea w-24 mt-8" aria-hidden="true" />
+
         {/* Bloque de la Cuenta Regresiva */}
-        <motion.div variants={itemVariants} className="mt-12 grid grid-cols-4 gap-4 md:gap-6 bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-2xl max-w-md w-full shadow-2xl">
+        <motion.div variants={itemVariants} className="mt-8 grid grid-cols-4 gap-4 md:gap-6 bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-[2rem] max-w-md w-full shadow-2xl">
           <div className="flex flex-col">
-            <span className="text-3xl md:text-4xl font-serif font-light text-amber-200">{timeLeft.days}</span>
-            <span className="text-[10px] uppercase tracking-wider text-gray-300 mt-1">Días</span>
+            <span className="font-display text-3xl md:text-4xl font-light text-[var(--dorado)] drop-shadow-md">{timeLeft.days}</span>
+            <span className="etiqueta text-white/70 mt-1">Días</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-3xl md:text-4xl font-serif font-light text-amber-200">{timeLeft.hours}</span>
-            <span className="text-[10px] uppercase tracking-wider text-gray-300 mt-1">Horas</span>
+            <span className="font-display text-3xl md:text-4xl font-light text-[var(--dorado)] drop-shadow-md">{timeLeft.hours}</span>
+            <span className="etiqueta text-white/70 mt-1">Horas</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-3xl md:text-4xl font-serif font-light text-amber-200">{timeLeft.minutes}</span>
-            <span className="text-[10px] uppercase tracking-wider text-gray-300 mt-1">Min</span>
+            <span className="font-display text-3xl md:text-4xl font-light text-[var(--dorado)] drop-shadow-md">{timeLeft.minutes}</span>
+            <span className="etiqueta text-white/70 mt-1">Min</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-3xl md:text-4xl font-serif font-light text-amber-200">{timeLeft.seconds}</span>
-            <span className="text-[10px] uppercase tracking-wider text-gray-300 mt-1">Seg</span>
+            <span className="font-display text-3xl md:text-4xl font-light text-[var(--dorado)] drop-shadow-md">{timeLeft.seconds}</span>
+            <span className="etiqueta text-white/70 mt-1">Seg</span>
           </div>
         </motion.div>
       </motion.div>
@@ -111,8 +114,8 @@ export default function InvitationHero({ weddingData }) {
         animate={{ opacity: 0.7, y: [0, 8, 0] }}
         transition={{ delay: 2, duration: 2, repeat: Infinity }}
       >
-        <span className="text-[10px] tracking-widest uppercase text-gray-300 font-light drop-shadow-md mb-2">Desliza para ver más</span>
-        <div className="w-px h-6 bg-gray-300/50" />
+        <span className="etiqueta text-white/80 font-light drop-shadow-md mb-2">Desliza para ver más</span>
+        <div className="w-px h-6 bg-[var(--dorado)]/70" />
       </motion.div>
     </section>
   );

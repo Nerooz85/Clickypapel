@@ -19,6 +19,11 @@ import GiftRegistry from '@/components/GiftRegistry';
 import QuoteBanner from '@/components/QuoteBanner'; 
 import RsvpModule from '@/components/RsvpModule';
 
+// 🎭 Slugs demo explícitos: SOLO estos muestran la invitación de ejemplo.
+// La landing y /registro enlazan /bruno-y-brisa como "Ver completa".
+// Cualquier otro slug sin invitación real muestra "Invitación no encontrada".
+const SLUGS_DEMO = ['bruno-y-brisa'];
+
 const ScrollReveal = ({ children }) => {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef(null);
@@ -86,22 +91,28 @@ export default function PaginaMaestraInvitacion() {
       const { data, error } = await supabase.from('bodas').select('*').eq('slug', slugLimpio).maybeSingle();
 
       if (error || !data) {
-        let templateFallback = esXV ? 'xv-v1' : 'v1';
-        if (slugLimpio.includes('boda-v2')) templateFallback = 'v2';
-        if (slugLimpio.includes('boda-v3')) templateFallback = 'v3';
+        // 🎭 Sin invitación real: solo los slugs demo explícitos muestran el
+        // ejemplo. El resto queda sin datos → "Invitación no encontrada".
+        if (!SLUGS_DEMO.includes(slugLimpio)) {
+          setWeddingData(null);
+        } else {
+          let templateFallback = esXV ? 'xv-v1' : 'v1';
+          if (slugLimpio.includes('boda-v2')) templateFallback = 'v2';
+          if (slugLimpio.includes('boda-v3')) templateFallback = 'v3';
 
-        setWeddingData({
-          id: 'demo-id', slug: slugLimpio, 
-          groomName: esXV ? '' : 'Bruno',
-          brideName: esXV ? 'Sofía' : 'Brisa',
-          eventDate: "2026-12-19T18:00:00", 
-          coverImage: esXV ? "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7" : "https://images.unsplash.com/photo-1519741497674-611481863552", 
-          galleryImages: [], musicUrl: '/music/1. Clásico Romántico.mp3', albumCompartidoActivo: true,
-          ceremoniaLugar: 'Parroquia de Nuestra Señora', recepcionLugar: 'Quinta Gran Jardín',
-          banco: 'BBVA', titular: esXV ? 'Familia de Sofía' : 'Bruno y Brisa', clabe: '012345678901234567',
-          pagoConfirmado: true,
-        });
-        setPlantillaActiva(templateFallback);
+          setWeddingData({
+            id: 'demo-id', slug: slugLimpio, 
+            groomName: esXV ? '' : 'Bruno',
+            brideName: esXV ? 'Sofía' : 'Brisa',
+            eventDate: "2026-12-19T18:00:00", 
+            coverImage: esXV ? "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7" : "https://images.unsplash.com/photo-1519741497674-611481863552", 
+            galleryImages: [], musicUrl: '/music/1. Clásico Romántico.mp3', albumCompartidoActivo: true,
+            ceremoniaLugar: 'Parroquia de Nuestra Señora', recepcionLugar: 'Quinta Gran Jardín',
+            banco: 'BBVA', titular: esXV ? 'Familia de Sofía' : 'Bruno y Brisa', clabe: '012345678901234567',
+            pagoConfirmado: true,
+          });
+          setPlantillaActiva(templateFallback);
+        }
       } else {
         setWeddingData({
           id: data.id, 
@@ -194,12 +205,12 @@ export default function PaginaMaestraInvitacion() {
   };
 
   const listadoPaletas = {
-    cashmere: { bgGlobal: 'bg-[#f5f0ea] text-[#4a3f35]', textAcento: 'text-[#9a7b5c]', btn: 'bg-[#9a7b5c] text-white' },
-    matcha: { bgGlobal: 'bg-[#eef2eb] text-[#1f3022]', textAcento: 'text-[#3f6345]', btn: 'bg-[#3f6345] text-white' },
-    terracota: { bgGlobal: 'bg-[#fbf1ea] text-[#5c2a1a]', textAcento: 'text-[#c85a3a]', btn: 'bg-[#c85a3a] text-white' },
-    celestial: { bgGlobal: 'bg-[#eef2f6] text-[#1e3246]', textAcento: 'text-[#466a8e]', btn: 'bg-[#466a8e] text-white' },
-    obsidian: { bgGlobal: 'bg-[#121214] text-[#f4f4f5]', textAcento: 'text-[#d4d4d8]', btn: 'bg-[#f4f4f5] text-[#121214]' },
-    rosegold: { bgGlobal: 'bg-rose-50 text-stone-800', textAcento: 'text-rose-400', btn: 'bg-rose-400 text-white' }
+    cashmere: { id: 'cashmere', bgGlobal: 'bg-[var(--nieve)] text-[var(--tinta)]', textAcento: 'text-[var(--cafe)]', btn: 'bg-[var(--cafe)] hover:bg-[var(--tinta)] text-[var(--nieve)]', colorCard: 'bg-[var(--nieve)] border-[var(--terracota)]/40 shadow-[0_20px_50px_-20px_rgba(67,48,43,0.35)] text-[var(--tinta)]', fuenteTitulo: 'font-display', botonAcento: 'bg-[var(--cafe)] hover:bg-[var(--tinta)] text-[var(--nieve)]' },
+    matcha: { id: 'matcha', bgGlobal: 'bg-[#eef2eb] text-[#1f3022]', textAcento: 'text-[#3f6345]', btn: 'bg-[#3f6345] hover:bg-[#2c4a33] text-white', colorCard: 'bg-[#f4f7f2] border-[#c8d8c2] shadow-md text-[#1f3022]', fuenteTitulo: 'font-display', botonAcento: 'bg-[#3f6345] hover:bg-[#2c4a33] text-white' },
+    terracota: { id: 'terracota', bgGlobal: 'bg-[#fbf1ea] text-[#5c2a1a]', textAcento: 'text-[#c85a3a]', btn: 'bg-[#c85a3a] hover:bg-[#a84a2e] text-white', colorCard: 'bg-[#fdf6f1] border-[#eccdbd] shadow-md text-[#5c2a1a]', fuenteTitulo: 'font-display', botonAcento: 'bg-[#c85a3a] hover:bg-[#a84a2e] text-white' },
+    celestial: { id: 'celestial', bgGlobal: 'bg-[#eef2f6] text-[#1e3246]', textAcento: 'text-[#466a8e]', btn: 'bg-[#466a8e] hover:bg-[#35506c] text-white', colorCard: 'bg-[#f4f7fa] border-[#c9d8e6] shadow-md text-[#1e3246]', fuenteTitulo: 'font-display', botonAcento: 'bg-[#466a8e] hover:bg-[#35506c] text-white' },
+    obsidian: { id: 'obsidian', bgGlobal: 'bg-[#121214] text-[#f4f4f5]', textAcento: 'text-[#d4d4d8]', btn: 'bg-[#f4f4f5] hover:bg-white text-[#121214]', colorCard: 'bg-[#1c1c1f] border-[#2e2e33] shadow-md text-[#f4f4f5]', fuenteTitulo: 'font-display', botonAcento: 'bg-[#f4f4f5] hover:bg-white text-[#121214]' },
+    rosegold: { id: 'rosegold', bgGlobal: 'bg-rose-50 text-stone-800', textAcento: 'text-rose-400', btn: 'bg-rose-400 hover:bg-rose-500 text-white', colorCard: 'bg-white border-rose-100 shadow-md text-stone-800', fuenteTitulo: 'font-display', botonAcento: 'bg-rose-400 hover:bg-rose-500 text-white' }
   };
 
   const coloresVisuales = { cashmere: '#e6dfd5', matcha: '#dfe8da', terracota: '#eedad1', celestial: '#dbe4ed', obsidian: '#1f1f22', rosegold: '#fce7eb' };
@@ -216,8 +227,14 @@ export default function PaginaMaestraInvitacion() {
     alert(`Redirigiendo al checkout...\n\nEvento: ${tipoEventoGlobal}\nDiseño elegido: ${plantillaActiva}\nColor: ${paletaActiva}\nFuente: ${fuenteActiva}`);
   };
 
-  if (cargando) return <div className="min-h-screen bg-[#faf9f6] flex items-center justify-center"><div className="w-10 h-10 border-2 border-[#9a7b5c] border-t-transparent rounded-full animate-spin" /></div>;
-  if (!weddingData) return <div className="min-h-screen flex items-center justify-center text-stone-400 font-sans">Invitación no encontrada</div>;
+  if (cargando) return <div className="min-h-screen bg-[var(--nieve)] flex items-center justify-center"><div className="w-10 h-10 border-2 border-[var(--cafe)] border-t-transparent rounded-full animate-spin" /></div>;
+  if (!weddingData) return (
+    <div className="min-h-screen bg-[var(--nieve)] flex flex-col items-center justify-center gap-4 px-6 text-center">
+      <p className="font-display text-xl text-[var(--tinta-suave)]">Invitación no encontrada</p>
+      <p className="text-xs text-[var(--tinta-suave)] font-light">Es posible que el enlace esté incompleto o que la invitación ya no exista.</p>
+      <a href="/" className="bg-[var(--cafe)] text-white text-xs uppercase font-bold tracking-widest px-5 py-3 rounded-xl">← Volver al inicio</a>
+    </div>
+  );
 
   return (
     <main className={`min-h-screen overflow-x-hidden relative ${diseño.bgGlobal} ${claseFuente} ${esModoVentas ? 'pt-24 md:pt-16' : ''}`}>
@@ -231,17 +248,17 @@ export default function PaginaMaestraInvitacion() {
           initial={{ y: -60 }}
           animate={{ y: 0 }}
           transition={{ delay: 0.8 }}
-          className="fixed top-0 left-0 right-0 z-[300] bg-stone-950/95 backdrop-blur-md text-white px-4 py-2.5 flex items-center justify-between gap-3 font-sans shadow-lg"
+          className="fixed top-0 left-0 right-0 z-[300] bg-[var(--tinta)]/95 backdrop-blur-md text-[var(--nieve)] px-4 py-2.5 flex items-center justify-between gap-3 font-ui shadow-lg"
         >
           <div className="min-w-0">
-            <p className="text-[10px] uppercase tracking-widest font-bold text-amber-400">Vista previa</p>
-            <p className="text-[11px] text-stone-300 font-light truncate">
+            <p className="text-[10px] uppercase tracking-widest font-bold text-[var(--dorado)]">Vista previa</p>
+            <p className="text-[11px] text-[var(--crema)]/80 font-light truncate">
               Solo tú la ves. Publícala para compartirla.
             </p>
           </div>
           <a
             href={`/checkout?slug=${weddingData.slug}&plan=${weddingData.planTipo || 'premium'}`}
-            className="shrink-0 bg-amber-600 hover:bg-amber-500 text-white text-[10px] uppercase tracking-widest font-bold px-4 py-2.5 rounded-full transition-colors"
+            className="shrink-0 bg-[var(--cafe)] hover:bg-[var(--terracota)] hover:text-[var(--tinta)] text-[var(--nieve)] text-[10px] uppercase tracking-widest font-bold px-4 py-2.5 rounded-full transition-colors"
           >
             Publicar
           </a>
@@ -250,10 +267,10 @@ export default function PaginaMaestraInvitacion() {
 
       {/* 🚀 HEADER TIPO TABS (PESTAÑAS) */}
       {esModoVentas && (
-        <header className="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md border-b border-stone-200 px-6 py-2 flex items-center justify-between z-[200] font-sans shadow-sm">
+        <header className="fixed top-0 left-0 right-0 bg-[var(--nieve)]/95 backdrop-blur-md border-b border-[var(--terracota)]/40 px-6 py-2 flex items-center justify-between z-[200] font-ui shadow-sm">
           
-          <a href="https://clickypapel.com" className="font-serif text-lg tracking-widest text-stone-900 hidden md:block shrink-0">
-            clicky<span className="text-[#9a7b5c]">papel</span>
+          <a href="https://clickypapel.com" className="font-display text-lg tracking-widest text-[var(--tinta)] hidden md:block shrink-0">
+            clicky<span className="text-[var(--cafe)]">papel</span>
           </a>
 
           {/* Menú de categorías Inteligente (TABS) */}
@@ -267,8 +284,8 @@ export default function PaginaMaestraInvitacion() {
                   onClick={() => handleCambioCategoria(categoria)}
                   className={`text-[9px] md:text-[10px] font-black tracking-widest uppercase transition-all py-3 border-b-[3px] shrink-0 flex items-center gap-1 ${
                     isActive 
-                      ? 'text-stone-900 border-[#9a7b5c]' 
-                      : 'text-stone-400 border-transparent hover:text-stone-700'
+                      ? 'text-[var(--tinta)] border-[var(--cafe)]' 
+                      : 'text-[var(--tinta-suave)]/70 border-transparent hover:text-[var(--tinta)]'
                   }`}
                 >
                   {categoria}
@@ -277,7 +294,7 @@ export default function PaginaMaestraInvitacion() {
             })}
           </nav>
 
-          <button onClick={procesarCompra} className="hidden md:flex bg-stone-950 hover:bg-stone-800 text-white text-[10px] uppercase tracking-widest font-bold px-6 py-2.5 rounded-full transition-colors shadow-lg items-center gap-2 shrink-0">
+          <button onClick={procesarCompra} className="hidden md:flex bg-[var(--cafe)] hover:bg-[var(--tinta)] text-[var(--nieve)] text-[10px] uppercase tracking-widest font-bold px-6 py-2.5 rounded-full transition-colors shadow-lg items-center gap-2 shrink-0">
             ✨ Quiero esta
           </button>
         </header>
@@ -289,11 +306,11 @@ export default function PaginaMaestraInvitacion() {
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 1 }}
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] bg-white/95 backdrop-blur-xl px-6 py-3.5 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-stone-200/80 flex items-center gap-6 font-sans w-[90%] md:w-auto overflow-x-auto no-scrollbar"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] bg-[var(--nieve)]/95 backdrop-blur-xl px-6 py-3.5 rounded-full shadow-[0_10px_40px_rgba(67,48,43,0.18)] border border-[var(--terracota)]/40 flex items-center gap-6 font-ui w-[90%] md:w-auto overflow-x-auto no-scrollbar"
         >
           {/* Selector de Plantilla Visual */}
-          <div className="flex items-center gap-3 border-r border-stone-200 pr-6 shrink-0">
-            <span className="text-[8px] uppercase font-bold text-stone-400 tracking-widest">Diseño</span>
+          <div className="flex items-center gap-3 border-r border-[var(--crema)] pr-6 shrink-0">
+            <span className="text-[8px] uppercase font-bold text-[var(--tinta-suave)] tracking-widest">Diseño</span>
             {tipoEventoGlobal === 'boda' ? (
               <div className="flex gap-2">
                 <button onClick={() => setPlantillaActiva('v1')} className={`text-xl transition-transform hover:scale-110 ${plantillaActiva === 'v1' ? 'filter drop-shadow-md scale-110' : 'opacity-40 grayscale'}`} title="Clásica">✨</button>
@@ -311,14 +328,14 @@ export default function PaginaMaestraInvitacion() {
           </div>
 
           {/* Selector de Color en Círculos */}
-          <div className="flex items-center gap-2 border-r border-stone-200 pr-6 shrink-0">
-             <span className="text-[8px] uppercase font-bold text-stone-400 tracking-widest mr-1">Color</span>
+          <div className="flex items-center gap-2 border-r border-[var(--crema)] pr-6 shrink-0">
+             <span className="text-[8px] uppercase font-bold text-[var(--tinta-suave)] tracking-widest mr-1">Color</span>
              {Object.keys(coloresVisuales).map((key) => (
                <button 
                  key={key} 
                  onClick={() => setPaletaActiva(key)} 
                  title={key}
-                 className={`w-5 h-5 rounded-full border transition-all ${paletaActiva === key ? 'border-stone-900 scale-125 shadow-sm' : 'border-stone-200 hover:scale-110'}`}
+                 className={`w-5 h-5 rounded-full border transition-all ${paletaActiva === key ? 'border-[var(--tinta)] scale-125 shadow-sm' : 'border-[var(--terracota)]/50 hover:scale-110'}`}
                  style={{ backgroundColor: coloresVisuales[key] }}
                />
              ))}
@@ -326,8 +343,8 @@ export default function PaginaMaestraInvitacion() {
 
           {/* Selector de Tipografía Simple */}
           <div className="flex items-center gap-2 shrink-0">
-            <span className="text-[8px] uppercase font-bold text-stone-400 tracking-widest">Letra</span>
-            <select value={fuenteActiva} onChange={(e) => setFuenteActiva(e.target.value)} className="bg-stone-100/80 border border-stone-200 text-[10px] font-bold text-stone-600 rounded-lg px-2 py-1 outline-none cursor-pointer">
+            <span className="text-[8px] uppercase font-bold text-[var(--tinta-suave)] tracking-widest">Letra</span>
+            <select value={fuenteActiva} onChange={(e) => setFuenteActiva(e.target.value)} className="bg-[var(--arena)] border border-[var(--terracota)]/40 text-[10px] font-bold text-[var(--tinta-suave)] rounded-lg px-2 py-1 outline-none cursor-pointer">
               <option value="clasica">Clásica</option>
               <option value="cursiva">Cursiva</option>
               <option value="editorial">Editorial</option>
@@ -337,7 +354,7 @@ export default function PaginaMaestraInvitacion() {
           </div>
           
           {/* Botón comprar móvil */}
-          <button onClick={procesarCompra} className="md:hidden bg-stone-950 text-white text-[9px] uppercase tracking-widest font-bold px-4 py-2 rounded-full shrink-0 ml-2">
+          <button onClick={procesarCompra} className="md:hidden bg-[var(--cafe)] text-[var(--nieve)] text-[9px] uppercase tracking-widest font-bold px-4 py-2 rounded-full shrink-0 ml-2">
             Comprar
           </button>
         </motion.div>
@@ -346,17 +363,17 @@ export default function PaginaMaestraInvitacion() {
       {/* ANIMACIÓN DEL SOBRE */}
       <AnimatePresence>
         {!sobreAbierto && (
-          <motion.div key="sobreMaster" className="fixed inset-0 z-[999] flex flex-col items-center justify-center overflow-hidden bg-[#e8e4de]" exit={{ opacity: 0 }} transition={{ duration: 0.9, delay: 0.2 }}>
-            <motion.div className="absolute top-0 left-0 right-0 h-1/2 bg-[#e8e4de] border-b border-[#d8caba] shadow-md origin-top" exit={{ y: '-100%' }} transition={{ duration: 0.75, ease: [0.76, 0, 0.24, 1] }} />
-            <motion.div className="absolute bottom-0 left-0 right-0 h-1/2 bg-[#e8e4de] border-t border-white/40 origin-bottom" exit={{ y: '100%' }} transition={{ duration: 0.75, ease: [0.76, 0, 0.24, 1] }} />
+          <motion.div key="sobreMaster" className="fixed inset-0 z-[999] flex flex-col items-center justify-center overflow-hidden bg-[var(--arena)]" exit={{ opacity: 0 }} transition={{ duration: 0.9, delay: 0.2 }}>
+            <motion.div className="absolute top-0 left-0 right-0 h-1/2 bg-[var(--arena)] border-b border-[var(--terracota)]/50 shadow-md origin-top" exit={{ y: '-100%' }} transition={{ duration: 0.75, ease: [0.76, 0, 0.24, 1] }} />
+            <motion.div className="absolute bottom-0 left-0 right-0 h-1/2 bg-[var(--arena)] border-t border-[var(--nieve)]/60 origin-bottom" exit={{ y: '100%' }} transition={{ duration: 0.75, ease: [0.76, 0, 0.24, 1] }} />
             <motion.button onClick={abrirSobre} exit={{ scale: 0, opacity: 0 }} transition={{ duration: 0.35 }} className="relative z-10 flex flex-col items-center gap-4 group select-none">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#ba9f83] to-[#8a6b4c] shadow-2xl border-4 border-[#e8e4de] flex items-center justify-center relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[var(--terracota)] to-[var(--cafe)] shadow-[0_16px_36px_-12px_rgba(67,48,43,0.55)] border-4 border-[var(--arena)] flex items-center justify-center relative overflow-hidden group-hover:scale-105 transition-transform duration-500">
                 <div className="absolute inset-0 bg-white/20 rounded-full animate-ping opacity-75"></div>
-                <span className="text-white font-serif text-2xl font-light relative z-10 tracking-wider">
+                <span className="text-[var(--nieve)] font-script text-3xl relative z-10">
                   {tipoEventoGlobal === 'xvanos' ? 'XV' : `${weddingData.brideName?.charAt(0)}&${weddingData.groomName?.charAt(0)}`}
                 </span>
               </div>
-              <span className="text-[#8a6b4c] text-[10px] uppercase tracking-[0.3em] font-bold animate-pulse">Toca para abrir</span>
+              <span className="etiqueta text-[var(--cafe)] animate-pulse">Toca para abrir</span>
             </motion.button>
           </motion.div>
         )}
@@ -364,7 +381,7 @@ export default function PaginaMaestraInvitacion() {
 
       <div className={`transition-opacity duration-1000 delay-300 w-full ${sobreAbierto ? 'opacity-100' : 'opacity-0 h-screen overflow-hidden pointer-events-none'}`}>
         
-        <button type="button" onClick={toggleMusicaFlotante} className="fixed bottom-24 md:bottom-6 left-6 z-[150] bg-white/90 text-stone-900 backdrop-blur-md border border-stone-200 p-3 rounded-full shadow-xl text-xs pointer-events-auto">{musicaSonando ? '🎵 ⏸️' : '🔇 ▶️'}</button>
+        <button type="button" onClick={toggleMusicaFlotante} className="fixed bottom-24 md:bottom-6 left-6 z-[150] bg-[var(--nieve)]/90 text-[var(--tinta)] backdrop-blur-md border border-[var(--terracota)]/40 p-3 rounded-full shadow-[0_10px_30px_-10px_rgba(67,48,43,0.4)] text-xs pointer-events-auto">{musicaSonando ? '🎵 ⏸️' : '🔇 ▶️'}</button>
 
         <div className="space-y-12 pb-24 md:pb-16">
           
@@ -378,19 +395,34 @@ export default function PaginaMaestraInvitacion() {
             : <InvitationHero weddingData={weddingData} diseño={diseño} />}
           </ScrollReveal>
 
+          <div className="oro-linea mx-auto w-24" aria-hidden="true" />
+
           <ScrollReveal>{plantillaActiva === 'v2' || plantillaActiva === 'v3' ? <EventTimelineV2 weddingData={weddingData} diseño={diseño} /> : <EventTimeline weddingData={weddingData} diseño={diseño} />}</ScrollReveal>
+
+          <div className="oro-linea mx-auto w-24" aria-hidden="true" />
+
           {weddingData.galleryImages && weddingData.galleryImages.length > 0 && <ScrollReveal><PhotoGallery weddingData={weddingData} images={weddingData.galleryImages} diseño={diseño} /></ScrollReveal>}
+
+          <div className="oro-linea mx-auto w-24" aria-hidden="true" />
+
           <ScrollReveal><GiftRegistry weddingData={weddingData} diseño={diseño} /></ScrollReveal>
+
+          <div className="oro-linea mx-auto w-24" aria-hidden="true" />
+
           <ScrollReveal><QuoteBanner weddingData={weddingData} diseño={diseño} /></ScrollReveal>
+
+          <div className="oro-linea mx-auto w-24" aria-hidden="true" />
+
           <ScrollReveal><RsvpModule weddingId={weddingData.id} weddingSlug={weddingData.slug} diseño={diseño} /></ScrollReveal>
         </div>
         
-        <footer className="text-center py-12 bg-transparent text-stone-400 text-[9px] uppercase tracking-widest font-sans">
+        <footer className="text-center py-12 bg-transparent text-[var(--tinta-suave)] etiqueta font-ui">
+          <div className="oro-linea mx-auto w-24 mb-6" aria-hidden="true" />
           {esModoVentas
             ? 'Demostración de plataforma interactiva'
             : weddingData && !weddingData.pagoConfirmado
               ? 'Vista previa · Invitación sin publicar'
-              : <>Creado en <a href="https://clickypapel.com" target="_blank" className="font-bold hover:text-[#9a7b5c]">ClickyPapel</a></>}
+              : <>Creado en <a href="https://clickypapel.com" target="_blank" className="font-bold text-[var(--tinta)] hover:text-[var(--cafe)]">ClickyPapel</a></>}
         </footer>
       </div>
     </main>
