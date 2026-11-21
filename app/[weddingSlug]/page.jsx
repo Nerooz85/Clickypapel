@@ -19,6 +19,11 @@ import GiftRegistry from '@/components/GiftRegistry';
 import QuoteBanner from '@/components/QuoteBanner'; 
 import RsvpModule from '@/components/RsvpModule';
 
+// 🎭 Slugs demo explícitos: SOLO estos muestran la invitación de ejemplo.
+// La landing y /registro enlazan /bruno-y-brisa como "Ver completa".
+// Cualquier otro slug sin invitación real muestra "Invitación no encontrada".
+const SLUGS_DEMO = ['bruno-y-brisa'];
+
 const ScrollReveal = ({ children }) => {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef(null);
@@ -86,22 +91,28 @@ export default function PaginaMaestraInvitacion() {
       const { data, error } = await supabase.from('bodas').select('*').eq('slug', slugLimpio).maybeSingle();
 
       if (error || !data) {
-        let templateFallback = esXV ? 'xv-v1' : 'v1';
-        if (slugLimpio.includes('boda-v2')) templateFallback = 'v2';
-        if (slugLimpio.includes('boda-v3')) templateFallback = 'v3';
+        // 🎭 Sin invitación real: solo los slugs demo explícitos muestran el
+        // ejemplo. El resto queda sin datos → "Invitación no encontrada".
+        if (!SLUGS_DEMO.includes(slugLimpio)) {
+          setWeddingData(null);
+        } else {
+          let templateFallback = esXV ? 'xv-v1' : 'v1';
+          if (slugLimpio.includes('boda-v2')) templateFallback = 'v2';
+          if (slugLimpio.includes('boda-v3')) templateFallback = 'v3';
 
-        setWeddingData({
-          id: 'demo-id', slug: slugLimpio, 
-          groomName: esXV ? '' : 'Bruno',
-          brideName: esXV ? 'Sofía' : 'Brisa',
-          eventDate: "2026-12-19T18:00:00", 
-          coverImage: esXV ? "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7" : "https://images.unsplash.com/photo-1519741497674-611481863552", 
-          galleryImages: [], musicUrl: '/music/1. Clásico Romántico.mp3', albumCompartidoActivo: true,
-          ceremoniaLugar: 'Parroquia de Nuestra Señora', recepcionLugar: 'Quinta Gran Jardín',
-          banco: 'BBVA', titular: esXV ? 'Familia de Sofía' : 'Bruno y Brisa', clabe: '012345678901234567',
-          pagoConfirmado: true,
-        });
-        setPlantillaActiva(templateFallback);
+          setWeddingData({
+            id: 'demo-id', slug: slugLimpio, 
+            groomName: esXV ? '' : 'Bruno',
+            brideName: esXV ? 'Sofía' : 'Brisa',
+            eventDate: "2026-12-19T18:00:00", 
+            coverImage: esXV ? "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7" : "https://images.unsplash.com/photo-1519741497674-611481863552", 
+            galleryImages: [], musicUrl: '/music/1. Clásico Romántico.mp3', albumCompartidoActivo: true,
+            ceremoniaLugar: 'Parroquia de Nuestra Señora', recepcionLugar: 'Quinta Gran Jardín',
+            banco: 'BBVA', titular: esXV ? 'Familia de Sofía' : 'Bruno y Brisa', clabe: '012345678901234567',
+            pagoConfirmado: true,
+          });
+          setPlantillaActiva(templateFallback);
+        }
       } else {
         setWeddingData({
           id: data.id, 
@@ -217,7 +228,13 @@ export default function PaginaMaestraInvitacion() {
   };
 
   if (cargando) return <div className="min-h-screen bg-[var(--nieve)] flex items-center justify-center"><div className="w-10 h-10 border-2 border-[var(--cafe)] border-t-transparent rounded-full animate-spin" /></div>;
-  if (!weddingData) return <div className="min-h-screen bg-[var(--nieve)] flex items-center justify-center font-display text-xl text-[var(--tinta-suave)]">Invitación no encontrada</div>;
+  if (!weddingData) return (
+    <div className="min-h-screen bg-[var(--nieve)] flex flex-col items-center justify-center gap-4 px-6 text-center">
+      <p className="font-display text-xl text-[var(--tinta-suave)]">Invitación no encontrada</p>
+      <p className="text-xs text-[var(--tinta-suave)] font-light">Es posible que el enlace esté incompleto o que la invitación ya no exista.</p>
+      <a href="/" className="bg-[var(--cafe)] text-white text-xs uppercase font-bold tracking-widest px-5 py-3 rounded-xl">← Volver al inicio</a>
+    </div>
+  );
 
   return (
     <main className={`min-h-screen overflow-x-hidden relative ${diseño.bgGlobal} ${claseFuente} ${esModoVentas ? 'pt-24 md:pt-16' : ''}`}>

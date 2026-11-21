@@ -1,9 +1,17 @@
 "use client";
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
 export default function InvitadosDashboard() {
-  const weddingSlug = 'bruno-y-brisa'; // Vinculado de forma automatizada a la boda activa
+  const router = useRouter();
+
+  // 🔐 El slug NUNCA se hardcodea: se resuelve desde la sesión, igual que el
+  // dashboard principal — las bodas del usuario, ?slug= o la más reciente.
+  // Antes era 'bruno-y-brisa' fijo: cualquier usuario veía y editaba los
+  // invitados de la boda demo, nunca los suyos.
+  const [weddingSlug, setWeddingSlug] = useState(null);
+  const [sinEventos, setSinEventos] = useState(false);
 
   // Estados del módulo
   const [invitados, setInvitados] = useState([]);
@@ -16,6 +24,7 @@ export default function InvitadosDashboard() {
 
   // Cargar lista de invitados desde Supabase
   const cargarInvitados = async () => {
+    if (!weddingSlug) return;
     setCargando(true);
     const { data, error } = await supabase
       .from('invitados')
@@ -29,9 +38,45 @@ export default function InvitadosDashboard() {
     setCargando(false);
   };
 
+  // 🔐 Paso 1: sesión → bodas del usuario → slug a gestionar.
   useEffect(() => {
-    cargarInvitados();
-  }, []);
+    let activo = true;
+
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        router.replace('/login');
+        return;
+      }
+
+      const { data: eventos } = await supabase
+        .from('bodas')
+        .select('slug')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false });
+
+      if (!activo) return;
+
+      if (!eventos || eventos.length === 0) {
+        setSinEventos(true);
+        setCargando(false);
+        return;
+      }
+
+      // ?slug= permite elegir cuál gestionar cuando tiene más de uno.
+      const pedido = new URLSearchParams(window.location.search).get('slug');
+      const elegido = eventos.find((e) => e.slug === pedido) || eventos[0];
+      setWeddingSlug(elegido.slug);
+    })();
+
+    return () => { activo = false; };
+  }, [router]);
+
+  // 🔐 Paso 2: cuando ya sabemos el slug, cargamos sus invitados.
+  useEffect(() => {
+    if (weddingSlug) cargarInvitados();
+  }, [weddingSlug]);
 
   // Agregar un nuevo invitado a la base de datos
   const handleAgregarInvitado = async (e) => {
@@ -86,8 +131,19 @@ export default function InvitadosDashboard() {
   const totalConfirmados = invitados.reduce((acc, curr) => acc + (curr.pases_confirmados || 0), 0);
   const pendientes = invitados.filter(inv => inv.estado === 'pendiente').length;
 
+  if (sinEventos) {
+    return (
+      <div className="min-h-screen bg-[var(--nieve)] text-[var(--tinta)] p-6 md:p-12 flex flex-col items-center justify-center gap-4 text-center font-ui">
+        <p className="font-display text-2xl font-light">Aún no tienes eventos</p>
+        <p className="text-xs text-[var(--tinta-suave)] font-light">Crea tu primera invitación para gestionar su lista de invitados.</p>
+        <a href="/dashboard" className="bg-[var(--cafe)] text-white text-xs uppercase font-bold tracking-widest px-5 py-3 rounded-xl">← Volver a mi panel</a>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[var(--nieve)] text-[var(--tinta)] p-6 md:p-12 space-y-8 font-ui">
+      <a href="/dashboard" className="text-[11px] uppercase tracking-widest font-bold text-[var(--tinta-suave)] hover:text-[var(--cafe)] transition-colors">← Volver a mi panel</a>
       
       {/* 📊 ENCABEZADO Y MÉTRICAS RÁPIDAS EN VIVO */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-left">
