@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { limiteFotos } from '@/lib/precios';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function NoviosDashboard() {
@@ -85,6 +86,11 @@ function NoviosDashboard() {
   const [coverImage, setCoverImage] = useState(''); 
   const [musicUrl, setMusicUrl] = useState('/music/1-thousand-years.mp3');
   const [galeriaFotos, setGaleriaFotos] = useState(['', '', '', '', '', '']); 
+
+  // 🖼️ Galería (paso 4): el límite sale del plan contratado — lib/precios.js es la
+  // fuente única (Esencial 3, Premium 6, VIP 12) — y el contador, de las fotos ya subidas.
+  const maxFotosPermitidas = limiteFotos(planContratado);
+  const fotosSubidasCount = galeriaFotos.filter((url) => url && url.trim() !== '').length;
   const [ceremoniaFoto, setCeremoniaFoto] = useState('');
   const [recepcionFoto, setRecepcionFoto] = useState('');
   const [cancionSonando, setCancionSonando] = useState(null);
