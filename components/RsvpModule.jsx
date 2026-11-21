@@ -65,39 +65,40 @@ export default function RsvpModule({ weddingId, weddingSlug, diseño }) {
     ? 'bg-zinc-900/20 border-zinc-800 text-zinc-300'
     : diseño.id === 'boho-rancho'
     ? 'bg-[#faf7f2] border-amber-900/10 text-amber-950'
-    : 'bg-white border-stone-200 text-stone-700';
+    : 'bg-[var(--nieve)] border-[var(--terracota)]/40 text-[var(--tinta)]';
 
   const inputStyle = diseño.id === 'minimal-dark'
     ? 'bg-zinc-900 border-zinc-800 text-white focus:border-zinc-500'
-    : 'bg-white border-stone-200 text-stone-800 focus:border-amber-600';
+    : 'bg-[var(--nieve)] border-[var(--terracota)]/40 text-[var(--tinta)] focus:border-[var(--cafe)]';
 
   return (
     <section className="w-full pt-16 pb-24 px-4 bg-transparent block">
-      <div className={`max-w-md mx-auto p-6 md:p-8 rounded-3xl border shadow-md transition-all duration-500 ${cardStyle}`}>
-        <div className="text-center space-y-2 mb-6">
-          <span className={`text-[10px] uppercase tracking-widest font-semibold block ${diseño.id === 'minimal-dark' ? 'text-zinc-500' : 'text-amber-700'}`}>
+      <div className={`max-w-md mx-auto p-6 md:p-8 rounded-[2rem] border shadow-[0_20px_50px_-20px_rgba(67,48,43,0.35)] transition-all duration-500 ${cardStyle}`}>
+        <div className="text-center space-y-3 mb-6">
+          <span className={`etiqueta block ${diseño.id === 'minimal-dark' ? 'text-zinc-500' : 'text-[var(--cafe)]'}`}>
             Pases Digitales
           </span>
-          <h2 className={`text-2xl ${diseño.fuenteTitulo}`}>Confirmar Asistencia</h2>
+          <h2 className={`text-3xl font-light ${diseño.fuenteTitulo || 'font-display'}`}>Confirmar Asistencia</h2>
+          <div className="oro-linea w-24 mx-auto" aria-hidden="true" />
         </div>
 
         {!familiaEncontrada ? (
           <form onSubmit={buscarInvitado} className="space-y-4">
             <div className="space-y-1 text-left">
-              <label className="text-[10px] uppercase tracking-wider opacity-60 font-semibold block pl-1">Busca tu nombre o apellido:</label>
+              <label className="etiqueta opacity-60 block pl-1">Busca tu nombre o apellido:</label>
               <input 
                 type="text" 
                 value={nombreBusqueda}
                 onChange={(e) => setNombreBusqueda(e.target.value)}
                 placeholder="Ej. Familia Martínez o Alberto Gómez" 
                 required
-                className={`w-full px-4 py-3 border rounded-xl text-xs focus:outline-none transition-all ${inputStyle}`}
+                className={`w-full px-4 py-3 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[var(--cafe)]/30 transition-all ${inputStyle}`}
               />
             </div>
             <button 
               type="submit" 
               disabled={cargando}
-              className={`w-full py-3.5 rounded-xl uppercase text-xs tracking-wider font-semibold transition-all cursor-pointer ${diseño.botonAcento}`}
+              className={`w-full py-3.5 rounded-full uppercase text-xs tracking-wider font-semibold transition-all cursor-pointer disabled:opacity-60 ${diseño.botonAcento || 'bg-[var(--cafe)] hover:bg-[var(--tinta)] text-[var(--nieve)]'}`}
             >
               {cargando ? 'Buscando pases...' : '🔍 Buscar mi invitación'}
             </button>
@@ -105,19 +106,19 @@ export default function RsvpModule({ weddingId, weddingSlug, diseño }) {
           </form>
         ) : !mensajeConfirmacion ? (
           <div className="space-y-6 text-center animate-fadeIn">
-            <div className="bg-stone-500/5 p-4 rounded-2xl border border-stone-200/20">
-              <p className="text-[10px] uppercase tracking-widest opacity-50">Bienvenido(a)</p>
-              <h4 className="font-serif text-lg font-medium mt-0.5">{familiaEncontrada.nombre_invitado}</h4>
-              <p className="text-xs opacity-70 font-light mt-1">Tienes un total de <span className="font-mono font-bold text-sm">{familiaEncontrada.pases_totales}</span> pases asignados.</p>
+            <div className="bg-[var(--arena)] p-4 rounded-2xl border border-[var(--terracota)]/30">
+              <p className="etiqueta opacity-60">Bienvenido(a)</p>
+              <h4 className="font-display text-xl font-light mt-0.5">{familiaEncontrada.nombre_invitado}</h4>
+              <p className="text-xs text-[var(--tinta-suave)] font-light mt-1">Tienes un total de <span className="font-mono font-bold text-sm text-[var(--tinta)]">{familiaEncontrada.pases_totales}</span> pases asignados.</p>
             </div>
 
             <div className="space-y-4">
               <div className="space-y-1.5 text-left">
-                <label className="text-[10px] uppercase tracking-wider opacity-60 font-semibold block pl-1">¿Cuántos pases confirmarás?</label>
+                <label className="etiqueta opacity-60 block pl-1">¿Cuántos pases confirmarás?</label>
                 <select 
                   value={pasesConfirmados}
                   onChange={(e) => setPasesConfirmados(parseInt(e.target.value))}
-                  className={`w-full p-3 border rounded-xl text-xs focus:outline-none cursor-pointer transition-all ${inputStyle}`}
+                  className={`w-full p-3 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[var(--cafe)]/30 cursor-pointer transition-all ${inputStyle}`}
                 >
                   {Array.from({ length: familiaEncontrada.pases_totales }, (_, i) => i + 1).map((num) => (
                     <option key={num} value={num}>{num} {num === 1 ? 'Persona' : 'Personas'}</option>
@@ -130,7 +131,7 @@ export default function RsvpModule({ weddingId, weddingSlug, diseño }) {
                   type="button"
                   onClick={() => enviarConfirmacion('confirmado')}
                   disabled={cargando}
-                  className={`py-3.5 rounded-xl uppercase text-xs tracking-wider font-semibold transition-all cursor-pointer ${diseño.botonAcento}`}
+                  className={`py-3.5 rounded-full uppercase text-xs tracking-wider font-semibold transition-all cursor-pointer disabled:opacity-60 ${diseño.botonAcento || 'bg-[var(--cafe)] hover:bg-[var(--tinta)] text-[var(--nieve)]'}`}
                 >
                   ✅ Sí Asistiré
                 </button>
@@ -138,7 +139,7 @@ export default function RsvpModule({ weddingId, weddingSlug, diseño }) {
                   type="button"
                   onClick={() => enviarConfirmacion('declinado')}
                   disabled={cargando}
-                  className="py-3.5 rounded-xl uppercase text-xs tracking-wider font-semibold bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 transition-all cursor-pointer"
+                  className="py-3.5 rounded-full uppercase text-xs tracking-wider font-semibold bg-[var(--arena)] hover:bg-[var(--crema)] text-[var(--tinta-suave)] border border-[var(--terracota)]/40 transition-all cursor-pointer disabled:opacity-60"
                 >
                   ❌ Declinar
                 </button>
@@ -148,14 +149,14 @@ export default function RsvpModule({ weddingId, weddingSlug, diseño }) {
         ) : (
           <div className="text-center space-y-4 py-4 animate-scaleUp">
             <span className="text-3xl block">✨</span>
-            <h4 className={`text-xl ${diseño.fuenteTitulo}`}>¡Respuesta Guardada!</h4>
-            <p className="text-xs opacity-75 font-light leading-relaxed max-w-xs mx-auto">
+            <h4 className={`font-display text-2xl font-light ${diseño.fuenteTitulo || ''}`}>¡Respuesta Guardada!</h4>
+            <p className="text-xs text-[var(--tinta-suave)] font-light leading-relaxed max-w-xs mx-auto">
               Muchas gracias. Los novios han recibido tu confirmación en vivo en su panel de administración.
             </p>
             <button 
               type="button" 
               onClick={() => { setFamiliaEncontrada(null); setNombreBusqueda(''); setMensajeConfirmacion(false); }}
-              className="text-[10px] uppercase font-bold tracking-widest text-stone-400 hover:text-stone-600 transition-colors cursor-pointer mt-2"
+              className="etiqueta text-[var(--tinta-suave)] hover:text-[var(--cafe)] transition-colors cursor-pointer mt-2"
             >
               ← Regresar / Buscar otro nombre
             </button>

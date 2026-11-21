@@ -49,7 +49,7 @@ export default function InvitationHeroXV({ weddingData }) {
       <div className="relative z-10 flex flex-col items-center text-center w-full px-6">
         
         <motion.div animate={floatAnimation} className="mb-4">
-          <span className="text-[12px] md:text-[14px] tracking-[0.5em] text-rose-200 uppercase font-bold drop-shadow-md">
+          <span className="etiqueta text-rose-200 drop-shadow-md">
             Mis XV Años
           </span>
         </motion.div>
@@ -65,7 +65,7 @@ export default function InvitationHeroXV({ weddingData }) {
         </motion.h1>
 
         {/* 👇 FRASE CONECTADA AL DASHBOARD CON VALOR POR DEFECTO DE XV */}
-        <p className="font-sans font-light tracking-widest text-xs md:text-sm text-white/90 mt-6 max-w-sm uppercase drop-shadow-md">
+        <p className="font-display font-light tracking-widest text-base md:text-lg text-white/90 mt-6 max-w-sm uppercase drop-shadow-md">
           "{weddingData?.welcomePhrase || 'Hay momentos inolvidables que se guardan en el corazón para siempre.'}"
         </p>
 
@@ -83,10 +83,10 @@ export default function InvitationHeroXV({ weddingData }) {
             { label: 'Seg', value: timeLeft.seconds }
           ].map((item, idx) => (
             <div key={idx} className="flex flex-col items-center">
-              <span className="text-3xl md:text-5xl font-serif text-white font-light drop-shadow-md">
+              <span className="font-display text-3xl md:text-5xl text-white font-light drop-shadow-md">
                 {item.value < 10 ? `0${item.value}` : item.value}
               </span>
-              <span className="text-[9px] md:text-[10px] tracking-widest text-rose-200 uppercase mt-2 font-bold">
+              <span className="etiqueta text-rose-200 mt-2">
                 {item.label}
               </span>
             </div>

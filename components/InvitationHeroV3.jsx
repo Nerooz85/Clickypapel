@@ -67,30 +67,30 @@ export default function InvitationHeroV3({ weddingData, diseño }) {
         initial="hidden"
         animate="show"
       >
-        <motion.span variants={itemVariants} className="text-[9px] md:text-[11px] tracking-[0.4em] text-[#d4af37] uppercase font-light mb-6">
+        <motion.span variants={itemVariants} className="etiqueta text-[var(--dorado)] font-light mb-6">
           ¡Nos Casamos!
         </motion.span>
 
         {/* Nombres con Fallback de seguridad 👇 */}
-        <motion.h1 variants={itemVariants} className="text-6xl md:text-8xl font-serif text-white/95 drop-shadow-2xl leading-none">
+        <motion.h1 variants={itemVariants} className="font-display text-6xl md:text-8xl font-light text-white/95 drop-shadow-2xl leading-none">
           {weddingData?.brideName || "Novia"}
         </motion.h1>
         
         <motion.div variants={itemVariants} className="my-2 md:my-4">
-          <span className="text-4xl md:text-6xl font-script text-[#d4af37] font-light">&</span>
+          <span className="text-4xl md:text-6xl font-script text-[var(--dorado)] font-light">&</span>
         </motion.div>
         
-        <motion.h1 variants={itemVariants} className="text-6xl md:text-8xl font-serif text-white/95 drop-shadow-2xl leading-none mb-8">
+        <motion.h1 variants={itemVariants} className="font-display text-6xl md:text-8xl font-light text-white/95 drop-shadow-2xl leading-none mb-8">
           {weddingData?.groomName || "Novio"}
         </motion.h1>
 
         {/* Frase Personalizada conectada 👇 */}
-        <motion.p variants={itemVariants} className="font-serif italic text-sm md:text-base text-stone-200/80 max-w-md drop-shadow-md tracking-wide">
+        <motion.p variants={itemVariants} className="font-display italic text-base md:text-lg text-white/90 max-w-md drop-shadow-md tracking-wide">
           "{weddingData?.welcomePhrase || 'El amor todo lo cree, todo lo espera, todo lo soporta.'}"
         </motion.p>
 
         {/* Línea divisoria elegante */}
-        <motion.div variants={itemVariants} className="w-px h-12 md:h-16 bg-gradient-to-b from-transparent via-[#d4af37]/50 to-transparent my-8" />
+        <motion.div variants={itemVariants} className="w-px h-12 md:h-16 bg-gradient-to-b from-transparent via-[var(--dorado)]/50 to-transparent my-8" />
 
         {/* ⏳ CONTADOR ESTILO BOSQUE MÍSTICO */}
         <motion.div variants={itemVariants} className="grid grid-cols-4 gap-6 md:gap-10">
@@ -101,10 +101,10 @@ export default function InvitationHeroV3({ weddingData, diseño }) {
             { label: 'Seg', value: timeLeft.seconds }
           ].map((item, idx) => (
             <div key={idx} className="flex flex-col items-center">
-              <span className="text-4xl md:text-5xl font-serif text-[#d4af37] drop-shadow-md">
+              <span className="font-display text-4xl md:text-5xl font-light text-[var(--dorado)] drop-shadow-md">
                 {item.value < 10 ? `0${item.value}` : item.value}
               </span>
-              <span className="text-[8px] md:text-[9px] tracking-[0.3em] text-stone-300 uppercase mt-2 font-light">
+              <span className="etiqueta text-white/80 mt-2 font-light">
                 {item.label}
               </span>
             </div>
@@ -120,8 +120,8 @@ export default function InvitationHeroV3({ weddingData, diseño }) {
         animate={{ opacity: 0.6, y: [0, 10, 0] }}
         transition={{ delay: 2.5, duration: 2, repeat: Infinity }}
       >
-        <span className="text-[8px] tracking-[0.3em] uppercase text-stone-300 mb-2 font-light">Ver Más</span>
-        <div className="w-px h-6 bg-stone-400" />
+        <span className="etiqueta text-white/80 mb-2 font-light">Ver Más</span>
+        <div className="w-px h-6 bg-[var(--dorado)]/70" />
       </motion.div>
 
     </section>
