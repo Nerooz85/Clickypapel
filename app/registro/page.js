@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { obtenerPlan, calcularTotal, formatearPesos } from '@/lib/precios';
 
-const MUSICA_POR_DEFECTO = '/music/01-clasico-romantico.mp3';
+const MUSICA_POR_DEFECTO = '/music/1. Clásico Romántico.mp3';
 
 function RegistroForm() {
   const searchParams = useSearchParams();
@@ -18,7 +18,13 @@ function RegistroForm() {
   const plan = obtenerPlan(planId);
   const total = calcularTotal(planId, musicaExtra);
 
-  const [tipoEvento, setTipoEvento] = useState('boda');
+  // ?evento= puede venir del demo ("Quiero esta"): solo aceptamos los tipos
+  // que existen; el resto cae a 'boda' en vez de romper la página.
+  const eventoParam = searchParams.get('evento');
+  const eventoInicial = ['boda', 'xvanos', 'baby', 'bautizo', 'despedida'].includes(eventoParam)
+    ? eventoParam
+    : 'boda';
+  const [tipoEvento, setTipoEvento] = useState(eventoInicial);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [slugDeseado, setSlugDeseado] = useState('');
@@ -92,7 +98,7 @@ function RegistroForm() {
   };
 
   const entrarConGoogle = async () => {
-    const destino = `${window.location.origin}/registro?plan=${planId}&template=${template}&paleta=${paletaUrl}${musicaExtra ? '&musica=custom' : ''}`;
+    const destino = `${window.location.origin}/registro?plan=${planId}&template=${template}&paleta=${paletaUrl}&evento=${tipoEvento}${musicaExtra ? '&musica=custom' : ''}`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: destino },

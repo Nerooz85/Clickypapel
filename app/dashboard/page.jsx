@@ -55,6 +55,19 @@ function NoviosDashboard() {
   const [subiendoIndex, setSubiendoIndex] = useState(null);
   const [subiendoMusica, setSubiendoMusica] = useState(false);
 
+  // 📣 Aviso visible de guardado (éxito/error). Antes los guardados fallaban
+  // en silencio: supabase.update() no lanza excepción cuando falla, devuelve
+  // { error }, y el código no lo revisaba. Ahora cada guardado revisa el
+  // error y deja constancia visible aquí.
+  const [aviso, setAviso] = useState(null);
+  const avisoTimer = useRef(null);
+  const mostrarAviso = (tipo, texto) => {
+    if (avisoTimer.current) clearTimeout(avisoTimer.current);
+    setAviso({ tipo, texto });
+    avisoTimer.current = setTimeout(() => setAviso(null), 6000);
+  };
+  useEffect(() => () => { if (avisoTimer.current) clearTimeout(avisoTimer.current); }, []);
+
   // 🪙 Información de Compra
   const [planContratado, setPlanContratado] = useState('premium'); 
   const [tieneMusicaPersonalizada, setTieneMusicaPersonalizada] = useState(false); 
@@ -84,7 +97,7 @@ function NoviosDashboard() {
 
   // 🎵📸 ESTADOS PASO 4
   const [coverImage, setCoverImage] = useState(''); 
-  const [musicUrl, setMusicUrl] = useState('/music/1-thousand-years.mp3');
+  const [musicUrl, setMusicUrl] = useState('/music/1. Clásico Romántico.mp3');
   const [galeriaFotos, setGaleriaFotos] = useState(['', '', '', '', '', '']); 
 
   // 🖼️ Galería (paso 4): el límite sale del plan contratado — lib/precios.js es la
@@ -120,9 +133,21 @@ function NoviosDashboard() {
     { id: '5', titulo: "Instrumental Dulce", url: "/music/5. Instrumental Dulce.mp3", bpm: "65 BPM" }
   ];
 
+  // Upsell de música: va al flujo real de pago (/checkout → Stripe) con el
+  // complemento de música personalizada. El checkout muestra el total
+  // (plan + música) antes de redirigir al Payment Link del plan.
+  // ⚠️ El botón del álbum sigue en alerta: no existe un Payment Link de
+  // Stripe de $599 para el álbum colectivo (solo hay links por plan en
+  // lib/precios.js) y el webhook no sabe desbloquearlo. Conectar el álbum
+  // al link del plan cobraría el plan completo sin desbloquear nada:
+  // hace falta crear el link en Stripe y su desbloqueo (decisión 3b).
   const manejarUpgrade = (tipo) => {
-    const precio = tipo === 'musica' ? '$299 MXN' : '$599 MXN';
-    const producto = tipo === 'musica' ? 'Canción Personalizada' : 'Álbum Colectivo Premium';
+    if (tipo === 'musica') {
+      window.location.href = `/checkout?slug=${weddingSlug}&plan=${planContratado}&musica=custom`;
+      return;
+    }
+    const precio = '$599 MXN';
+    const producto = 'Álbum Colectivo Premium';
     alert(`🚀 Redirigiendo a pasarela de pago segura para agregar [${producto}] por ${precio}. Al pagar, la función se desbloqueará de inmediato.`);
   };
 
@@ -140,8 +165,8 @@ function NoviosDashboard() {
       
       const { data: { publicUrl } } = supabase.storage.from('invitaciones-media').getPublicUrl(filePath);
       setMusicUrl(publicUrl);
-      alert("🎵 ¡Tu canción se ha subido y procesado con éxito!");
-    } catch (err) { alert("Error al cargar el archivo de audio."); } finally { setSubiendoMusica(false); }
+      mostrarAviso('exito', '🎵 ¡Tu canción se ha subido con éxito! Recuerda guardar el paso para que quede en tu invitación.');
+    } catch (err) { mostrarAviso('error', 'No pudimos cargar el archivo de audio. Intenta otra vez.'); } finally { setSubiendoMusica(false); }
   };
 
   const escucharCancion = (url) => {
@@ -192,8 +217,9 @@ function NoviosDashboard() {
       else if (tipoDoc === 'ceremonia') setCeremoniaFoto(publicUrl);
       else if (tipoDoc === 'recepcion') setRecepcionFoto(publicUrl);
       else handleFotoChange(index, publicUrl);
+      mostrarAviso('exito', '✅ Foto subida. Recuerda guardar el paso para que quede en tu invitación.');
       
-    } catch (err) { alert("Error al cargar archivo."); } finally { setSubiendoIndex(null); }
+    } catch (err) { mostrarAviso('error', 'No pudimos cargar el archivo. Intenta otra vez.'); } finally { setSubiendoIndex(null); }
   };
 
   const descargarQR = async (urlQr, nombreArchivo) => {
@@ -231,7 +257,7 @@ function NoviosDashboard() {
         setTemplateId(bodaData.template_id || 'v2'); 
         setTipoEvento(bodaData.tipo_evento || 'boda'); 
         setCoverImage(bodaData.cover_image || '');
-        setMusicUrl(bodaData.music_url || '/music/1-thousand-years.mp3');
+        setMusicUrl(bodaData.music_url || '/music/1. Clásico Romántico.mp3');
         setPlanContratado(bodaData.plan_tipo || 'premium'); 
         setTieneMusicaPersonalizada(bodaData.musica_extra || false);
         setBanco(bodaData.banco || ''); 
@@ -318,13 +344,20 @@ function NoviosDashboard() {
   const toggleAlbumCompartido = async () => {
     const nuevoEstado = !albumActivado; 
     setAlbumActivado(nuevoEstado);
-    try { await supabase.from('bodas').update({ album_compartido_activo: nuevoEstado }).eq('slug', weddingSlug); } catch (e) {}
+    try {
+      const { error } = await supabase.from('bodas').update({ album_compartido_activo: nuevoEstado }).eq('slug', weddingSlug);
+      if (error) throw error;
+      mostrarAviso('exito', nuevoEstado ? '✅ Álbum colectivo activado.' : 'Álbum colectivo desactivado.');
+    } catch (e) {
+      setAlbumActivado(!nuevoEstado);
+      mostrarAviso('error', 'No pudimos cambiar el álbum colectivo. Intenta otra vez.');
+    }
   };
 
   const handleGuardarYContinuar = async () => {
     setGuardando(true);
     try { 
-      await supabase.from('bodas').update({ 
+      const { error } = await supabase.from('bodas').update({ 
         bride_name: brideName, 
         groom_name: groomName, 
         event_date: eventDate ? `${eventDate}T18:00:00` : null, 
@@ -336,41 +369,62 @@ function NoviosDashboard() {
         template_id: templateId,
         tipo_evento: tipoEvento 
       }).eq('slug', weddingSlug); 
+      if (error) throw error;
+      mostrarAviso('exito', '✅ Datos guardados.');
       setPasoActivo(3); 
-    } catch (err) { alert("Error"); } finally { setGuardando(false); }
+    } catch (err) { mostrarAviso('error', 'No pudimos guardar tus datos. Intenta otra vez.'); } finally { setGuardando(false); }
   };
 
   const handleAgregarInvitado = async (e) => {
     e.preventDefault(); if (!nuevoNombre.trim()) return; setGuardando(true);
-    try { await supabase.from('invitados').insert([{ boda_slug: weddingSlug, nombre_invitado: nuevoNombre.trim(), pases_totales: nuevosPases, pases_confirmados: 0, estado: 'pendiente' }]); setNuevoNombre(''); setNuevosPases(2); const { data } = await supabase.from('invitados').select('*').eq('boda_slug', weddingSlug).order('nombre_invitado', { ascending: true }); if (data) setInvitados(data); } catch (err) { alert("Error"); } finally { setGuardando(false); }
+    try {
+      const { error } = await supabase.from('invitados').insert([{ boda_slug: weddingSlug, nombre_invitado: nuevoNombre.trim(), pases_totales: nuevosPases, pases_confirmados: 0, estado: 'pendiente' }]);
+      if (error) throw error;
+      setNuevoNombre(''); setNuevosPases(2);
+      const { data } = await supabase.from('invitados').select('*').eq('boda_slug', weddingSlug).order('nombre_invitado', { ascending: true });
+      if (data) setInvitados(data);
+      mostrarAviso('exito', '✅ Invitado agregado a la lista.');
+    } catch (err) { mostrarAviso('error', 'No pudimos agregar al invitado. Intenta otra vez.'); } finally { setGuardando(false); }
   };
 
   const handleEliminarInvitado = async (id) => {
     if (!confirm("¿Eliminar?")) return;
-    try { await supabase.from('invitados').delete().eq('id', id); setInvitados(invitados.filter(inv => inv.id !== id)); } catch (e) { alert("Error"); }
+    try {
+      const { error } = await supabase.from('invitados').delete().eq('id', id);
+      if (error) throw error;
+      setInvitados(invitados.filter(inv => inv.id !== id));
+      mostrarAviso('exito', 'Invitado eliminado.');
+    } catch (e) { mostrarAviso('error', 'No pudimos eliminar al invitado. Intenta otra vez.'); }
   };
 
   const handleGuardarPaso4 = async () => {
     setGuardando(true);
     try {
       const fotosLimpias = galeriaFotos.filter(url => url.trim() !== '');
-      await supabase.from('bodas').update({ 
+      const { error } = await supabase.from('bodas').update({ 
         cover_image: coverImage.trim(), music_url: musicUrl, gallery_images: fotosLimpias,
         ceremonia_foto: ceremoniaFoto.trim(), recepcion_foto: recepcionFoto.trim()
       }).eq('slug', weddingSlug);
+      if (error) throw error;
+      mostrarAviso('exito', '✅ Fotos y música guardadas.');
       setPasoActivo(5); 
-    } catch (err) { alert("Error"); } finally { setGuardando(false); }
+    } catch (err) { mostrarAviso('error', 'No pudimos guardar tus fotos y música. Intenta otra vez.'); } finally { setGuardando(false); }
   };
 
   const handleGuardarPaso5 = async () => {
     setGuardando(true);
-    try { await supabase.from('bodas').update({ banco: banco.trim(), titular: titular.trim(), clabe: clabe.trim(), amazon_url: amazonUrl.trim(), liverpool_url: liverpoolUrl.trim() }).eq('slug', weddingSlug); setPasoActivo(6); } catch (err) { alert("Error"); } finally { setGuardando(false); }
+    try {
+      const { error } = await supabase.from('bodas').update({ banco: banco.trim(), titular: titular.trim(), clabe: clabe.trim(), amazon_url: amazonUrl.trim(), liverpool_url: liverpoolUrl.trim() }).eq('slug', weddingSlug);
+      if (error) throw error;
+      mostrarAviso('exito', '✅ Datos de regalos guardados.');
+      setPasoActivo(6);
+    } catch (err) { mostrarAviso('error', 'No pudimos guardar tus datos de regalos. Intenta otra vez.'); } finally { setGuardando(false); }
   };
 
   const handleGuardarPaso6 = async () => {
     setGuardando(true);
     try { 
-      await supabase.from('bodas').update({ 
+      const { error } = await supabase.from('bodas').update({ 
         itinerario_misa: itinerarioMisa.trim(), 
         itinerario_fiesta: itinerarioFiesta.trim(),
         hora_baile: horaBaile.trim(),
@@ -379,8 +433,9 @@ function NoviosDashboard() {
         codigo_vestimenta: codigoVestimentaText, 
         paleta_colores: paletaColores.trim() 
       }).eq('slug', weddingSlug); 
-      alert("✅ Configuración guardada y en línea."); 
-    } catch (err) { alert("Error al guardar."); } finally { setGuardando(false); }
+      if (error) throw error;
+      mostrarAviso('exito', '✅ Configuración guardada y en línea.'); 
+    } catch (err) { mostrarAviso('error', 'No pudimos guardar la configuración. Intenta otra vez.'); } finally { setGuardando(false); }
   };
 
   const totalInvitados = invitados.length;
@@ -472,7 +527,15 @@ function NoviosDashboard() {
           ))}
         </nav>
 
-        <div className="mt-auto">
+        <div className="mt-auto space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <a href="/" className="text-[11px] uppercase tracking-widest font-bold text-[var(--crema)]/70 hover:text-white transition-colors">
+              ← Inicio
+            </a>
+            <button type="button" onClick={cerrarSesion} className="text-[11px] uppercase tracking-widest font-bold text-[var(--crema)]/70 hover:text-white transition-colors cursor-pointer">
+              Cerrar sesión
+            </button>
+          </div>
           <a href={`https://tugrandia.icu/${weddingSlug}`} target="_blank" className="flex items-center justify-center gap-2 w-full bg-[var(--dorado)] text-[#2E211C] px-4 py-3 rounded-xl text-xs font-bold uppercase tracking-wider hover:brightness-110 transition-colors">
             Ver Invitación ➔
           </a>
@@ -482,8 +545,11 @@ function NoviosDashboard() {
       {/* 🚀 CONTENIDO PRINCIPAL */}
       <main className="flex-1 h-screen overflow-y-auto bg-[var(--nieve)] relative">
         <div className="lg:hidden bg-[#2E211C] p-4 flex justify-between items-center text-white sticky top-0 z-30">
-          <div className="font-display text-lg tracking-widest">clicky<span className="text-[var(--dorado)]">papel</span></div>
-          <a href={`https://tugrandia.icu/${weddingSlug}`} target="_blank" className="text-[10px] bg-[var(--cafe)] px-3 py-1.5 rounded-full uppercase font-bold">Ver Web</a>
+          <a href="/" className="font-display text-lg tracking-widest">clicky<span className="text-[var(--dorado)]">papel</span></a>
+          <div className="flex items-center gap-2">
+            <a href={`https://tugrandia.icu/${weddingSlug}`} target="_blank" className="text-[10px] bg-[var(--cafe)] px-3 py-1.5 rounded-full uppercase font-bold">Ver Web</a>
+            <button type="button" onClick={cerrarSesion} className="text-[10px] bg-white/10 px-3 py-1.5 rounded-full uppercase font-bold cursor-pointer">Salir</button>
+          </div>
         </div>
 
         <div className="max-w-5xl mx-auto p-6 md:p-12 space-y-8">
@@ -504,6 +570,20 @@ function NoviosDashboard() {
             </div>
           </div>
           <div className="oro-linea" />
+
+          {aviso && (
+            <div
+              role="status"
+              className={`px-5 py-3.5 rounded-xl text-sm font-medium border flex items-start justify-between gap-3 ${
+                aviso.tipo === 'exito'
+                  ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                  : 'bg-rose-50 border-rose-200 text-rose-800'
+              }`}
+            >
+              <span>{aviso.texto}</span>
+              <button type="button" onClick={() => setAviso(null)} aria-label="Cerrar aviso" className="shrink-0 opacity-60 hover:opacity-100 cursor-pointer">✕</button>
+            </div>
+          )}
 
           <AnimatePresence mode="wait">
             <motion.div key={pasoActivo} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.3 }}>
