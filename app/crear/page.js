@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const MUSICA_POR_DEFECTO = '/music/01-clasico-romantico.mp3';
+const MUSICA_POR_DEFECTO = '/music/1. Clásico Romántico.mp3';
 
 const EVENTOS = {
   boda: {
@@ -88,7 +88,12 @@ function CrearContenido() {
   const planPreferido = searchParams.get('plan') || 'premium';
 
   const [paso, setPaso] = useState(1);
-  const [tipoEvento, setTipoEvento] = useState(searchParams.get('evento') || 'boda');
+  // El parámetro ?evento= puede venir inventado (p. ej. desde un enlace
+  // compartido): solo aceptamos los tipos que existen; el resto cae a 'boda'
+  // en vez de romper la página (EVENTOS[tipo] sería undefined).
+  const eventoParam = searchParams.get('evento');
+  const eventoInicial = eventoParam && EVENTOS[eventoParam] ? eventoParam : 'boda';
+  const [tipoEvento, setTipoEvento] = useState(eventoInicial);
   const [nombre1, setNombre1] = useState('');
   const [nombre2, setNombre2] = useState('');
   const [fecha, setFecha] = useState('');
@@ -113,7 +118,7 @@ function CrearContenido() {
       const borrador = sessionStorage.getItem('clickypapel_borrador');
       if (borrador) {
         const d = JSON.parse(borrador);
-        setTipoEvento(d.tipoEvento || 'boda');
+        setTipoEvento(d.tipoEvento && EVENTOS[d.tipoEvento] ? d.tipoEvento : 'boda');
         setNombre1(d.nombre1 || '');
         setNombre2(d.nombre2 || '');
         setFecha(d.fecha || '');

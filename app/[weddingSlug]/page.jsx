@@ -223,8 +223,17 @@ export default function PaginaMaestraInvitacion() {
   const diseño = listadoPaletas[paletaActiva] || listadoPaletas.cashmere;
   const claseFuente = listadoFuentes[fuenteActiva] || listadoFuentes.clasica;
 
+  // Botón "Quiero esta" / "Comprar" del demo: lleva al flujo real de compra
+  // (/registro → /checkout → Stripe) conservando lo que el visitante
+  // configuró en el demo: tipo de evento, diseño y color.
   const procesarCompra = () => {
-    alert(`Redirigiendo al checkout...\n\nEvento: ${tipoEventoGlobal}\nDiseño elegido: ${plantillaActiva}\nColor: ${paletaActiva}\nFuente: ${fuenteActiva}`);
+    const params = new URLSearchParams({
+      plan: 'premium',
+      template: plantillaActiva,
+      paleta: paletaActiva,
+      evento: tipoEventoGlobal,
+    });
+    window.location.href = `/registro?${params.toString()}`;
   };
 
   if (cargando) return <div className="min-h-screen bg-[var(--nieve)] flex items-center justify-center"><div className="w-10 h-10 border-2 border-[var(--cafe)] border-t-transparent rounded-full animate-spin" /></div>;
